@@ -1,0 +1,49 @@
+{
+    "name": "test",
+    "interfaces":{
+        "mqtt": true,
+        "fiware": true,
+        "file":
+        {
+            "path": "example.json"
+        }
+    },
+    "inputs": [
+        {
+            "id": "test",
+            "interface": "mqtt",
+            "id_interface": "test",
+            "attributes": [
+                {"id": "example", 
+                "id_interface":"test",
+                "type": "value"
+                }
+            ]
+        }
+    ],
+    "outputs": [
+        {
+            "id": "test",
+            "interface": "mqtt",
+            "id_interface": "test",
+            "attributes": [
+                {"id": "example", 
+                "id_interface":"test",
+                "type": "value"
+                }
+            ]
+        }
+    ],
+    "metadata": [],
+    "controller_components": [
+        {
+            "id": "storage",
+            "type": "storage",
+            "inputs": [
+            ],
+            "outputs": [
+            ]
+        }
+    ],
+    "controller_settings": {}
+}

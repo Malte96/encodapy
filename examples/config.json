@@ -14,8 +14,12 @@
             "interface": "mqtt",
             "id_interface": "test",
             "attributes": [
-                {"id": "example", 
-                "id_interface":"test",
+                {"id": "example_1", 
+                "id_interface":"test_1",
+                "type": "value"
+                },
+                {"id": "example_2", 
+                "id_interface":"test_2",
                 "type": "value"
                 }
             ]
@@ -37,6 +41,7 @@
     "metadata": [],
     "controller_components": [
         {
+            "active": true,
             "id": "storage",
             "type": "storage",
             "inputs": [

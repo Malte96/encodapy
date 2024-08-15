@@ -5,7 +5,8 @@ from pydantic import BaseModel, ValidationError
 import json
 from typing import Union
 from controller_software.config.types import Interfaces, AttributeTypes, ControllerComponents
-
+from controller_software.utils.error_handling import ConfigError
+from loguru import logger
 # TODO: Add the configuration parameters and the import from a json-file
 # TODO: Add a documentation for the models
 # TODO: Is this validation implementation useful and correct?
@@ -65,6 +66,7 @@ class ControllerComponentModel(BaseModel):
     Model for the configuration of the controller components.
     """
     
+    active: bool = True
     id: str
     type: ControllerComponents          # TODO: How to reference the component types?
     inputs: list[str]                   # TODO: How to reference the input/output models?
@@ -83,7 +85,7 @@ class ConfigModel(BaseModel):
     - controller_components: The components of the controller
     - controller_settings: The settings for the controller #TODO: What is needed here?
     """
-    
+        
     interfaces: InterfaceModel
        
     inputs: list[InputModel]
@@ -105,6 +107,10 @@ class ConfigModel(BaseModel):
                 config_data = json.load(f)
             return cls(**config_data)
         except (FileNotFoundError, json.JSONDecodeError) as e:
-            raise ValueError(f"Couldn't load configuration from json file: {e}")
+            logger.error(f"Couldn't load configuration from json file: {e}")
+
         except ValidationError as e:
-            raise KeyError(f"Error during validation: {e}")
+            logger.error(e)
+
+
+        raise ConfigError(f"Coudn't load configuration from json file")

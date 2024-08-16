@@ -1,38 +1,35 @@
 {
     "name": "test",
     "interfaces":{
-        "mqtt": true,
+        "mqtt": false,
         "fiware": true,
-        "file":
-        {
-            "path": "example.json"
-        }
+        "file":{}
     },
     "inputs": [
         {
-            "id": "test",
-            "interface": "mqtt",
-            "id_interface": "test",
+            "id": "dhw_calculation",
+            "interface": "fiware",
+            "id_interface": "urn:dhw_calculation:10",
             "attributes": [
-                {"id": "example_1", 
-                "id_interface":"test_1",
-                "type": "value"
+                {"id": "temperature", 
+                "id_interface":"dhw:temperature",
+                "type": "timeseries"
                 },
-                {"id": "example_2", 
-                "id_interface":"test_2",
-                "type": "value"
+                {"id": "tapping", 
+                "id_interface":"dhw:tapping",
+                "type": "timeseries"
                 }
             ]
         }
     ],
     "outputs": [
         {
-            "id": "test",
-            "interface": "mqtt",
-            "id_interface": "test",
+            "id": "dhw_calculation",
+            "interface": "fiware",
+            "id_interface": "urn:dhw_calculation:10",
             "attributes": [
-                {"id": "example", 
-                "id_interface":"test",
+                {"id": "hygienic_status", 
+                "id_interface":"dhw:hygienic_status",
                 "type": "value"
                 }
             ]
@@ -41,14 +38,32 @@
     "metadata": [],
     "controller_components": [
         {
-            "active": true,
-            "id": "storage",
-            "type": "storage",
-            "inputs": [
-            ],
-            "outputs": [
-            ]
+            "id": "hygienic_controller",
+            "type": "hygienic_controller",
+            "inputs": {
+                "temperature": "temperature", 
+                "tappings": "tapping"
+                },
+            "outputs":{
+                "hygienic_status": {
+                    "output" : "dhw_calculation",
+                    "attribute": "hygienic_status"
+                }
+            }
         }
     ],
-    "controller_settings": {}
+    "controller_settings": {
+        "timeranges":
+        {
+            "calculation":
+            {
+                "timerange":24,
+                "timerange_units":"hour"
+            },
+            "results":
+            {
+                "timestep":10
+            }
+        }
+    }
 }

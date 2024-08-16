@@ -27,12 +27,12 @@ from fbs.software.utils import (
 from fbs.software.exceptions import NoCredentials
 from IPython.display import display
 
-from controller_software.config import ConfigModel, InputModel, OutputModel, Interfaces, AttributeTypes
+from controller_software.config import ConfigModel, InputModel, OutputModel, Interfaces, AttributeTypes, TimerangeTypes
 from controller_software.utils.models import InputDataModel, InputDataEntityModel, InputDataAttributeModel, OutputDataEntityModel, OutputDataAttributeModel
 
 from controller_software.utils.error_handling import NotSupportedError
 
-class FiwareBasicService():
+class ControllerBasicService():
     """
         Class for processing the measurement data including data transfer to a FIWARE platform.
             
@@ -44,29 +44,32 @@ class FiwareBasicService():
         calibration_time:int = 600
     ) -> None:
         self.fiware_params = dict()
+        self.database_params = dict()   
         self.fiware_token = dict()
+        
+        self.fiware_token_client = None
         self.fiware_header = None
+        
         self.cb_client = None
-        self.crate_db_url = None
-        self.crate_db_user = None
-        self.crate_db_pw = None
-        self.crate_db_ssl = None
+        self.crate_db_client = None
+        
+        # TODO: How to handle the configuration of the timeranges and time steps
         self.time_step = time_step
         self.sampling_time = sampling_time
         self.calibration_time = calibration_time
-        self.input_entity = None
-        self.output_entity = None
-        self.input_attributes = dict()
-        self.output_attributes = dict()
-        self.logger = LoggerControl()
         self.input_data_timeranges = dict()
+        
+        self.config = None
+        
+        self.logger = LoggerControl()
+
         self.timestamp_health = None
         
 
     
-    async def _load_config_from_env(self):
+    async def _load_env(self):
         """
-        Function loads the configuration of the service from the configuration file (.env).
+        Function loads the env of the service from the configuration file (.env).
             
         """
         self.fiware_params["cb_url"] = get_env_variable("CB_URL")
@@ -83,17 +86,14 @@ class FiwareBasicService():
             else:
                 logger.error('No authentication credentials available')
                 raise NoCredentials
-            
-        self.crate_db_url = get_env_variable("CRATE_DB_URL")
-        self.crate_db_user = get_env_variable("CRATE_DB_USER")
-        self.crate_db_pw = get_env_variable("CRATE_DB_PW")
-        self.crate_db_ssl = get_env_variable("CRATE_DB_SSL", type_variable="bool")
+        
+         
+        self.database_params["crate_db_url"] = get_env_variable("CRATE_DB_URL")
+        self.database_params["crate_db_user"] = get_env_variable("CRATE_DB_USER")
+        self.database_params["crate_db_pw"] = get_env_variable("CRATE_DB_PW")
+        self.database_params["crate_db_ssl"] = get_env_variable("CRATE_DB_SSL", type_variable="bool")
         
         config_path = get_env_variable("CONFIG_PATH", type_variable="str", default_value=None)
-            
-        self.config = ConfigModel.from_json(file_path = config_path)
-        
-
             
         self.time_step = get_env_variable("TIME_STEP", type_variable="int")
         self.sampling_time = get_env_variable("SAMPLING_TIME", type_variable="int")
@@ -103,66 +103,46 @@ class FiwareBasicService():
         
         logger.debug('Config succesfully loaded.')
         
-        return
+        return config_path
     
-    async def _load_config_from_file(self,
-                                     config_path:str
-                                     )->None:
-        """
-        Function loads the configuration of the service from a file.
+    # async def _load_config_from_file(self,
+    #                                  config_path:str
+    #                                  )->None:
+    #     """
+    #     Function loads the configuration of the service from a file.
         
-        Args:
-            - config_path: path to the configuration file
-        TODO:
-            - Adjust the config for the possibility to use more than one input and output entity
-            - Add a information about the type of needed data (time series or single values)
-        """
-        with open(config_path, 'r') as file:
-            config = json.load(file)
+    #     Args:
+    #         - config_path: path to the configuration file
+    #     TODO:
+    #         - Adjust the config for the possibility to use more than one input and output entity
+    #         - Add a information about the type of needed data (time series or single values)
+    #     """
+    #     with open(config_path, 'r') as file:
+    #         config = json.load(file)
             
-        self.input_entity = config["input"]["entity_id"]
-        self.output_entity = config["output"]["entity_id"]
-        self.input_attributes = config["input"]["attributes"]
-        self.output_attributes = config["output"]["attributes"]
+    #     self.input_entity = config["input"]["entity_id"]
+    #     self.output_entity = config["output"]["entity_id"]
+    #     self.input_attributes = config["input"]["attributes"]
+    #     self.output_attributes = config["output"]["attributes"]
         
-        if "timeranges" in config.keys():
-            self.input_data_timeranges = config["timeranges"]
-        else:
-            self.input_data_timeranges = get_env_variable("INPUT_DATA_TIMERANGES", type_variable="dict")
+    #     if "timeranges" in config.keys():
+    #         self.input_data_timeranges = config["timeranges"]
+    #     else:
+    #         self.input_data_timeranges = get_env_variable("INPUT_DATA_TIMERANGES", type_variable="dict")
     
-    def check_input_timeranges(self):
-        """
-        Function to check the input timeranges and adjust them if necessary or raise an error if necessary information is missing.
-        
-        TODO: 
-            - Updating the function for checking the complete configuration
-        """
-        assert "calculation" in self.input_data_timeranges, "No Information about the input time ranges for the calculation in the configuration."
-        assert ("timedelta_min" in self.input_data_timeranges["calculation"] and 
-                "timedelta_max" in self.input_data_timeranges["calculation"]) or "timedelta" in self.input_data_timeranges["calculation"], "No Information about the minimal or maximal input time range for the calculation in the configuration."
-
-        
-        if "calibration" not in self.input_data_timeranges:
-            self.input_data_timeranges["calibration"] = {}
-            if "timeoffset_hours" not in self.input_data_timeranges["calibration"]:
-                if "timedelta_max" in self.input_data_timeranges["calculation"]:
-                    self.input_data_timeranges["calibration"]["timeoffset_hours"] = self.input_data_timeranges["calculation"]["timedelta_max"]/60
-                    logger.debug("No Information about the 'timeoffset_hours' for the calibration in the configuration. Using the maximal input time range for the calculation.")
-                else:
-                    if "timedelta_unit" in self.input_data_timeranges["calculation"]:
-                        timedelta_unit_factor = get_time_unit_seconds(self.input_data_timeranges["calculation"]["timedelta_unit"])
-                    else:
-                        timedelta_unit_factor = None
-                    if timedelta_unit_factor is None:
-                        timedelta_unit_factor = get_time_unit_seconds("second")
-                    self.input_data_timeranges["calibration"]["timeoffset_hours"] = self.input_data_timeranges["calculation"]["timedelta"]*timedelta_unit_factor/(60*60)
-                    
+            
     async def prepare_basic_start(self):
         """
         Function to create important objects with the configuration from the configuration file (.env) and prepare the start basics of the service.
+        
+        TODO:
+            - Implement the other interfaces(FILE, MQTT, ...)
+            - How to handle the interfaces (FIWARE, FILE, MQTT), if they are not in use?
             
         """        
-        await self._load_config_from_env()
+        config_path = await self._load_env()
+        
+        self.config = ConfigModel.from_json(file_path = config_path)
         
         if self.fiware_token["authentication"]:
             if "baerer_token" in self.fiware_token:
@@ -181,10 +161,10 @@ class FiwareBasicService():
         self.cb_client = ContextBrokerClient(url=self.fiware_params["cb_url"],
                                         fiware_header=self.fiware_header)
         
-        self.crate_db_client = CrateDBConnection(crate_db_url=self.crate_db_url,
-                                                 crate_db_user=self.crate_db_user,
-                                                 crate_db_pw=self.crate_db_pw,
-                                                 crate_db_ssl=self.crate_db_ssl)
+        self.crate_db_client = CrateDBConnection(crate_db_url=self.database_params["crate_db_url"],
+                                                 crate_db_user=self.database_params["crate_db_user"],
+                                                 crate_db_pw=self.database_params["crate_db_pw"],
+                                                 crate_db_ssl=self.database_params["crate_db_ssl"])
 
         return
      
@@ -200,7 +180,7 @@ class FiwareBasicService():
    
     def _calculate_dates(self, 
                         method:str, 
-                        last_timestamp:datetime
+                        last_timestamp:Union[datetime, None]
                         )-> tuple[str, str]:
         """Function to calculate the dates for the input data query
 
@@ -214,12 +194,14 @@ class FiwareBasicService():
         """
         
         time_now = datetime.now(timezone.utc)
-        timeframe = (time_now-last_timestamp).total_seconds() / 60
-        timedelta_unit_factor = self._get_timedelta_unit_factor()
+        if last_timestamp is None:
+            timeframe = 0
+        else:
+            timeframe = (time_now-last_timestamp).total_seconds() / 60
         from_date, to_date = None, None
 
         if method == "calculation":
-            from_date, to_date = self._handle_calculation_method(time_now, last_timestamp, timeframe, timedelta_unit_factor)
+            from_date, to_date = self._handle_calculation_method(time_now, last_timestamp, timeframe)
         elif method == "calibration":
             from_date, to_date = self._handle_calibration_method(last_timestamp)
 
@@ -228,119 +210,98 @@ class FiwareBasicService():
 
         return from_date, to_date
     
-    def _get_timedelta_unit_factor(self)->int:
-        """Function to get the factor for the time unit in seconds
-
-        Returns:
-            int: Faktor for the time unit in seconds
-        """
-        calculation = self.input_data_timeranges.get("calculation", {})
-        timedelta_unit = calculation.get("timedelta_unit")
-        if timedelta_unit:
-            time_unit_factor = get_time_unit_seconds(timedelta_unit)
-            if time_unit_factor is not None:
-                return time_unit_factor
-        logger.warning("No Information about the time unit for the calculation in the configuration. Using minutes as time unit.")
-        return get_time_unit_seconds(TimeUnits.MINUTE.value) 
-    
     def _handle_calculation_method(self, 
                                    time_now:datetime,
                                    last_timestamp:datetime,
                                    timeframe:int,
-                                   timedelta_unit_factor:int
                                    )-> tuple[str, str]:
         """Funtion to calculate the dates for the calculation method
 
         Args:
             time_now (datetime): Time now
             last_timestamp (datetime): Timestamp of the last output
-            timeframe (timedelta): Timeframe between now and the last output in seconds
-            timedelta_unit_factor (int): Factor to convert the time unit to seconds
+            timeframe (timerange): Timeframe between now and the last output in seconds
 
         Returns:
             tuple[str, str]: Timestamps for the input data query (from_date, to_date)
         """
-        calculation = self.input_data_timeranges.get("calculation", {})
-        timedelta_value = calculation.get("timedelta")
-        timedelta_type = calculation.get("timedelta_type")
-        timedelta_min = calculation.get("timedelta_min")
-        timedelta_max = calculation.get("timedelta_max")
+        calculation = self.config.controller_settings.timeranges.calculation
 
-        if timedelta_value is not None:
-            return self._calculate_timedelta(time_now, last_timestamp, timeframe, timedelta_value, timedelta_type, timedelta_unit_factor)
-        elif timedelta_min and timedelta_max:
-            return self._calculate_timedelta_min_max(time_now, last_timestamp, timeframe, timedelta_min, timedelta_max, timedelta_unit_factor)
+        if calculation.timerange is not None:
+            return self._calculate_timerange(time_now, last_timestamp, timeframe, calculation.timerange, calculation.timerange_type, get_time_unit_seconds(calculation.timerange_unit))
+        elif calculation.timerange_min is not None and calculation.timerange_max is not None:
+            return self._calculate_timerange_min_max(time_now, last_timestamp, timeframe, calculation.timerange_min, calculation.timerange_max, get_time_unit_seconds(calculation.timerange_unit))
         else:
             logger.error("No Information about the input time ranges for the calculation in the configuration.")
             return None, None
 
-    def _calculate_timedelta(self,
+    def _calculate_timerange(self,
                              time_now:datetime,
                              last_timestamp:datetime,
                              timeframe:timedelta,
-                             timedelta_value:int,
-                             timedelta_type:str,
-                             timedelta_unit_factor:int
+                             timerange_value:int,
+                             timerange_type:Union[TimerangeTypes, None],
+                             timerange_unit_factor:int
                              ) -> tuple[str, str]:
-        """Function to calculate the timedelta for the input data query based on a fixed timedelta from the configuration
+        """Function to calculate the timerange for the input data query based on a fixed timerange from the configuration
 
         Args:
             time_now (datetime): Time now
             last_timestamp (datetime): Timestamp of the last output
-            timeframe (timedelta): Timeframe between now and the last output in seconds
-            timedelta_value (int): Value of the timedelta in the configuration
-            timedelta_type (str): Type of the timedelta (absolute or relative)
-            timedelta_unit_factor (int): Factor to convert the time unit to seconds
+            timeframe (timerange): Timeframe between now and the last output in seconds
+            timerange_value (int): Value of the timerange in the configuration
+            timerange_type (str): Type of the timerange (absolute or relative)
+            timerange_unit_factor (int): Factor to convert the time unit to seconds
 
         Returns:
             tuple[str, str]: Timestamps for the input data query (from_date, to_date)
         """
-        if timedelta_type == "absolute":
-            from_date = (time_now - timedelta(seconds=timedelta_value * timedelta_unit_factor)).strftime("%Y-%m-%dT%H:%M:%S%z")
+        if timerange_type is TimerangeTypes.ABSOLUTE:
+            from_date = (time_now - timedelta(seconds=timerange_value * timerange_unit_factor)).strftime("%Y-%m-%dT%H:%M:%S%z")
             return from_date, None
-        elif timedelta_type == "relative":
-            if timeframe < timedelta_value:
-                from_date = (time_now - timedelta(seconds=timedelta_value * timedelta_unit_factor)).strftime("%Y-%m-%dT%H:%M:%S%z")
+        elif timerange_type is TimerangeTypes.RELATIVE:
+            if timeframe < timerange_value:
+                from_date = (time_now - timedelta(seconds=timerange_value * timerange_unit_factor)).strftime("%Y-%m-%dT%H:%M:%S%z")
                 return from_date, None
             else:
                 from_date = last_timestamp.strftime("%Y-%m-%dT%H:%M:%S%z")
-                to_date = (last_timestamp + timedelta(seconds=timedelta_value * timedelta_unit_factor)).strftime("%Y-%m-%dT%H:%M:%S%z")
+                to_date = (last_timestamp + timedelta(seconds=timerange_value * timerange_unit_factor)).strftime("%Y-%m-%dT%H:%M:%S%z")
                 return from_date, to_date
         else:  # Fallback to absolute if no type is specified
-            from_date = (time_now - timedelta(seconds=timedelta_value * timedelta_unit_factor)).strftime("%Y-%m-%dT%H:%M:%S%z")
+            from_date = (time_now - timedelta(seconds=timerange_value * timerange_unit_factor)).strftime("%Y-%m-%dT%H:%M:%S%z")
             return from_date, None
 
-    def _calculate_timedelta_min_max(self,
+    def _calculate_timerange_min_max(self,
                                      time_now:datetime,
                                      last_timestamp:datetime,
                                      timeframe:int,
-                                     timedelta_min:int,
-                                     timedelta_max:int,
-                                     timedelta_unit_factor:int
+                                     timerange_min:int,
+                                     timerange_max:int,
+                                     timerange_unit_factor:int
                                      )-> tuple[str, str]:
-        """Function to calculate the timedelta for the input data query based on a min and max timedelta from the configuration
+        """Function to calculate the timerange for the input data query based on a min and max timerange from the configuration
 
         Args:
             time_now (datetime): Time now
             last_timestamp (datetime): Timestamp of the last output
             timeframe (int): Timeframe between now and the last output in seconds
-            timedelta_min (int): Minimal value of the timedelta in the configuration
-            timedelta_max (int): Maximal value of the timedelta in the configuration
-            timedelta_unit_factor (int): Factor to convert the time unit to seconds
+            timerange_min (int): Minimal value of the timerange in the configuration
+            timerange_max (int): Maximal value of the timerange in the configuration
+            timerange_unit_factor (int): Factor to convert the time unit to seconds
 
         Returns:
             tuple[str, str]: Timestamps for the input data query (from_date, to_date)
         """
     
-        if timeframe < timedelta_min:
-            from_date = (time_now - timedelta(seconds=timedelta_min * timedelta_unit_factor)).replace(tzinfo=tz.UTC).strftime("%Y-%m-%dT%H:%M:%S%z")
+        if timeframe < timerange_min:
+            from_date = (time_now - timedelta(seconds=timerange_min * timerange_unit_factor)).replace(tzinfo=tz.UTC).strftime("%Y-%m-%dT%H:%M:%S%z")
             return from_date, None
-        elif timeframe < timedelta_max:
+        elif timeframe < timerange_max:
             from_date = last_timestamp.strftime("%Y-%m-%dT%H:%M:%S%z")
             return from_date, None
         else:
             from_date = last_timestamp.strftime("%Y-%m-%dT%H:%M:%S%z")
-            to_date = (last_timestamp + timedelta(seconds=timedelta_max * timedelta_unit_factor)).strftime("%Y-%m-%dT%H:%M:%S%z")
+            to_date = (last_timestamp + timedelta(seconds=timerange_max * timerange_unit_factor)).strftime("%Y-%m-%dT%H:%M:%S%z")
             return from_date, to_date
 
     def _handle_calibration_method(self,
@@ -354,9 +315,11 @@ class FiwareBasicService():
         Returns:
             tuple[str, str]: Timestamps for the input data query (from_date, to_date)
         """
-        calibration = self.input_data_timeranges.get("calibration", {})
-        timeoffset_hours = calibration.get("timeoffset_hours", 0)
-        from_date = (last_timestamp - timedelta(hours=timeoffset_hours)).strftime("%Y-%m-%dT%H:%M:%S%z")
+        calibration = self.config.controller_settings.timeranges.calibration  # input_data_timeranges.get("calibration", {})
+        
+        # TODO: How to handle the calibration time?
+        timerange = calibration.get("timeoffset_hours")
+        from_date = (last_timestamp - timedelta(hours=timerange)).strftime("%Y-%m-%dT%H:%M:%S%z")
         to_date = last_timestamp
 
         return from_date, to_date
@@ -376,18 +339,18 @@ class FiwareBasicService():
         
         output_attributes_entity = self.cb_client.get_entity_attributes(entity_id = output_entity.id_interface)
         
-        output_attributes_controller = {item["id_interface"]: item["id"] for item in output_entity.attributes}
+        output_attributes_controller = {item.id_interface: item.id for item in output_entity.attributes}
 
         timestamps = []
-        for attr in output_attributes_entity.keys():
-            if attr not in output_attributes_controller.keys():
+        for attr in list(output_attributes_entity.keys()):
+            if attr not in list(output_attributes_controller.keys()):
                 continue
             elif output_attributes_entity[attr].metadata.get("TimeInstant") is not None:
                 timestamps.append(OutputDataAttributeModel(id=output_attributes_controller[attr],
                                                            latest_timestamp_output=output_attributes_entity[attr].metadata.get("TimeInstant")))
                 
-          
-        if len(timestamps.keys())>0:
+
+        if len(timestamps)>0:
             timestamp_latest_output = min([item.latest_timestamp_output for item in timestamps])
         else:
             timestamp_latest_output = None      
@@ -430,9 +393,8 @@ class FiwareBasicService():
                 logger.warning("MQTT interface not implemented yet.")
                 raise NotSupportedError
         
-        
-        if len(output_latest_timestamps.keys())>0:
-            output_latest_timestamp = min(output_latest_timestamps.values())
+        if len(output_latest_timestamps)>0:
+            output_latest_timestamp = min(output_latest_timestamps)
         else:
             output_latest_timestamp = None
         
@@ -441,7 +403,7 @@ class FiwareBasicService():
             
             if input_entity.interface == Interfaces.FIWARE:
                 
-                input_data.append(self.get_data_from_fiware(method=method, entity=self.config.inputs[input_entity], timestamp_latest_output = output_latest_timestamp))
+                input_data.append(self.get_data_from_fiware(method=method, entity=input_entity, timestamp_latest_output = output_latest_timestamp))
             
             elif input_entity.interface == Interfaces.FILE:
                 
@@ -455,7 +417,7 @@ class FiwareBasicService():
             await sleep(0.1)
             
     
-        return InputDataModel(input_entitys=input_data, output_entitys=output_timestamps)
+        return InputDataModel(input_entities=input_data, output_entities=output_timestamps)
                 
         
     def get_data_from_fiware(self,
@@ -505,7 +467,7 @@ class FiwareBasicService():
         if len(attributes_timeseries) > 0:
             attributes_values.extend(self.get_data_from_datebase(entity_id=entity.id_interface,
                                                                  entity_type=fiware_input_entity_type,
-                                                                 entity_attributes=list(attributes_timeseries.values()),
+                                                                 entity_attributes=attributes_timeseries,
                                                                  method=method,
                                                                  timestamp_latest_output=timestamp_latest_output))
             
@@ -538,6 +500,7 @@ class FiwareBasicService():
         """
         
         from_date, to_date = self._calculate_dates(method=method, last_timestamp=timestamp_latest_output)
+
         
         df = self.crate_db_client.get_data(service=self.fiware_params["service"], 
                                            entity=entity_id,
@@ -554,19 +517,21 @@ class FiwareBasicService():
         # resample the time series with configured time step size
         df.fillna(value=np.nan, inplace=True)
         df = df.resample(f"""{self.time_step}s""").mean(numeric_only=True)
-        logger.debug('Service received data from CrateDB')
+        
         
         input_attributes = []
         
         for attribute_id, attribute_id_interface in entity_attributes.items():
             data = df.filter([attribute_id_interface]).dropna()
             if data.empty:
+                logger.debug(f"Data for attribute {attribute_id} of entity {entity_id} is empty")
                 input_attributes.append(InputDataAttributeModel(id=attribute_id,
                                                                 data=None,
                                                                 data_type=AttributeTypes.TIMESERIES,
                                                                 data_available=False,
                                                                 latest_timestamp_input=None))
             else:
+                logger.debug(f'Service received data from CrateDB for attribute {attribute_id} of entity {entity_id}')
                 input_attributes.append(InputDataAttributeModel(id=attribute_id,
                                                                 data=data,
                                                                 data_type=AttributeTypes.TIMESERIES,
@@ -691,12 +656,12 @@ class FiwareBasicService():
             return
         
     async def calculation(self,
-                          df:pd.DataFrame,
-                          data_available:bool,
-                          timestamp_last_output:Union[datetime, None],
+                          data:InputDataModel,
                           ):
         """
         Function to start the calculation, do something with data - used in the services 
+        TODO: 
+            - Adapt the function to the new configuration / input data model
         Args:
             - df: input dataframe
             - data_available: bool, if there are values in the dataframe
@@ -704,14 +669,8 @@ class FiwareBasicService():
         Returns:
             - dict with key and data - result like this: data_output = {self.output_attributes["dummy"]:pd.DataFrame()} or with None ( no values in input)
         """
-        if data_available:
-            # do the calculation
-            data_output = None
-        else:
-            # create values instead / or use None
-            data_output = {}
-            for output_attribut in self.output_attributes:
-                data_output[self.output_attributes[output_attribut]] = None
+        # do the calculation
+        data_output = None
         
         return data_output
     
@@ -742,7 +701,7 @@ class FiwareBasicService():
             
             if data_input is not None:
             
-                data_output = await self.calculation(df = data_input["data"], data_available=data_input["data_available"], timestamp_last_output = data_input["timestamp_last_output"])
+                data_output = await self.calculation(data = data_input)
 
                 # self.push_data(data_output = data_output, timestamp_end_query_input= data_input["timestamp_end_query_input"])
             
@@ -754,6 +713,10 @@ class FiwareBasicService():
         Function for autonomous adjustment of the system parameters
         """
         # await self._hold_sampling_time(start_time=datetime.now(), hold_time = self.calibration_time)
+        
+        if self.config.controller_settings.timeranges.calibration is None:
+            logger.error("No Information about the calibration time in the configuration.")
+            return
         while True:
             logger.debug('Start Calibration')
             start_time = datetime.now()

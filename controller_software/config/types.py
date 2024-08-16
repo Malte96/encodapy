@@ -19,9 +19,20 @@ class AttributeTypes(Enum):
     VALUE = "value"
     COMMAND = "command"
     
+class TimerangeTypes(Enum):
+    """Enum class for the timedelta types
+    
+    Contains:
+    - ABSOLUTE: The timedelta is calculated from the actual time
+    - RELATIVE: The timedelta is calculated from the last timestamp
+    """
+    
+    ABSOLUTE = "absolute"
+    RELATIVE = "relative"
     
 class ControllerComponents(Enum):
     """Enum class for the controller components"""
     # TODO: Which components are needed?
     
     STORAGE = "storage"
+    HYGIENICCONTROLLER = "hygienic_controller"

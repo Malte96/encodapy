@@ -2,11 +2,13 @@
 # Authors: Martin Altenburger
 
 from pydantic import BaseModel, ValidationError
+from pydantic.functional_validators import field_validator, model_validator
 import json
-from typing import Union
-from controller_software.config.types import Interfaces, AttributeTypes, ControllerComponents
+from typing import Union, Optional
+from controller_software.config.types import Interfaces, AttributeTypes, ControllerComponents, TimerangeTypes
 from controller_software.utils.error_handling import ConfigError
 from loguru import logger
+from fbs.software.utils.utils import TimeUnits
 # TODO: Add the configuration parameters and the import from a json-file
 # TODO: Add a documentation for the models
 # TODO: Is this validation implementation useful and correct?
@@ -29,7 +31,56 @@ class AttributeModel(BaseModel):
     id_interface: str
     type: AttributeTypes
     value: Union[str, None] = None
+        
+class TimerangesCalculationModel(BaseModel):
+    """
+    Base class for the calculation timeranges
     
+    Contains:
+    - timerange: The timerange for the calculation (if only one value is needed and primary value - otherwise use timerange_min and timerange_max)
+    - timerange_min: The minimum timerange for the calculation (only used if timerange is not set and timerange_max is set too)
+    - timerange_max: The maximum timerange for the calculation (only used if timerange is not set and timerange_min is set too)
+    - timerange_type: Type of time period, relative to the last result or absolute at the current time (if not set, the default type is absolute)
+    - timerange_unit: The unit of the timerange (if not set, the default unit is minute)
+    """
+    
+    timerange: Optional[float] = None
+    
+    timerange_min: Optional[float] = None
+    timerange_max: Optional[float] = None
+    
+    timerange_type: Optional[TimerangeTypes] = TimerangeTypes.ABSOLUTE
+    
+    timerange_unit: Optional[TimeUnits] = TimeUnits.MINUTE
+    
+    @model_validator(mode='after')
+    def check_timerange_parameters(self) -> 'TimerangesCalculationModel':
+        
+        if self.timerange is None and (self.timerange_min is None or self.timerange_max is None):
+            raise ValueError("Either 'timerange' or 'timerange_min' and 'timerange_max' must be set.")
+        
+        if self.timerange is not None and (self.timerange_min is not None or self.timerange_max is not None):
+            logger.warning("Either 'timerange' or both 'timerange_min' and 'timerange_max' should be set, not both. Using 'timerange' as the only value.")
+            
+            self.timerange_min = None
+            self.timerange_max = None
+
+        return self
+    
+class TimerangesModel(BaseModel):
+    """
+    Base class for the timeranges
+    
+    Contains:
+    - calculation: The timeranges für the calculation
+    - calibration: The timeranges for the calibration
+    
+    TODO: Add the needed fields - calibration?
+    """
+    
+    calculation: TimerangesCalculationModel
+    calibration: Optional[dict] = None
+
 class InputModel(BaseModel):
     """
     Model for the configuration of inputs.
@@ -61,6 +112,17 @@ class OutputModel(BaseModel):
     id_interface: str
     attributes: list[AttributeModel]
     
+class ControllerDataModel(BaseModel):
+    """
+    Model for the dataflow (input/output) of the controller.
+    
+    Contains:
+    - entity: The entity (input / output) of the datapoint for the controller
+    - attribute: The attribute of the datapoint for the controller
+    """
+    entity: str
+    attribute: str
+    
 class ControllerComponentModel(BaseModel):
     """
     Model for the configuration of the controller components.
@@ -69,9 +131,16 @@ class ControllerComponentModel(BaseModel):
     active: bool = True
     id: str
     type: ControllerComponents          # TODO: How to reference the component types?
-    inputs: list[str]                   # TODO: How to reference the input/output models?
-    outputs: list[str]
+    inputs: dict                        # TODO: How to reference the input/output models? Need this also a modell? Would that be better?
+    outputs: dict
     
+class ControllerSettingModel(BaseModel):
+    """
+    Model for the configuration of the controller settings.
+     
+    TODO: What is needed here?
+    """
+    timeranges: TimerangesModel
 
 class ConfigModel(BaseModel):
     """
@@ -94,7 +163,7 @@ class ConfigModel(BaseModel):
 
     controller_components: list[ControllerComponentModel]
     
-    controller_settings: dict
+    controller_settings: ControllerSettingModel
     
     
     @classmethod

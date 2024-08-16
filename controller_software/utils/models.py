@@ -20,7 +20,7 @@ class InputDataAttributeModel(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
     
     id:str
-    data: Union[str, float, int, bool, Dict, List, DataFrame]
+    data: Union[str, float, int, bool, Dict, List, DataFrame, None]
     data_type: AttributeTypes
     data_available: bool
     latest_timestamp_input: Union[datetime, None]
@@ -71,5 +71,5 @@ class InputDataModel(BaseModel):
     - output_entitys: List of the output data entitys as OutputDataEntityModel
     """
     
-    input_entitys: list[InputDataEntityModel]
-    output_entitys: list[OutputDataEntityModel]
+    input_entities: list[InputDataEntityModel]
+    output_entities: list[OutputDataEntityModel]

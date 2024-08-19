@@ -53,12 +53,16 @@
         }
     ],
     "controller_settings": {
-        "timeranges":
+        "time_settings":
         {
             "calculation":
             {
                 "timerange":24,
-                "timerange_units":"hour"
+                "timerange_units":"hour",
+                "timestep":1,
+                "timestep_units":"minute",
+                "sampling_time":1,
+                "sampling_time_units":"minute"
             },
             "results":
             {

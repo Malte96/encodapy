@@ -17,7 +17,6 @@ class AttributeTypes(Enum):
     
     TIMESERIES = "timeseries"
     VALUE = "value"
-    COMMAND = "command"
     
 class TimerangeTypes(Enum):
     """Enum class for the timedelta types

@@ -1,10 +1,10 @@
 # Description: This file contains the models for the configuration of the system controller.
 # Authors: Martin Altenburger
 
-from pydantic import BaseModel, ValidationError
+from pydantic import BaseModel, ValidationError, ConfigDict
 from pydantic.functional_validators import field_validator, model_validator
 import json
-from typing import Union, Optional
+from typing import Union, Optional, List, Dict
 from controller_software.config.types import Interfaces, AttributeTypes, ControllerComponents, TimerangeTypes
 from controller_software.utils.error_handling import ConfigError
 from loguru import logger
@@ -25,16 +25,41 @@ class InterfaceModel(BaseModel):
 
     
 class AttributeModel(BaseModel):
-    """Base class for the attributes"""
+    """
+    Base class for the attributes
+    
+    Contains:
+    - id: The id of the attribute
+    - id_interface: The id of the attribute on the interface
+    - type: The type of the attribute
+    - value: The value of the attribute
+    
+    """
     
     id: str
     id_interface: str
     type: AttributeTypes
     value: Union[str, None] = None
-        
-class TimerangesCalculationModel(BaseModel):
+    
+class CommandModel(BaseModel):
     """
-    Base class for the calculation timeranges
+    Base class for the commands
+    
+    Contains:
+    - id: The id of the command
+    - id_interface: The id of the command on the interface
+    - value: The value of the command
+    """
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    id: str
+    id_interface: str
+    value: Union[str, int, float, List, Dict, None] = None
+        
+class TimeSettingsCalculationModel(BaseModel):
+    """
+    Base class for the calculation time settings of the controller / system.
     
     Contains:
     - timerange: The timerange for the calculation (if only one value is needed and primary value - otherwise use timerange_min and timerange_max)
@@ -42,6 +67,10 @@ class TimerangesCalculationModel(BaseModel):
     - timerange_max: The maximum timerange for the calculation (only used if timerange is not set and timerange_min is set too)
     - timerange_type: Type of time period, relative to the last result or absolute at the current time (if not set, the default type is absolute)
     - timerange_unit: The unit of the timerange (if not set, the default unit is minute)
+    - timestep: The timestep for the calculation (if not set, the default value is 1), the related unit is defined in the timestep_unit attribute
+    - timestep_unit: The unit of the timestep (if not set, the default unit is second)
+    - sampling_time: The sampling time for the calculation (if not set, the default value is 1), the related unit is defined in the sampling_time_unit attribute
+    - sampling_time_unit: The unit of the sampling time (if not set, the default unit is minute)
     """
     
     timerange: Optional[float] = None
@@ -53,8 +82,14 @@ class TimerangesCalculationModel(BaseModel):
     
     timerange_unit: Optional[TimeUnits] = TimeUnits.MINUTE
     
+    timestep: Union[float, int] = 1
+    timestep_unit: TimeUnits = TimeUnits.SECOND
+    
+    sampling_time: Union[float, int] = 1
+    sampling_time_unit: TimeUnits = TimeUnits.MINUTE
+    
     @model_validator(mode='after')
-    def check_timerange_parameters(self) -> 'TimerangesCalculationModel':
+    def check_timerange_parameters(self) -> 'TimeSettingsCalculationModel':
         
         if self.timerange is None and (self.timerange_min is None or self.timerange_max is None):
             raise ValueError("Either 'timerange' or 'timerange_min' and 'timerange_max' must be set.")
@@ -67,19 +102,50 @@ class TimerangesCalculationModel(BaseModel):
 
         return self
     
-class TimerangesModel(BaseModel):
+    # TODO: Check if the timerange is set - if not push a warning
+    # @model_validator(mode='after')
+    # def check_timestep_units(self) -> 'TimeSettingsCalculationModel':
+        
+
+    
+class TimeSettingsCalibrationModel(BaseModel):
+    
     """
-    Base class for the timeranges
+    Base class for the calibration time settings of the controller / system.
     
     Contains:
-    - calculation: The timeranges für the calculation
-    - calibration: The timeranges for the calibration
+    - sampling_time: The sampling time for the calibration (if not set, the default value is 1), the related unit is defined in the sampling_time_unit attribute
+    - sampling_time_unit: The unit of the sampling time (if not set, the default unit is day)
+    
+    TODO: Add the needed fields
+        - timerange: The timerange for the calibration
+    """
+    
+    
+    sampling_time: Union[float, int] = 1
+    sampling_time_unit: TimeUnits = TimeUnits.DAY
+    
+class TimeSettingsResultsModel(BaseModel):
+    
+    timestep: Union[float, int] = 1
+    timestep_unit: TimeUnits = TimeUnits.SECOND
+    
+    
+class TimeSettingsModel(BaseModel):
+    """
+    Base class for the time settings of the controller / system.
+    
+    Contains:
+    - calculation: The timeranges and settings für the calculation
+    - calibration: The timeranges and settings for the calibration
+    - results: The timesettings for the results
     
     TODO: Add the needed fields - calibration?
     """
     
-    calculation: TimerangesCalculationModel
-    calibration: Optional[dict] = None
+    calculation: TimeSettingsCalculationModel
+    calibration: Optional[TimeSettingsCalibrationModel] = None
+    results: Optional[TimeSettingsResultsModel] = None
 
 class InputModel(BaseModel):
     """
@@ -111,6 +177,7 @@ class OutputModel(BaseModel):
     interface: Interfaces
     id_interface: str
     attributes: list[AttributeModel]
+    commands: list[CommandModel]
     
 class ControllerDataModel(BaseModel):
     """
@@ -140,7 +207,7 @@ class ControllerSettingModel(BaseModel):
      
     TODO: What is needed here?
     """
-    timeranges: TimerangesModel
+    time_settings: TimeSettingsModel
 
 class ConfigModel(BaseModel):
     """
@@ -180,6 +247,4 @@ class ConfigModel(BaseModel):
 
         except ValidationError as e:
             logger.error(e)
-
-
-        raise ConfigError(f"Coudn't load configuration from json file")
+            raise ConfigError(f"Coudn't load configuration from json file")

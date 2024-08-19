@@ -27,8 +27,8 @@ from fbs.software.utils import (
 from fbs.software.exceptions import NoCredentials
 from IPython.display import display
 
-from controller_software.config import ConfigModel, InputModel, OutputModel, Interfaces, AttributeTypes, TimerangeTypes
-from controller_software.utils.models import InputDataModel, InputDataEntityModel, InputDataAttributeModel, OutputDataEntityModel, OutputDataAttributeModel
+from controller_software.config import ConfigModel, InputModel, OutputModel, Interfaces, AttributeTypes, TimerangeTypes, AttributeModel
+from controller_software.utils.models import InputDataModel, InputDataEntityModel, InputDataAttributeModel, OutputDataEntityModel, OutputDataAttributeModel, OutputDataModel
 
 from controller_software.utils.error_handling import NotSupportedError
 
@@ -39,9 +39,6 @@ class ControllerBasicService():
     """
     def __init__(
         self,
-        time_step:int = 10,
-        sampling_time:int = 120,
-        calibration_time:int = 600
     ) -> None:
         self.fiware_params = dict()
         self.database_params = dict()   
@@ -52,12 +49,8 @@ class ControllerBasicService():
         
         self.cb_client = None
         self.crate_db_client = None
-        
-        # TODO: How to handle the configuration of the timeranges and time steps
-        self.time_step = time_step
-        self.sampling_time = sampling_time
-        self.calibration_time = calibration_time
-        self.input_data_timeranges = dict()
+
+        # self.input_data_timeranges = dict()
         
         self.config = None
         
@@ -94,41 +87,10 @@ class ControllerBasicService():
         self.database_params["crate_db_ssl"] = get_env_variable("CRATE_DB_SSL", type_variable="bool")
         
         config_path = get_env_variable("CONFIG_PATH", type_variable="str", default_value=None)
-            
-        self.time_step = get_env_variable("TIME_STEP", type_variable="int")
-        self.sampling_time = get_env_variable("SAMPLING_TIME", type_variable="int")
-        self.calibration_time = get_env_variable("CALIBRATION_TIME", type_variable="int")
         
-        # self.check_input_timeranges()
-        
-        logger.debug('Config succesfully loaded.')
+        logger.debug('ENVs succesfully loaded.')
         
         return config_path
-    
-    # async def _load_config_from_file(self,
-    #                                  config_path:str
-    #                                  )->None:
-    #     """
-    #     Function loads the configuration of the service from a file.
-        
-    #     Args:
-    #         - config_path: path to the configuration file
-    #     TODO:
-    #         - Adjust the config for the possibility to use more than one input and output entity
-    #         - Add a information about the type of needed data (time series or single values)
-    #     """
-    #     with open(config_path, 'r') as file:
-    #         config = json.load(file)
-            
-    #     self.input_entity = config["input"]["entity_id"]
-    #     self.output_entity = config["output"]["entity_id"]
-    #     self.input_attributes = config["input"]["attributes"]
-    #     self.output_attributes = config["output"]["attributes"]
-        
-    #     if "timeranges" in config.keys():
-    #         self.input_data_timeranges = config["timeranges"]
-    #     else:
-    #         self.input_data_timeranges = get_env_variable("INPUT_DATA_TIMERANGES", type_variable="dict")
     
             
     async def prepare_basic_start(self):
@@ -225,7 +187,7 @@ class ControllerBasicService():
         Returns:
             tuple[str, str]: Timestamps for the input data query (from_date, to_date)
         """
-        calculation = self.config.controller_settings.timeranges.calculation
+        calculation = self.config.controller_settings.time_settings.calculation
 
         if calculation.timerange is not None:
             return self._calculate_timerange(time_now, last_timestamp, timeframe, calculation.timerange, calculation.timerange_type, get_time_unit_seconds(calculation.timerange_unit))
@@ -315,7 +277,7 @@ class ControllerBasicService():
         Returns:
             tuple[str, str]: Timestamps for the input data query (from_date, to_date)
         """
-        calibration = self.config.controller_settings.timeranges.calibration  # input_data_timeranges.get("calibration", {})
+        calibration = self.config.controller_settings.time_settings.calibration  # input_data_timeranges.get("calibration", {})
         
         # TODO: How to handle the calibration time?
         timerange = calibration.get("timeoffset_hours")
@@ -497,6 +459,7 @@ class ControllerBasicService():
         
         TODO:
             - Does it make sense to use the quantumleap client for this? https://github.com/RWTH-EBC/FiLiP/blob/master/filip/clients/ngsi_v2/quantumleap.py#L449
+            - Improve the error handling
         """
         
         from_date, to_date = self._calculate_dates(method=method, last_timestamp=timestamp_latest_output)
@@ -516,13 +479,15 @@ class ControllerBasicService():
     
         # resample the time series with configured time step size
         df.fillna(value=np.nan, inplace=True)
-        df = df.resample(f"""{self.time_step}s""").mean(numeric_only=True)
-        
+        time_step_seconds = int(self.config.controller_settings.time_settings.calculation.timestep 
+                         * get_time_unit_seconds(self.config.controller_settings.time_settings.calculation.timestep_unit))
+        df = df.resample(f"""{time_step_seconds}s""").mean(numeric_only=True)
         
         input_attributes = []
         
         for attribute_id, attribute_id_interface in entity_attributes.items():
-            data = df.filter([attribute_id_interface]).dropna()
+            df.rename(columns={attribute_id_interface: attribute_id}, inplace=True)
+            data = df.filter([attribute_id]).dropna()
             if data.empty:
                 logger.debug(f"Data for attribute {attribute_id} of entity {entity_id} is empty")
                 input_attributes.append(InputDataAttributeModel(id=attribute_id,
@@ -539,19 +504,41 @@ class ControllerBasicService():
                                                                 latest_timestamp_input=to_date))
         return input_attributes         
             
+    def _get_output_attribute_config(self,
+                                     output_entity:str,
+                                     attribute_id:str
+                                     )-> tuple[OutputModel, AttributeModel]:
+            """
+            Function to get the configuration of the output attributes
+            
+            Args:
+                - output_entity: id of the output entity
+                - attribute_id: id of the attribute
+                
+            Returns:
+                - None
+            """
+            for entity in self.config.outputs:
+                if entity.id == output_entity:
+                    for attribute in entity.attributes:
+                        if attribute.id == attribute_id:
+                            return attribute, entity
+            return None, None
 
-    def push_data(self,
-                  data_output: Union[dict, None],
-                  timestamp_end_query_input: str
-                  ):
+    def send_outputs(self,
+                     data_output: Union[OutputDataModel, None],
+                     *args, **kwargs
+                     ):
         """
         Send output data to Fiware platform, using parallel executions
         
         Args:
-            - data_output: dict with name and data as dataframe or null
-            - timestamp_end_query_input: timestamp of end of input data query - useful to send null values, if there are no input values
-        
+
+        TODO:
+            - Implement a way to use different interfaces (FIWARE, FILE, MQTT, ...)
         """
+        display(args)
+        display(kwargs)
         
         if data_output is None:
             logger.debug("No data for sending to Fiware instance")
@@ -561,31 +548,60 @@ class ControllerBasicService():
         
         logger.debug(f"Start sending data to Fiware platform with {max_workers} workers.")
        
-        context_entity = self.cb_client.get_entity(self.output_entity)
+        # context_entity = self.cb_client.get_entity(self.output_entity)
+        
+        display(data_output)
         
         with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
 
             futures = []
        
-            for key, data in data_output.items():
-                logger.debug(f"Sending data with key {key}")
-                        
-                if isinstance(data, pd.DataFrame):
-                    keys = data.columns.to_list()
-                    
-                    for index, row in data.iterrows():
+            for output in data_output.entities:
 
-                        if index is not None:
-                            future = executor.submit(self.send_data, context_entity, keys, index, row.to_dict())
-                            
-                            futures.append(future)
+                for attribute in output.attributes:
+                    
+                    output_entity, output_attribute = self._get_output_attribute_config(output_entity=output.id, attribute_id=attribute.id)
+                    # maybe we need this in separate functions to improve the performance
+                    
+                    display(output_entity)
+                    
+                    display(output_attribute)
+                    
+                    if output_entity is None or output_attribute is None:
+                        continue
+                    
+                    # TODO: Implement the sending of the data to the different interfaces (FIWARE, FILE, MQTT, ...)
+                    # Maybe its better to collect the attributes and commands and send them in one request
+                    
+                    if output_entity.interface is Interfaces.FIWARE:
+                        pass
+                        # self._send_data_to_fiware(output_entity=output_entity, output_attribute=output_attribute, attribute=attribute) 
+                    elif output_entity.interface is Interfaces.FILE:
+                        logger.warning("File interface not implemented yet.")
+                        raise NotSupportedError
+                    elif output_entity.interface is Interfaces.MQTT:
+                        logger.warning("MQTT interface not implemented yet.")
+                        raise NotSupportedError
                 
-                elif data is None and timestamp_end_query_input is not None:
-                    future = executor.submit(self.send_null_data, context_entity, key, timestamp_end_query_input)
-                    futures.append(future)
-                else:
-                    logger.warning(f"Only dataframes or None are supported as output data. Data with key {key} will not be sent to Fiware instance.")
-                    pass 
+                for command in output.commands:   
+                    
+                    pass     
+                # if isinstance(data, pd.DataFrame):
+                #     keys = data.columns.to_list()
+                    
+                #     for index, row in data.iterrows():
+
+                #         if index is not None:
+                #             future = executor.submit(self.send_data, context_entity, keys, index, row.to_dict())
+                            
+                #             futures.append(future)
+                
+                # elif data is None and timestamp_end_query_input is not None:
+                #     future = executor.submit(self.send_null_data, context_entity, key, timestamp_end_query_input)
+                #     futures.append(future)
+                # else:
+                #     logger.warning(f"Only dataframes or None are supported as output data. Data with key {key} will not be sent to Fiware instance.")
+                #     pass 
                     
 
             concurrent.futures.wait(futures)
@@ -641,12 +657,15 @@ class ControllerBasicService():
             logger.error(error)
 
     
-    async def _hold_sampling_time(self, start_time: float, hold_time:int):
+    async def _hold_sampling_time(self, 
+                                  start_time: datetime,
+                                  hold_time: Union[int, float]):
         """
         Wait in each cycle until the sampling time (or cycle time) is up. If the algorithm takes
         more time than the sampling time, a warning will be given.
         Args:
-            start_time:
+            start_time: datetime, start time of the cycle
+            hold_time: int or float, sampling time in seconds
         """
         if ((datetime.now()-start_time).total_seconds()) > hold_time:
             logger.warning("The processing time is longer than the sampling time. The sampling time must be increased!")
@@ -663,9 +682,7 @@ class ControllerBasicService():
         TODO: 
             - Adapt the function to the new configuration / input data model
         Args:
-            - df: input dataframe
-            - data_available: bool, if there are values in the dataframe
-            - timestamp_last_output: Union[datetime, None] Time of last output of result in database, if available
+            - data: InputDataModel with the input data
         Returns:
             - dict with key and data - result like this: data_output = {self.output_attributes["dummy"]:pd.DataFrame()} or with None ( no values in input)
         """
@@ -703,10 +720,12 @@ class ControllerBasicService():
             
                 data_output = await self.calculation(data = data_input)
 
-                # self.push_data(data_output = data_output, timestamp_end_query_input= data_input["timestamp_end_query_input"])
+                self.send_outputs(data_output = data_output, timestamp_end_query_input= data_input)
             
             await self._set_health_timestamp()
-            await self._hold_sampling_time(start_time=start_time, hold_time = self.sampling_time * 60)
+            
+            sampling_time = self.config.controller_settings.time_settings.calculation.sampling_time * get_time_unit_seconds(self.config.controller_settings.time_settings.calculation.sampling_time_unit)
+            await self._hold_sampling_time(start_time=start_time, hold_time = sampling_time)
     
     async def start_calibration(self):
         """
@@ -725,7 +744,10 @@ class ControllerBasicService():
                 await self.calibration(df = data_input["data"])
             else:
                 logger.debug("No data available for calibration - skip calibration")
-            await self._hold_sampling_time(start_time=start_time, hold_time = self.calibration_time * 60 * 60)
+                
+            sampling_time = self.config.controller_settings.time_settings.calibration.sampling_time * get_time_unit_seconds(self.config.controller_settings.time_settings.calibration.sampling_time_unit)
+            
+            await self._hold_sampling_time(start_time=start_time, hold_time = sampling_time)
             
     async def check_health_status(self):
         '''
@@ -735,8 +757,10 @@ class ControllerBasicService():
         while True:
             
             start_time = datetime.now()
+            sampling_time = self.config.controller_settings.time_settings.calculation.sampling_time * get_time_unit_seconds(self.config.controller_settings.time_settings.calculation.sampling_time_unit)
             
-            await update_health_file(time_cycle=self.sampling_time, timestamp_health=self.timestamp_health, timestamp_now=start_time)
+            await update_health_file(time_cycle=sampling_time, 
+                                     timestamp_health=self.timestamp_health, timestamp_now=start_time)
             
             await self._hold_sampling_time(start_time=start_time, hold_time = 10)
             

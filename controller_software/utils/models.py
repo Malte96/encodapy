@@ -25,17 +25,6 @@ class InputDataAttributeModel(BaseModel):
     data_available: bool
     latest_timestamp_input: Union[datetime, None]
     
-class OutputDataAttributeModel(BaseModel):
-    """
-    Model for a attribute of output data of the system controller.
-    
-    Contains:
-    - id: The id of the output data attribute
-    - latest_timestamp_output: The latest timestamp of the output data from the query or None, if the data is not available
-    """
-    id: str
-    latest_timestamp_output: Union[datetime, None]
-
 class InputDataEntityModel(BaseModel):
     """
     Model for the input data of the system controller.
@@ -48,7 +37,38 @@ class InputDataEntityModel(BaseModel):
     """
     id: str
     attributes: List[InputDataAttributeModel]
+ 
+class OutputDataAttributeModel(BaseModel):
+    """
+    Model for a attribute of output data of the system controller.
     
+    Contains:
+    - id: The id of the output data attribute
+    - latest_timestamp_output: The latest timestamp of the output data from the query or None, if the data is not available
+    """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    id: str
+    latest_timestamp_output: Optional[Union[datetime, None]] = None 
+    value: Optional[Union[str, float, int, bool, Dict, List, DataFrame, None]] = None
+    timestamp: Optional[Union[datetime, None]] = None
+    
+       
+class OutputDataCommandModel(BaseModel):
+    """
+    Model for a command in the output data of the system controller.
+    
+    Contains:
+    - id: The id of the output command
+    - value: The value of the command / output data
+    """
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    
+    id: str
+    value: Union[str, float, int, bool, Dict, List, DataFrame, None]
+
 
 class OutputDataEntityModel(BaseModel):
     """
@@ -57,9 +77,14 @@ class OutputDataEntityModel(BaseModel):
     Contains:
     - id: The id of the output entity
     - latest_timestamp_output: The latest timestamp of the output data from the query or None, if the data is not available
+    
+    - attributes: List of the output data attributes as OutputDataAttributeModel
+    - commands: List of the output data commands as OutputDataCommandModel
+    
     """
     id:str
-    attributes: List[OutputDataAttributeModel]
+    attributes: Optional[List[OutputDataAttributeModel]] = []
+    commands: Optional[List[OutputDataCommandModel]] = []
     
 
 class InputDataModel(BaseModel):
@@ -73,3 +98,14 @@ class InputDataModel(BaseModel):
     
     input_entities: list[InputDataEntityModel]
     output_entities: list[OutputDataEntityModel]
+    
+class OutputDataModel(BaseModel):
+    
+    """
+    Model for the output data of the system controller.
+    
+    Contains:
+    - output_entitys: List of the output data entitys as OutputDataEntityModel
+    """
+    
+    entities: list[OutputDataEntityModel]

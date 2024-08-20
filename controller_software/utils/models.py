@@ -1,5 +1,6 @@
 # Description: This file contains the models for the use in the system controller itself.
 # Authors: Martin Altenburger
+# TODO: Is it possible to use the models from the configuration also for the system controller? Or could we use less modells?
 
 from pydantic import BaseModel, ConfigDict
 from pandas import DataFrame
@@ -109,3 +110,30 @@ class OutputDataModel(BaseModel):
     """
     
     entities: list[OutputDataEntityModel]
+    
+class DataTransferComponentModel(BaseModel):
+    """
+    Model for the components of the data transfer between calculation and the basic service.
+    
+    Contains:
+    - entity_id: The id of the entity of the component
+    - attribute_id: The id of the attribute of the component
+    - value: The output data value as OutputDataModel
+    - timestamp: The timestamp of the output
+    """
+    
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+    
+    entity_id: str
+    attribute_id: str
+    value: Union[str, float, int, bool, Dict, List, DataFrame, None]
+    timestamp: Optional[Union[datetime, None]] = None
+class DataTransferModell(BaseModel):
+    """
+    Model for the data transfer between calculation and the basic service.
+    
+    Contains:
+    - components: List of the components of the data transfer as DataTransferComponentModel
+    """
+    
+    components: list[DataTransferComponentModel] = []

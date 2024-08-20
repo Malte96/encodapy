@@ -10,12 +10,11 @@ from dateutil import tz
 from typing import Union
 from loguru import logger
 import requests
-import multiprocessing
-import concurrent.futures
+
 from filip.clients.ngsi_v2 import ContextBrokerClient
 from filip.models.base import DataType, FiwareHeaderSecure
 from filip.models.ngsi_v2.base import NamedMetadata
-from filip.models.ngsi_v2.context import NamedContextAttribute, ContextEntity
+from filip.models.ngsi_v2.context import NamedContextAttribute, ContextEntity, NamedCommand
 from fbs.software.utils import (
     update_health_file,
     get_env_variable,
@@ -23,12 +22,20 @@ from fbs.software.utils import (
     LoggerControl,
     CrateDBConnection,
     get_time_unit_seconds,
-    TimeUnits)
+    )
 from fbs.software.exceptions import NoCredentials
 from IPython.display import display
 
-from controller_software.config import ConfigModel, InputModel, OutputModel, Interfaces, AttributeTypes, TimerangeTypes, AttributeModel
-from controller_software.utils.models import InputDataModel, InputDataEntityModel, InputDataAttributeModel, OutputDataEntityModel, OutputDataAttributeModel, OutputDataModel
+from controller_software.config import ConfigModel, InputModel, OutputModel, Interfaces, AttributeTypes, TimerangeTypes, AttributeModel, CommandModel
+from controller_software.utils.models import (
+    InputDataModel,
+    InputDataEntityModel,
+    InputDataAttributeModel,
+    OutputDataEntityModel,
+    OutputDataAttributeModel,
+    OutputDataCommandModel,
+    OutputDataModel,
+    DataTransferModell)
 
 from controller_software.utils.error_handling import NotSupportedError
 
@@ -309,7 +316,7 @@ class ControllerBasicService():
                 continue
             elif output_attributes_entity[attr].metadata.get("TimeInstant") is not None:
                 timestamps.append(OutputDataAttributeModel(id=output_attributes_controller[attr],
-                                                           latest_timestamp_output=output_attributes_entity[attr].metadata.get("TimeInstant")))
+                                                           latest_timestamp_output=datetime.strptime(output_attributes_entity[attr].metadata.get("TimeInstant").value, "%Y-%m-%dT%H:%M:%S.%f%z")))
                 
 
         if len(timestamps)>0:
@@ -504,157 +511,201 @@ class ControllerBasicService():
                                                                 latest_timestamp_input=to_date))
         return input_attributes         
             
-    def _get_output_attribute_config(self,
-                                     output_entity:str,
-                                     attribute_id:str
-                                     )-> tuple[OutputModel, AttributeModel]:
+    def _get_output_entity_config(self,
+                                  output_entity_id:str,
+                                  )-> Union[OutputModel, None]:
             """
             Function to get the configuration of the output attributes
             
             Args:
                 - output_entity: id of the output entity
-                - attribute_id: id of the attribute
                 
             Returns:
-                - None
+                - Union[OutputModel, None]: configuration of the output entity or None if the entity is not found
             """
             for entity in self.config.outputs:
-                if entity.id == output_entity:
+                if entity.id == output_entity_id:
+                    return entity
+
+            return None
+        
+    def _get_output_attribute_config(self,
+                                     output_entity_id:str,
+                                     output_attribute_id:str,
+                                     ) -> Union[AttributeModel, None]:
+        
+        """
+        Function to get the configuration of the output attribute
+        
+        Args:
+            - output_entity: id of the output entity
+            - output_attribute: id of the output attribute
+            
+        Returns:
+            - Union[AttributeModel, None]: configuration of the output attribute or None if the attribute is not found
+        """
+        for entity in self.config.outputs:
+                if entity.id == output_entity_id:
+                    
                     for attribute in entity.attributes:
-                        if attribute.id == attribute_id:
-                            return attribute, entity
-            return None, None
+                        if attribute.id == output_attribute_id:
+                            return attribute
+                        
+        return None
+    
+    def _get_output_command_config(self,
+                                   output_entity_id:str,
+                                   output_command_id:str,
+                                   ) -> Union[CommandModel, None]:
+        
+        """
+        Function to get the configuration of the output attribute
+        
+        Args:
+            - output_entity: id of the output entity
+            - output_attribute: id of the output attribute
+            
+        Returns:
+            - Union[AttributeModel, None]: configuration of the output attribute or None if the attribute is not found
+        """
+        for entity in self.config.outputs:
+                if entity.id == output_entity_id:
+                    
+                    for commmand in entity.commands:
+                        if commmand.id == output_command_id:
+                            return commmand
+                        
+        return None
+
 
     def send_outputs(self,
                      data_output: Union[OutputDataModel, None],
                      *args, **kwargs
                      ):
         """
-        Send output data to Fiware platform, using parallel executions
+        Send output data to the interfaces defined in the Config (FIWARE, MQTT, ?)
         
         Args:
+            - data_output: OutputDataModel with the output data
 
         TODO:
-            - Implement a way to use different interfaces (FIWARE, FILE, MQTT, ...)
+            - Implement a way to use different interfaces (MQTT, ?)
         """
-        display(args)
-        display(kwargs)
         
         if data_output is None:
             logger.debug("No data for sending to Fiware instance")
             return
+    
+        for output in data_output.entities:
+            
+            output_entity = self._get_output_entity_config(output_entity_id=output.id)
+            output_attributes = []
+            output_commands = []
+            
+            if output_entity is None:
+                logger.debug(f"Output entity {output.id} not found in configuration.")
+                continue
 
-        max_workers = multiprocessing.cpu_count()
-        
-        logger.debug(f"Start sending data to Fiware platform with {max_workers} workers.")
-       
-        # context_entity = self.cb_client.get_entity(self.output_entity)
-        
-        display(data_output)
-        
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
-
-            futures = []
-       
-            for output in data_output.entities:
-
-                for attribute in output.attributes:
-                    
-                    output_entity, output_attribute = self._get_output_attribute_config(output_entity=output.id, attribute_id=attribute.id)
-                    # maybe we need this in separate functions to improve the performance
-                    
-                    display(output_entity)
-                    
-                    display(output_attribute)
-                    
-                    if output_entity is None or output_attribute is None:
-                        continue
-                    
-                    # TODO: Implement the sending of the data to the different interfaces (FIWARE, FILE, MQTT, ...)
-                    # Maybe its better to collect the attributes and commands and send them in one request
-                    
-                    if output_entity.interface is Interfaces.FIWARE:
-                        pass
-                        # self._send_data_to_fiware(output_entity=output_entity, output_attribute=output_attribute, attribute=attribute) 
-                    elif output_entity.interface is Interfaces.FILE:
-                        logger.warning("File interface not implemented yet.")
-                        raise NotSupportedError
-                    elif output_entity.interface is Interfaces.MQTT:
-                        logger.warning("MQTT interface not implemented yet.")
-                        raise NotSupportedError
+            for attribute in output.attributes:
                 
-                for command in output.commands:   
-                    
-                    pass     
-                # if isinstance(data, pd.DataFrame):
-                #     keys = data.columns.to_list()
-                    
-                #     for index, row in data.iterrows():
-
-                #         if index is not None:
-                #             future = executor.submit(self.send_data, context_entity, keys, index, row.to_dict())
-                            
-                #             futures.append(future)
+                output_attribute = self._get_output_attribute_config(output_entity_id=output.id, output_attribute_id=attribute.id)
                 
-                # elif data is None and timestamp_end_query_input is not None:
-                #     future = executor.submit(self.send_null_data, context_entity, key, timestamp_end_query_input)
-                #     futures.append(future)
-                # else:
-                #     logger.warning(f"Only dataframes or None are supported as output data. Data with key {key} will not be sent to Fiware instance.")
-                #     pass 
-                    
+                if output_attribute is None:
+                    logger.debug(f"Output attribute {attribute.id} not found in configuration.")
+                    continue
+                
+                output_attribute.value = attribute.value
+                output_attribute.timestamp = attribute.timestamp
+                output_attributes.append(output_attribute)
+                
+            for command in output.commands:
+                
+                output_command = self._get_output_command_config(output_entity_id=output.id, output_command_id=command.id)
+                
+                if output_command is None:
+                    logger.debug(f"Output attribute {command.id} not found in configuration.")
+                    continue
+                
+                output_command.value = attribute.value
+                output_commands.append(output_command)
+                
+            # TODO: Implement the sending of the data to the different interfaces (FIWARE, FILE, MQTT, ...)
+              
+            if output_entity.interface is Interfaces.FIWARE:
+                
+                self._send_data_to_fiware(output_entity=output_entity, output_attributes=output_attributes, output_commands=output_commands) 
+                
+            elif output_entity.interface is Interfaces.FILE:
+                logger.warning("File interface not implemented yet.")
+                raise NotSupportedError
+            
+            elif output_entity.interface is Interfaces.MQTT:
+                logger.warning("MQTT interface not implemented yet.")
+                raise NotSupportedError  
 
-            concurrent.futures.wait(futures)
 
-        logger.debug(f"Finished sending data to Fiware platform")
+        logger.debug(f"Finished sending data")
 
         return
-
-    def send_data(self, 
-                  context_entity: ContextEntity,
-                  keys:Union[str, list],
-                  time:datetime,
-                  data:dict):
-        try:           
+    
+    def _send_data_to_fiware(self,
+                             output_entity:OutputModel,
+                             output_attributes:list[AttributeModel],
+                             output_commands:list[CommandModel]
+                             )-> None:
+        
+        """
+        Function to send the output data to the FIWARE platform
+        
+        Args:
+            - output_entity: OutputModel with the output entity
+            - output_attributes: list with the output attributes
+            - output_commands: list with the output commands
+        
+        TODO:
+            - Maybe use parallel processing for the sending of the data
+            - Is there a better way to send the data from dataframes to the FIWARE platform?
+        """
+        
+        context_entity = self.cb_client.get_entity(output_entity.id_interface)
+        
+        entity_attributes = self.cb_client.get_entity_attributes(entity_id = context_entity.id, entity_type = context_entity.type)
+        
+        attrs = []
+        for attribute in output_attributes:
             
-            meta_data = NamedMetadata(name="TimeInstant", type=DataType.DATETIME, value=time.strftime("%Y-%m-%dT%H:%M:%S%z"))
-            attrs = []
-            if isinstance(keys, list):
-                for key in keys:
-                    try:
-                        context_attribute = context_entity.get_attribute(key)
-                    except KeyError:
-                        logger.error(f"Attribute {key} not found in entity {context_entity.id}")
-                        continue
-                    attrs.append(NamedContextAttribute(name=key, value=data[key], type=context_attribute.type, metadata=meta_data))
-
+            if attribute.id_interface in entity_attributes:
+                datatype = entity_attributes[attribute.id_interface].type
             else:
-                attrs.append(NamedContextAttribute(name=keys, value=data[keys], type=context_entity.get_attribute(key).type, metadata=meta_data))
-            self.cb_client.update_or_append_entity_attributes(entity_id=context_entity.id, entity_type=context_entity.type, attrs=attrs)
+                datatype = attribute.datatype
+                        
+            if isinstance(attribute.value, pd.DataFrame):
+                if len(attribute.value) == 0:
+                    continue
+                
+                for index, row in attribute.value.iterrows():
+                    meta_data = NamedMetadata(name="TimeInstant", type=DataType.DATETIME, value=index.strftime("%Y-%m-%dT%H:%M:%S%z"))
 
-        except (KeyError, TypeError) as error:
-            logger.error(f"Error while sending data for entity {context_entity.id}: {error}")
-
-    def send_null_data(self, 
-                       context_entity:ContextEntity,
-                       keys:Union[str, list],
-                       time:datetime):
-        try:
-            attrs = []
-            if isinstance(keys, list):
-                for key in keys:
-                    meta_data = NamedMetadata(name="TimeInstant", type=DataType.DATETIME, value=time)
-                    attrs.append(NamedContextAttribute(name=key, value=None, type=DataType.NUMBER, metadata=meta_data))
-            elif isinstance(keys, str):
-                meta_data = NamedMetadata(name="TimeInstant", type=DataType.DATETIME, value=time)
-                attrs.append(NamedContextAttribute(name=keys, value=None, type=DataType.NUMBER, metadata=meta_data))
+                    attrs.append(NamedContextAttribute(name=attribute.id_interface, value=row[attribute.id], type=datatype, metadata=meta_data))
+                
             else:
-                logger.warning(f"Type of keys not supoerted will not be sent to Fiware instance.")
-                pass
-            self.cb_client.update_or_append_entity_attributes(entity_id=context_entity.id, entity_type=context_entity.type, attrs=attrs)
 
-        except TypeError as error:
-            logger.error(error)
+                meta_data = NamedMetadata(name="TimeInstant", type=DataType.DATETIME, value=attribute.timestamp.strftime("%Y-%m-%dT%H:%M:%S%z"))
+                
+                attrs.append(NamedContextAttribute(name=attribute.id_interface, value=attribute.value, type=datatype, metadata=meta_data))
+
+        cmds = []
+        for command in output_commands:
+             cmds.append(NamedCommand(name=command.id_interface, value=command.value, type=DataType.COMMAND))
+
+
+        print("Send data to FIWARE for entity: ", context_entity.id)
+        output_points = attrs +  cmds
+        display(output_points)   
+          
+        # self.cb_client.update_or_append_entity_attributes(entity_id=context_entity.id, entity_type=context_entity.type, attrs=attrs.extend(cmds)) 
+        
+        return
 
     
     async def _hold_sampling_time(self, 
@@ -700,6 +751,58 @@ class ControllerBasicService():
         
         return None
     
+    def prepare_output(self,
+                       data_output:DataTransferModell) -> OutputDataModel:
+    
+        output_data = OutputDataModel(entities=[])
+        
+        output_attrs = {}
+        output_cmds = {}
+        for component in data_output.components:
+            
+            for output in self.config.outputs:
+                
+                if output.id == component.entity_id:
+                    
+                    for attribute in output.attributes:
+                        
+                        if attribute.id == component.attribute_id:
+                            
+                            if output.id not in output_attrs:
+                                output_attrs[output.id] = []
+                                
+                                
+                            output_attrs[output.id].append(OutputDataAttributeModel(id=attribute.id,
+                                                                                    value=component.value,
+                                                                                    timestamp=component.timestamp))
+                            
+                            break
+                    for command in output.commands:
+                        
+                        if command.id == component.attribute_id:
+                            
+                            if output.id not in output_cmds:
+                                output_cmds[output.id] = []
+                                
+                            output_cmds[output.id].append(OutputDataCommandModel(id=command.id,
+                                                                                 value=component.value))
+                            
+                            break
+        
+        for output in self.config.outputs:
+            if output.id in output_attrs:
+                attributes = output_attrs[output.id]
+            else:
+                attributes = []
+            if output.id in output_cmds:
+                commands = output_cmds[output.id]
+            else:
+                commands = []
+                
+            output_data.entities.append(OutputDataEntityModel(id=output.id, attributes=attributes, commands=commands))
+        
+        return output_data
+            
      
     async def start_service(self):
         """
@@ -719,8 +822,10 @@ class ControllerBasicService():
             if data_input is not None:
             
                 data_output = await self.calculation(data = data_input)
+                
+                data_output = self.prepare_output(data_output = data_output)
 
-                self.send_outputs(data_output = data_output, timestamp_end_query_input= data_input)
+                self.send_outputs(data_output = data_output)
             
             await self._set_health_timestamp()
             

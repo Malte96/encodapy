@@ -9,6 +9,8 @@ from controller_software.config.types import Interfaces, AttributeTypes, Control
 from controller_software.utils.error_handling import ConfigError
 from loguru import logger
 from fbs.software.utils.utils import TimeUnits
+from datetime import datetime
+from filip.models.base import DataType
 # TODO: Add the configuration parameters and the import from a json-file
 # TODO: Add a documentation for the models
 # TODO: Is this validation implementation useful and correct?
@@ -33,6 +35,8 @@ class AttributeModel(BaseModel):
     - id_interface: The id of the attribute on the interface
     - type: The type of the attribute
     - value: The value of the attribute
+    - datatype: The datatype of the attribute
+    - timestamp: The timestamp of the attribute
     
     """
     
@@ -40,6 +44,8 @@ class AttributeModel(BaseModel):
     id_interface: str
     type: AttributeTypes
     value: Union[str, None] = None
+    datatype: DataType = DataType.NUMBER
+    timestamp: Union[datetime, None] = None
     
 class CommandModel(BaseModel):
     """

@@ -4,13 +4,14 @@
 from pydantic import BaseModel, ValidationError, ConfigDict
 from pydantic.functional_validators import field_validator, model_validator
 import json
-from typing import Union, Optional, List, Dict
+from typing import Union, Optional, List, Dict, Any
 from controller_software.config.types import Interfaces, AttributeTypes, ControllerComponents, TimerangeTypes
 from controller_software.utils.error_handling import ConfigError
 from loguru import logger
 from fbs.software.utils.utils import TimeUnits
 from datetime import datetime
 from filip.models.base import DataType
+from pandas import DataFrame
 # TODO: Add the configuration parameters and the import from a json-file
 # TODO: Add a documentation for the models
 # TODO: Is this validation implementation useful and correct?
@@ -18,13 +19,13 @@ from filip.models.base import DataType
 
 
 class InterfaceModel(BaseModel):
-    """Base class for the interfaces"""
+    """Base class for the interfaces
+    TODO: - How to use this model?
+    """
     
     mqtt: bool
     fiware: bool
-    file: dict
-
-
+    file: bool
     
 class AttributeModel(BaseModel):
     """
@@ -32,18 +33,19 @@ class AttributeModel(BaseModel):
     
     Contains:
     - id: The id of the attribute
-    - id_interface: The id of the attribute on the interface
+    - id_interface: The id of the attribute on the interface (if not set, the id is used)
     - type: The type of the attribute
     - value: The value of the attribute
     - datatype: The datatype of the attribute
     - timestamp: The timestamp of the attribute
     
     """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
     
     id: str
-    id_interface: str
-    type: AttributeTypes
-    value: Union[str, None] = None
+    id_interface: str = id
+    type: AttributeTypes = AttributeTypes.VALUE
+    value: Union[str, float, int, bool, Dict, List, DataFrame, None] = None
     datatype: DataType = DataType.NUMBER
     timestamp: Union[datetime, None] = None
     
@@ -53,16 +55,59 @@ class CommandModel(BaseModel):
     
     Contains:
     - id: The id of the command
-    - id_interface: The id of the command on the interface
+    - id_interface: The id of the command on the interface (if not set, the id is used)
     - value: The value of the command
     """
     
     model_config = ConfigDict(arbitrary_types_allowed=True)
     
     id: str
-    id_interface: str
+    id_interface: str = id
     value: Union[str, int, float, List, Dict, None] = None
+                
+class InputModel(BaseModel):
+    """
+    Model for the configuration of inputs.
+    
+    Contains:
+    - id: The id of the input
+    - interface: The interface of the input
+    - id_interface: The id of the input on the interface
+    - attributes: The attributes of the
+
+    """
+    id: str
+    interface: Interfaces
+    id_interface: str
+    attributes: list[AttributeModel]
+    
+class OutputModel(BaseModel):
+    """
+    Model for the configuration of outputs.
+    
+    Contains:
+    - id: The id of the output
+    - interface: The interface of the output
+    - id_interface: The id of the output on the interface
+    - attributes: The attributes of the output
+    """
+    id: str
+    interface: Interfaces
+    id_interface: str
+    attributes: list[AttributeModel]
+    commands: list[CommandModel]
         
+class ControllerComponentModel(BaseModel):
+    """
+    Model for the configuration of the controller components.
+    """
+    
+    active: bool = True
+    id: str
+    type: ControllerComponents          # TODO: How to reference the component types?
+    inputs: dict                        # TODO: How to reference the input/output models? Need this also a modell? Would that be better?
+    outputs: dict
+    
 class TimeSettingsCalculationModel(BaseModel):
     """
     Base class for the calculation time settings of the controller / system.
@@ -80,12 +125,9 @@ class TimeSettingsCalculationModel(BaseModel):
     """
     
     timerange: Optional[float] = None
-    
     timerange_min: Optional[float] = None
     timerange_max: Optional[float] = None
-    
     timerange_type: Optional[TimerangeTypes] = TimerangeTypes.ABSOLUTE
-    
     timerange_unit: Optional[TimeUnits] = TimeUnits.MINUTE
     
     timestep: Union[float, int] = 1
@@ -108,11 +150,22 @@ class TimeSettingsCalculationModel(BaseModel):
 
         return self
     
-    # TODO: Check if the timerange is set - if not push a warning
-    # @model_validator(mode='after')
-    # def check_timestep_units(self) -> 'TimeSettingsCalculationModel':
-        
-
+    @model_validator(mode='before')
+    @classmethod
+    def check_timestep_units(self, data: Any) -> Any:
+        if "timestep" not in data:
+            logger.debug("No timestep is set - using default value '1'")
+        if "timestep_unit" not in data:
+            logger.debug("No timestep unit is set - using default unit 'second'")
+        if "sampling_time" not in data:
+            logger.debug("No sampling time is set - using default value '1'")
+        if "sampling_time_unit" not in data:
+            logger.debug("No sampling time unit is set - using default unit 'minute'")
+        if "timerange_unit" not in data:
+            logger.debug("No timerange unit is set - using default unit 'minute'")
+        if "timerange_type" not in data:
+            logger.debug("No timerange type is set - using default type 'absolute'")
+        return data
     
 class TimeSettingsCalibrationModel(BaseModel):
     
@@ -152,60 +205,6 @@ class TimeSettingsModel(BaseModel):
     calculation: TimeSettingsCalculationModel
     calibration: Optional[TimeSettingsCalibrationModel] = None
     results: Optional[TimeSettingsResultsModel] = None
-
-class InputModel(BaseModel):
-    """
-    Model for the configuration of inputs.
-    
-    Contains:
-    - id: The id of the input
-    - interface: The interface of the input
-    - id_interface: The id of the input on the interface
-    - attributes: The attributes of the
-
-    """
-    id: str
-    interface: Interfaces
-    id_interface: str
-    attributes: list[AttributeModel]
-    
-class OutputModel(BaseModel):
-    """
-    Model for the configuration of outputs.
-    
-    Contains:
-    - id: The id of the output
-    - interface: The interface of the output
-    - id_interface: The id of the output on the interface
-    - attributes: The attributes of the output
-    """
-    id: str
-    interface: Interfaces
-    id_interface: str
-    attributes: list[AttributeModel]
-    commands: list[CommandModel]
-    
-class ControllerDataModel(BaseModel):
-    """
-    Model for the dataflow (input/output) of the controller.
-    
-    Contains:
-    - entity: The entity (input / output) of the datapoint for the controller
-    - attribute: The attribute of the datapoint for the controller
-    """
-    entity: str
-    attribute: str
-    
-class ControllerComponentModel(BaseModel):
-    """
-    Model for the configuration of the controller components.
-    """
-    
-    active: bool = True
-    id: str
-    type: ControllerComponents          # TODO: How to reference the component types?
-    inputs: dict                        # TODO: How to reference the input/output models? Need this also a modell? Would that be better?
-    outputs: dict
     
 class ControllerSettingModel(BaseModel):
     """

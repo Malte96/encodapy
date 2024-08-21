@@ -7,6 +7,7 @@ from pandas import DataFrame
 from datetime import datetime
 from typing import Union, Optional, List, Dict
 from controller_software.config.types import AttributeTypes
+from controller_software.config.models import CommandModel, AttributeModel
 
 class InputDataAttributeModel(BaseModel):
     """
@@ -41,7 +42,7 @@ class InputDataEntityModel(BaseModel):
  
 class OutputDataAttributeModel(BaseModel):
     """
-    Model for a attribute of output data of the system controller.
+    Model for a attribute of output data of the system controller - status based on the status of the interface.
     
     Contains:
     - id: The id of the output data attribute
@@ -51,25 +52,6 @@ class OutputDataAttributeModel(BaseModel):
     
     id: str
     latest_timestamp_output: Optional[Union[datetime, None]] = None 
-    value: Optional[Union[str, float, int, bool, Dict, List, DataFrame, None]] = None
-    timestamp: Optional[Union[datetime, None]] = None
-    
-       
-class OutputDataCommandModel(BaseModel):
-    """
-    Model for a command in the output data of the system controller.
-    
-    Contains:
-    - id: The id of the output command
-    - value: The value of the command / output data
-    """
-    
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    
-    
-    id: str
-    value: Union[str, float, int, bool, Dict, List, DataFrame, None]
-
 
 class OutputDataEntityModel(BaseModel):
     """
@@ -84,8 +66,9 @@ class OutputDataEntityModel(BaseModel):
     
     """
     id:str
-    attributes: Optional[List[OutputDataAttributeModel]] = []
-    commands: Optional[List[OutputDataCommandModel]] = []
+    attributes: Optional[List[AttributeModel]] = []
+    attributes_status: Optional[List[OutputDataAttributeModel]] = []
+    commands: Optional[List[CommandModel]] = []
     
 
 class InputDataModel(BaseModel):
@@ -111,7 +94,17 @@ class OutputDataModel(BaseModel):
     
     entities: list[OutputDataEntityModel]
     
-class DataTransferComponentModel(BaseModel):
+class ComponentModel(BaseModel):
+    """
+    Model for the dataflow (input/output) of the controller.
+    
+    Contains:
+    - entity: The entity (input / output) of the datapoint for the controller
+    - attribute: The attribute of the datapoint for the controller
+    """
+    entity_id: str
+    attribute_id: str
+class DataTransferComponentModel(ComponentModel):
     """
     Model for the components of the data transfer between calculation and the basic service.
     
@@ -124,8 +117,6 @@ class DataTransferComponentModel(BaseModel):
     
     model_config = ConfigDict(arbitrary_types_allowed=True)
     
-    entity_id: str
-    attribute_id: str
     value: Union[str, float, int, bool, Dict, List, DataFrame, None]
     timestamp: Optional[Union[datetime, None]] = None
 class DataTransferModell(BaseModel):

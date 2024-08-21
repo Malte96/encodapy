@@ -1,7 +1,8 @@
 # Module for the basic service class for the data processing and transfer via different interfaces.
 # TODO: The class is not yet finished and needs to be extended with the necessary functions and methods. It can not be used yet. -- Martin Altenburger
+# TODO: Import the necessary modules and classes - dont use the fbs modules
 # Author: Martin Altenburger 
-import json
+import os
 import pandas as pd
 import numpy as np
 from asyncio import sleep
@@ -15,88 +16,109 @@ from filip.clients.ngsi_v2 import ContextBrokerClient
 from filip.models.base import DataType, FiwareHeaderSecure
 from filip.models.ngsi_v2.base import NamedMetadata
 from filip.models.ngsi_v2.context import NamedContextAttribute, ContextEntity, NamedCommand
+
 from fbs.software.utils import (
     update_health_file,
-    get_env_variable,
     BaererToken,
-    LoggerControl,
     CrateDBConnection,
     get_time_unit_seconds,
     )
 from fbs.software.exceptions import NoCredentials
-from IPython.display import display
 
-from controller_software.config import ConfigModel, InputModel, OutputModel, Interfaces, AttributeTypes, TimerangeTypes, AttributeModel, CommandModel
+
+from controller_software.config import (ConfigModel,
+                                        InputModel,
+                                        OutputModel,
+                                        Interfaces,
+                                        AttributeTypes,
+                                        TimerangeTypes,
+                                        AttributeModel,
+                                        CommandModel)
 from controller_software.utils.models import (
     InputDataModel,
     InputDataEntityModel,
     InputDataAttributeModel,
     OutputDataEntityModel,
     OutputDataAttributeModel,
-    OutputDataCommandModel,
     OutputDataModel,
     DataTransferModell)
-
+from controller_software.config.default_values import DefaultEnvVariables
 from controller_software.utils.error_handling import NotSupportedError
+from controller_software.utils.logging import LoggerControl
+from IPython.display import display
 
 class ControllerBasicService():
     """
         Class for processing the measurement data including data transfer to a FIWARE platform.
+        
+        TODO: Implement the other interfaces(FILE, MQTT, ...)
             
     """
     def __init__(
         self,
     ) -> None:
+        self.config = None
+        self.logger = LoggerControl()
+        
         self.fiware_params = dict()
         self.database_params = dict()   
         self.fiware_token = dict()
-        
         self.fiware_token_client = None
         self.fiware_header = None
-        
         self.cb_client = None
         self.crate_db_client = None
-
-        # self.input_data_timeranges = dict()
-        
-        self.config = None
-        
-        self.logger = LoggerControl()
-
+       
         self.timestamp_health = None
         
 
     
-    async def _load_env(self):
+    def _load_config(self):
         """
         Function loads the env of the service from the configuration file (.env).
+        
+        TODO: Is it simpler to use the configuration file directly?
             
         """
-        self.fiware_params["cb_url"] = get_env_variable("CB_URL")
-        self.fiware_params["service"] = get_env_variable("FIWARE_SERVICE")
-        self.fiware_params["service_path"] = get_env_variable("FIWARE_SERVICE_PATH")
-        self.fiware_token["authentication"] = get_env_variable("FIWARE_AUTH", type_variable="bool")
-        if self.fiware_token["authentication"]:
-            if get_env_variable("FIWARE_CLIENT_ID") is not None:
-                self.fiware_token["client_id"] = get_env_variable("FIWARE_CLIENT_ID")
-                self.fiware_token["client_secret"] = get_env_variable("FIWARE_CLIENT_PW")
-                self.fiware_token["token_url"] = get_env_variable("FIWARE_TOKEN_URL")
-            elif get_env_variable("FIWARE_BAERER_TOKEN") is not None:
-                self.fiware_token["baerer_token"] = get_env_variable("FIWARE_BAERER_TOKEN")
-            else:
-                logger.error('No authentication credentials available')
-                raise NoCredentials
+        config_path = os.environ.get("CONFIG_PATH", DefaultEnvVariables.CONFIG_PATH.value)
+        
+        self.config = ConfigModel.from_json(file_path = config_path)
+        
+        if self.config.interfaces.fiware:
+        
+            self.fiware_params["cb_url"] = os.environ.get("CB_URL", DefaultEnvVariables.CB_URL.value)
+            self.fiware_params["service"] =  os.environ.get("FIWARE_SERVICE", DefaultEnvVariables.FIWARE_SERVICE.value)
+            self.fiware_params["service_path"] = os.environ.get("FIWARE_SERVICE_PATH", DefaultEnvVariables.FIWARE_SERVICE_PATH.value)
+            self.fiware_token["authentication"] = os.getenv("FIWARE_AUTH", str(DefaultEnvVariables.FIWARE_AUTH.value)).lower() in ('true', '1', 't')
+            
+            if self.fiware_token["authentication"]:
+                
+                if os.environ.get("FIWARE_CLIENT_ID") is not None and os.environ.get("FIWARE_CLIENT_PW") is not None and os.environ.get("FIWARE_TOKEN_URL") is not None:
+                    self.fiware_token["client_id"] = os.environ.get("FIWARE_CLIENT_ID")
+                    self.fiware_token["client_secret"] = os.environ.get("FIWARE_CLIENT_PW")
+                    self.fiware_token["token_url"] = os.environ.get("FIWARE_TOKEN_URL")
+                elif os.environ.get("FIWARE_BAERER_TOKEN") is not None:
+                    self.fiware_token["baerer_token"] = os.environ.get("FIWARE_BAERER_TOKEN")
+                else:
+                    logger.error('No authentication credentials available')
+                    raise NoCredentials
         
          
-        self.database_params["crate_db_url"] = get_env_variable("CRATE_DB_URL")
-        self.database_params["crate_db_user"] = get_env_variable("CRATE_DB_USER")
-        self.database_params["crate_db_pw"] = get_env_variable("CRATE_DB_PW")
-        self.database_params["crate_db_ssl"] = get_env_variable("CRATE_DB_SSL", type_variable="bool")
+            self.database_params["crate_db_url"] = os.environ.get("CRATE_DB_URL", DefaultEnvVariables.CRATE_DB_URL.value)
+            self.database_params["crate_db_user"] = os.environ.get("CRATE_DB_USER", DefaultEnvVariables.CRATE_DB_USER.value)
+            self.database_params["crate_db_pw"] = os.environ.get("CRATE_DB_PW", DefaultEnvVariables.CRATE_DB_PW.value)
+            self.database_params["crate_db_ssl"] = os.environ.get("CRATE_DB_SSL", str(DefaultEnvVariables.CRATE_DB_SSL.value)).lower() in ('true', '1', 't')
         
-        config_path = get_env_variable("CONFIG_PATH", type_variable="str", default_value=None)
+        if self.config.interfaces.file:
+            logger.warning("File interface not implemented yet.")
+            raise NotSupportedError
+        
+        if self.config.interfaces.mqtt:
+            logger.warning("MQTT interface not implemented yet.")
+            raise NotSupportedError
         
         logger.debug('ENVs succesfully loaded.')
         
+        # raise ValueError("No configuration file available")
         return config_path
     
             
@@ -106,34 +128,41 @@ class ControllerBasicService():
         
         TODO:
             - Implement the other interfaces(FILE, MQTT, ...)
-            - How to handle the interfaces (FIWARE, FILE, MQTT), if they are not in use?
             
-        """        
-        config_path = await self._load_env()
+        """  
         
-        self.config = ConfigModel.from_json(file_path = config_path)
+        self._load_config()
         
-        if self.fiware_token["authentication"]:
-            if "baerer_token" in self.fiware_token:
-                self.fiware_token_client = BaererToken(token=self.fiware_token["baerer_token"])
+        
+        if self.config.interfaces.fiware:
+            if self.fiware_token["authentication"]:
+                if "baerer_token" in self.fiware_token:
+                    self.fiware_token_client = BaererToken(token=self.fiware_token["baerer_token"])
+                else:
+                    self.fiware_token_client = BaererToken(client_id=self.fiware_token["client_id"],
+                                                        client_secret=self.fiware_token["client_secret"],
+                                                        token_url=self.fiware_token["token_url"])
+                self.fiware_header = FiwareHeaderSecure(service=self.fiware_params["service"],
+                                                        service_path=self.fiware_params["service_path"],
+                                                        authorization=self.fiware_token_client.baerer_token)
             else:
-                self.fiware_token_client = BaererToken(client_id=self.fiware_token["client_id"],
-                                                       client_secret=self.fiware_token["client_secret"],
-                                                       token_url=self.fiware_token["token_url"])
-            self.fiware_header = FiwareHeaderSecure(service=self.fiware_params["service"],
-                                                    service_path=self.fiware_params["service_path"],
-                                                    authorization=self.fiware_token_client.baerer_token)
-        else:
-            self.fiware_header = FiwareHeaderSecure(service=self.fiware_params["service"],
-                                                    service_path=self.fiware_params["service_path"])
+                self.fiware_header = FiwareHeaderSecure(service=self.fiware_params["service"],
+                                                        service_path=self.fiware_params["service_path"])
+                
+            self.cb_client = ContextBrokerClient(url=self.fiware_params["cb_url"],
+                                            fiware_header=self.fiware_header)
             
-        self.cb_client = ContextBrokerClient(url=self.fiware_params["cb_url"],
-                                        fiware_header=self.fiware_header)
+            self.crate_db_client = CrateDBConnection(crate_db_url=self.database_params["crate_db_url"],
+                                                    crate_db_user=self.database_params["crate_db_user"],
+                                                    crate_db_pw=self.database_params["crate_db_pw"],
+                                                    crate_db_ssl=self.database_params["crate_db_ssl"])
+        if self.config.interfaces.file:
+            logger.warning("File interface not implemented yet.")
+            raise NotSupportedError
         
-        self.crate_db_client = CrateDBConnection(crate_db_url=self.database_params["crate_db_url"],
-                                                 crate_db_user=self.database_params["crate_db_user"],
-                                                 crate_db_pw=self.database_params["crate_db_pw"],
-                                                 crate_db_ssl=self.database_params["crate_db_ssl"])
+        if self.config.interfaces.mqtt:
+            logger.warning("MQTT interface not implemented yet.")
+            raise NotSupportedError
 
         return
      
@@ -303,7 +332,8 @@ class ControllerBasicService():
             output_entity (OutputModel): Output entity
 
         Returns:
-            tuple[OutputDataEntityModel, Union[datetime, None]]: OutputDataEntityModel with timestamps for the attributes and the latest timestamp of the output entity (None if no timestamp is available)
+            tuple[OutputDataEntityModel, Union[datetime, None]]: OutputDataEntityModel with timestamps for the attributes 
+                                                                 and the latest timestamp of the output entity for the attribute with the oldest value (None if no timestamp is available)
         """
         
         output_attributes_entity = self.cb_client.get_entity_attributes(entity_id = output_entity.id_interface)
@@ -325,7 +355,7 @@ class ControllerBasicService():
             timestamp_latest_output = None      
             
         return OutputDataEntityModel(id = output_entity.id,
-                                     attributes=timestamps), timestamp_latest_output
+                                     attributes_status=timestamps), timestamp_latest_output
             
     async def get_data(self,
                        method:str
@@ -772,7 +802,7 @@ class ControllerBasicService():
                                 output_attrs[output.id] = []
                                 
                                 
-                            output_attrs[output.id].append(OutputDataAttributeModel(id=attribute.id,
+                            output_attrs[output.id].append(AttributeModel(id=attribute.id,
                                                                                     value=component.value,
                                                                                     timestamp=component.timestamp))
                             
@@ -784,7 +814,7 @@ class ControllerBasicService():
                             if output.id not in output_cmds:
                                 output_cmds[output.id] = []
                                 
-                            output_cmds[output.id].append(OutputDataCommandModel(id=command.id,
+                            output_cmds[output.id].append(CommandModel(id=command.id,
                                                                                  value=component.value))
                             
                             break

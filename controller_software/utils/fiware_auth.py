@@ -1,0 +1,93 @@
+# Description: This file contains the class BaererToken, which is used to check if an OAuth2 bearer token is valid.
+# Author: Martin Altenburger
+from typing import Union
+
+import requests
+from oauthlib.oauth2 import BackendApplicationClient
+from requests_oauthlib import OAuth2Session
+
+
+class BaererToken:
+    """
+    Checks if an OAuth2 bearer token is valid.
+
+    Returns:
+        bool: True, if token is valid
+    """
+
+    def __init__(
+        self,
+        client_id: str = None,
+        client_secret: str = None,
+        token_url: str = None,
+        token: Union[str, None] = None,
+    ) -> None:
+        self.client_id = client_id
+        self.client_secret = client_secret
+        self.token_url = token_url
+        self.token = token
+        if token is not None:
+            self.token_typ = "static"
+        else:
+            self.token_typ = "limited"
+
+    def _is_token_valid(
+        self,
+    ) -> bool:
+        """
+        Checks if an OAuth2 bearer token is valid.
+
+        Returns:
+            bool: True, if token is valid
+        """
+        if self.token_typ == "static":
+            return True
+        else:
+            response = requests.get(
+                f"""{self.token_url}/tokeninfo""", params={"access_token": self.token}
+            )
+
+            if response.status_code == 200:
+
+                token_info = response.json()
+                expires_in = token_info.get("expires_in")
+
+                if expires_in is None or expires_in > 10:
+                    return True
+
+            return False
+
+    def _get_new_token(self) -> None:
+        """
+        Function to get new baerer-token from oauth2-provider
+        """
+        client = BackendApplicationClient(client_id=self.client_id)
+        oauth = OAuth2Session(client=client)
+        self.token = oauth.fetch_token(
+            token_url=self.token_url,
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+        )["access_token"]
+
+        return
+
+    @property
+    def token_type(self):
+        return self.token_type
+
+    @property
+    def baerer_token(self) -> str:
+        return f"""Bearer {self.token}"""
+
+    def check_token(self) -> None:
+        """
+        Function to check if the actual baerer-token is valid and if not, get a new baerer-token from oauth2-provider
+
+        Returns:
+            bool: True if old token is valid, false if new token has been received
+        """
+        if self._is_token_valid():
+            return True
+        else:
+            self._get_new_token()
+            return False

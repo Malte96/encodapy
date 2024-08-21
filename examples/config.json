@@ -3,7 +3,7 @@
     "interfaces":{
         "mqtt": false,
         "fiware": true,
-        "file":{}
+        "file": false
     },
     "inputs": [
         {
@@ -29,8 +29,17 @@
             "id_interface": "urn:dhw_calculation:10",
             "attributes": [
                 {"id": "hygienic_status", 
-                "id_interface":"dhw:hygienic_status",
+                "id_interface":"dhw:tapping",
                 "type": "value"
+                },
+                {"id": "hygienic_df", 
+                "id_interface":"dhw:tapping",
+                "type": "timeseries"
+                }
+            ],
+            "commands":[
+                {"id": "hygienic_status", 
+                "id_interface":"dhw:hygienic_status"
                 }
             ]
         }
@@ -41,15 +50,35 @@
             "id": "hygienic_controller",
             "type": "hygienic_controller",
             "inputs": {
-                "temperature": "temperature", 
-                "tappings": "tapping"
-                },
+                "temperature": {
+                    "entity" : "dhw_calculation",
+                    "attribute": "temperature"
+                }, 
+                "tappings": {
+                    "entity" : "dhw_calculation",
+                    "attribute": "tapping"
+                }
+            },
             "outputs":{
                 "hygienic_status": {
-                    "output" : "dhw_calculation",
+                    "entity" : "dhw_calculation",
                     "attribute": "hygienic_status"
+                },
+                "hygienic_data": {
+                    "entity" : "dhw_calculation",
+                    "attribute": "hygienic_df"
                 }
-            }
+            },
+            "config": {
+                "temperatures": {
+                                    "warning_limit": 45,
+                                    "optimal_limit": 55
+                                },
+                "time_of_stay":{
+                                    "stay_limit": 24,
+                                    "tapping_limit": 5
+                                }
+                }
         }
     ],
     "controller_settings": {
@@ -58,11 +87,7 @@
             "calculation":
             {
                 "timerange":24,
-                "timerange_units":"hour",
-                "timestep":1,
-                "timestep_units":"minute",
-                "sampling_time":1,
-                "sampling_time_units":"minute"
+                "timerange_unit":"hour"
             },
             "results":
             {

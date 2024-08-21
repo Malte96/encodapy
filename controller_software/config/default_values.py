@@ -2,10 +2,12 @@
 # Authors: Martin Altenburger
 from enum import Enum
 
+
 class DefaultEnvVariables(Enum):
     """
     Default environment variables for service
     """
+
     CONFIG_PATH = "./config.json"
     CB_URL = "http://localhost:1026"
     FIWARE_SERVICE = "service"

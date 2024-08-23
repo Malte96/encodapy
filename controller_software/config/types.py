@@ -41,3 +41,9 @@ class ControllerComponents(Enum):
 
     STORAGE = "storage"
     HYGIENICCONTROLLER = "hygienic_controller"
+
+class DataQueryTypes(Enum):
+    """Enum class for the data query types"""
+    
+    CALCULATION = "calculation"
+    CALIBRATION = "calibration"

@@ -1,15 +1,17 @@
 # Module for the basic service class for the data processing and transfer via different interfaces.
-# TODO: The class is not yet finished and needs to be extended with the necessary functions and methods. It can not be used yet. -- Martin Altenburger
-# TODO: Import the necessary modules and classes - dont use the fbs modules
+# TODO: The class is not yet finished and needs to be extended with the necessary functions and methods. -- Martin Altenburger
+# TODO: Import the necessary modules and classes - improve the imports -- Martin Altenburger
 # Author: Martin Altenburger
 import os
 from asyncio import sleep
 from datetime import datetime, timedelta, timezone
 from typing import Union
-
 import numpy as np
 import pandas as pd
 import requests
+from dateutil import tz
+from loguru import logger
+
 from controller_software.config import (
     AttributeModel,
     AttributeTypes,
@@ -20,7 +22,9 @@ from controller_software.config import (
     Interfaces,
     OutputModel,
     TimerangeTypes,
+    DataQueryTypes
 )
+
 from controller_software.utils.cratedb import CrateDBConnection
 from controller_software.utils.error_handling import NotSupportedError
 from controller_software.utils.fiware_auth import BaererToken
@@ -36,14 +40,13 @@ from controller_software.utils.models import (
     OutputDataModel,
 )
 from controller_software.utils.timeunit import get_time_unit_seconds
-from dateutil import tz
-from fbs.software.exceptions import NoCredentials
+
 from filip.clients.ngsi_v2 import ContextBrokerClient
 from filip.models.base import DataType, FiwareHeaderSecure
 from filip.models.ngsi_v2.base import NamedMetadata
 from filip.models.ngsi_v2.context import NamedCommand, NamedContextAttribute
-from IPython.display import display
-from loguru import logger
+
+# from IPython.display import display
 
 
 class ControllerBasicService:
@@ -207,12 +210,14 @@ class ControllerBasicService:
         await self.prepare_basic_start()
 
     def _calculate_dates(
-        self, method: str, last_timestamp: Union[datetime, None]
+        self,
+        method: DataQueryTypes,
+        last_timestamp: Union[datetime, None]
     ) -> tuple[str, str]:
         """Function to calculate the dates for the input data query
 
         Args:
-            method (str): Method for the calculation
+            method (DataQueryTypes): Method for the calculation
             time_now (datetime): Time now
             last_timestamp (datetime): Timestamp of the last output
 
@@ -227,11 +232,11 @@ class ControllerBasicService:
             timeframe = (time_now - last_timestamp).total_seconds() / 60
         from_date, to_date = None, None
 
-        if method == "calculation":
+        if method is DataQueryTypes.CALCULATION:
             from_date, to_date = self._handle_calculation_method(
                 time_now, last_timestamp, timeframe
             )
-        elif method == "calibration":
+        elif method is DataQueryTypes.CALIBRATION:
             from_date, to_date = self._handle_calibration_method(last_timestamp)
 
         if to_date is None:
@@ -444,10 +449,15 @@ class ControllerBasicService:
             timestamp_latest_output,
         )
 
-    async def get_data(self, method: str) -> InputDataModel:
+    async def get_data(self, 
+                       method: DataQueryTypes
+                       ) -> InputDataModel:
         """
         Function to get the data of all input entities via the different interfaces (FIWARE, FILE, MQTT)
 
+        Args:
+            method (DataQueryTypes): Method for the data query
+        
         Returns:
             InputDataModel: Model with the input data
 
@@ -512,15 +522,20 @@ class ControllerBasicService:
 
     def get_data_from_fiware(
         self,
-        method: str,
+        method: DataQueryTypes,
         entity: InputModel,
         timestamp_latest_output: Union[datetime, None],
-    ) -> Union[dict, None]:
+    ) -> Union[InputDataEntityModel, None]:
         """
         Function fetches the data for evaluation which have not yet been evaluated.
             First get the last timestamp of the output entity. Then get the data from the entity since the last timestamp of the output entity from cratedb.
         Args:
-            - method: Keyword for type of query
+            - method (DataQueryTypes): Keyword for type of query
+            - entity (InputModel): Input entity
+            - timestamp_latest_output (datetime): Timestamp of the last output
+            
+        Returns:
+            - InputDataEntityModel: Model with the input data or None if the connection to the platform is not available
 
         """
 
@@ -589,7 +604,7 @@ class ControllerBasicService:
         entity_id: str,
         entity_type: str,
         entity_attributes: dict,
-        method: str,
+        method: DataQueryTypes,
         timestamp_latest_output: datetime,
     ) -> list[InputDataAttributeModel]:
         """
@@ -599,7 +614,7 @@ class ControllerBasicService:
             - entity_id: id of the entity
             - entity_type: type of the entity
             - entity_attributes: dict with the attributes of the entity
-            - method: method of the function which queries the data (calculation or calibration)
+            - method (DataQueryTypes): method of the function which queries the data (calculation or calibration)
             - timestamp_latest_output: timestamp of the last output of the entity
 
         Returns:
@@ -738,7 +753,9 @@ class ControllerBasicService:
 
         return None
 
-    def send_outputs(self, data_output: Union[OutputDataModel, None], *args, **kwargs):
+    async def send_outputs(self,
+                           data_output: Union[OutputDataModel, None]
+                           ):
         """
         Send output data to the interfaces defined in the Config (FIWARE, MQTT, ?)
 
@@ -794,7 +811,7 @@ class ControllerBasicService:
                 output_command.value = command.value
                 output_commands.append(output_command)
 
-            # TODO: Implement the sending of the data to the different interfaces (FIWARE, FILE, MQTT, ...)
+            # TODO: Implement the sending of the data to the other interfaces (FILE, MQTT, ...)
 
             if output_entity.interface is Interfaces.FIWARE:
 
@@ -811,10 +828,10 @@ class ControllerBasicService:
             elif output_entity.interface is Interfaces.MQTT:
                 logger.warning("MQTT interface not implemented yet.")
                 raise NotSupportedError
+            
+            await sleep(0.1)
 
         logger.debug("Finished sending output data")
-
-        return
 
     def _send_data_to_fiware(
         self,
@@ -833,6 +850,7 @@ class ControllerBasicService:
         TODO:
             - Maybe use parallel processing for the sending of the data
             - Is there a better way to send the data from dataframes to the FIWARE platform?
+            - Could there be a problem with big dataframes --> so that the data is not sent to the FIWARE platform?
         """
 
         context_entity = self.cb_client.get_entity(output_entity.id_interface)
@@ -896,11 +914,9 @@ class ControllerBasicService:
                 )
             )
 
-        print("Send data to FIWARE for entity: ", context_entity.id)
         output_points = attrs + cmds
-        display(output_points)
 
-        # self.cb_client.update_or_append_entity_attributes(entity_id=context_entity.id, entity_type=context_entity.type, attrs=attrs.extend(cmds))
+        self.cb_client.update_or_append_entity_attributes(entity_id=context_entity.id, entity_type=context_entity.type, attrs=output_points)
 
     async def _hold_sampling_time(
         self, start_time: datetime, hold_time: Union[int, float]
@@ -938,7 +954,9 @@ class ControllerBasicService:
 
         return data_output
 
-    async def calibration(self, df: pd.DataFrame):
+    async def calibration(
+        self, 
+        data: InputDataModel):
         """
         Function to start the calibration, do something with data - used in the services
         """
@@ -1029,7 +1047,7 @@ class ControllerBasicService:
                     self.fiware_token_client.baerer_token
                 )
 
-            data_input = await self.get_data(method="calculation")
+            data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
 
             if data_input is not None:
 
@@ -1037,7 +1055,7 @@ class ControllerBasicService:
 
                 data_output = self.prepare_output(data_output=data_output)
 
-                self.send_outputs(data_output=data_output)
+                await self.send_outputs(data_output=data_output)
 
             await self._set_health_timestamp()
 
@@ -1055,9 +1073,8 @@ class ControllerBasicService:
         """
         Function for autonomous adjustment of the system parameters
         """
-        # await self._hold_sampling_time(start_time=datetime.now(), hold_time = self.calibration_time)
 
-        if self.config.controller_settings.timeranges.calibration is None:
+        if self.config.controller_settings.time_settings.calibration is None:
             logger.error(
                 "No Information about the calibration time in the configuration."
             )
@@ -1065,9 +1082,9 @@ class ControllerBasicService:
         while True:
             logger.debug("Start Calibration")
             start_time = datetime.now()
-            data_input = await self.get_data(method="calibration")
+            data_input = await self.get_data(method=DataQueryTypes.CALIBRATION)
             if data_input is not None and data_input["data_available"]:
-                await self.calibration(df=data_input["data"])
+                await self.calibration(df=data_input)
             else:
                 logger.debug("No data available for calibration - skip calibration")
 

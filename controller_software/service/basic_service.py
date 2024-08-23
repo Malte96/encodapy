@@ -26,7 +26,7 @@ from controller_software.config import (
 )
 
 from controller_software.utils.cratedb import CrateDBConnection
-from controller_software.utils.error_handling import NotSupportedError
+from controller_software.utils.error_handling import NotSupportedError, NoCredentials
 from controller_software.utils.fiware_auth import BaererToken
 from controller_software.utils.health import update_health_file
 from controller_software.utils.logging import LoggerControl

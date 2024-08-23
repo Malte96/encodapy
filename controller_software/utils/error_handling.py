@@ -27,3 +27,16 @@ class NotSupportedError(Exception):
     ):
         self.message = message
         super().__init__(self.message)
+        
+class NoCredentials(Exception):
+    """Exception raised if there are no / not all credentials given in the env.
+
+    Attributes:
+        message -- explanation of the error
+    """
+    def __init__(
+        self,
+        message: str = "Not all authentication credentials are available",
+    ):
+        self.message = message
+        super().__init__(self.message)

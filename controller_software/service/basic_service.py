@@ -71,6 +71,8 @@ class ControllerBasicService:
         self.cb_client = None
         self.crate_db_client = None
 
+        self.Input_File = None
+
         self.timestamp_health = None
 
     def _load_config(self):
@@ -156,7 +158,8 @@ class ControllerBasicService:
 
         """
 
-        self._load_config()
+        await self._load_config()
+        logger.debug(self.config)
 
         if self.config.interfaces.fiware:
             if self.fiware_token["authentication"]:
@@ -192,8 +195,11 @@ class ControllerBasicService:
                 crate_db_ssl=self.database_params["crate_db_ssl"],
             )
         if self.config.interfaces.file:
-            logger.warning("File interface not implemented yet.")
-            raise NotSupportedError
+            logger.info("load config for csv-file")
+
+            
+
+            
 
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")

@@ -136,6 +136,7 @@ class ControllerBasicService:
 
         if self.config.interfaces.file:
             logger.warning("File interface not implemented yet.")
+            "test-commit"
             raise NotSupportedError
 
         if self.config.interfaces.mqtt:

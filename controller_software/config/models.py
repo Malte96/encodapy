@@ -286,6 +286,7 @@ class ConfigModel(BaseModel):
         """
         Load the configuration from a JSON file.
         """
+        logger.debug("load the config")
         try:
             with open(file_path, "r") as f:
                 config_data = json.load(f)

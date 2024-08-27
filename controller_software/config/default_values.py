@@ -18,3 +18,5 @@ class DefaultEnvVariables(Enum):
     CRATE_DB_PW = ""
     CRATE_DB_SSL = False
     LOG_LEVEL = "WARNING"
+
+    PATH_OF_INPUT_FILE = "./config/Input_file.csv"

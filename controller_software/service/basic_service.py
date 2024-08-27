@@ -71,7 +71,7 @@ class ControllerBasicService:
         self.cb_client = None
         self.crate_db_client = None
 
-        self.Input_File = None
+        self.file_params = {}
 
         self.timestamp_health = None
 
@@ -85,9 +85,9 @@ class ControllerBasicService:
         config_path = os.environ.get(
             "CONFIG_PATH", DefaultEnvVariables.CONFIG_PATH.value
         )
-
+        logger.debug(config_path)
         self.config = ConfigModel.from_json(file_path=config_path)
-
+        
         if self.config.interfaces.fiware:
 
             self.fiware_params["cb_url"] = os.environ.get(
@@ -137,9 +137,10 @@ class ControllerBasicService:
             ).lower() in ("true", "1", "t")
 
         if self.config.interfaces.file:
-            logger.warning("File interface not implemented yet.")
-            "test-commit"
-            raise NotSupportedError
+            logger.info("load config for File interface")
+            self.file_params["PATH_OF_INPUT_FILE"] = os.environ.get(
+                "PATH_OF_INPUT_FILE", DefaultEnvVariables.PATH_OF_INPUT_FILE.value
+            )
 
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
@@ -157,7 +158,7 @@ class ControllerBasicService:
             - Implement the other interfaces(FILE, MQTT, ...)
 
         """
-
+        
         await self._load_config()
         logger.debug(self.config)
 

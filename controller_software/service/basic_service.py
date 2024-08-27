@@ -85,7 +85,7 @@ class ControllerBasicService:
         config_path = os.environ.get(
             "CONFIG_PATH", DefaultEnvVariables.CONFIG_PATH.value
         )
-        logger.debug(config_path)
+        
         self.config = ConfigModel.from_json(file_path=config_path)
         
         if self.config.interfaces.fiware:
@@ -137,7 +137,7 @@ class ControllerBasicService:
             ).lower() in ("true", "1", "t")
 
         if self.config.interfaces.file:
-            logger.info("load config for File interface")
+            logger.info("Load config for File interface")
             self.file_params["PATH_OF_INPUT_FILE"] = os.environ.get(
                 "PATH_OF_INPUT_FILE", DefaultEnvVariables.PATH_OF_INPUT_FILE.value
             )
@@ -159,9 +159,8 @@ class ControllerBasicService:
 
         """
         
-        await self._load_config()
-        logger.debug(self.config)
-
+        self._load_config()
+        
         if self.config.interfaces.fiware:
             if self.fiware_token["authentication"]:
                 if "baerer_token" in self.fiware_token:

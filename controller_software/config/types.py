@@ -39,7 +39,7 @@ class ControllerComponents(Enum):
 
     # TODO: Which components are needed?
 
-    STORAGE = "storage"
+    STORAGE = "storage_controller"
     HYGIENICCONTROLLER = "hygienic_controller"
 
 class DataQueryTypes(Enum):

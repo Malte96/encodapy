@@ -3,6 +3,7 @@
 # TODO: Import the necessary modules and classes - improve the imports -- Martin Altenburger
 # Author: Martin Altenburger
 import os
+import pathlib
 from asyncio import sleep
 from datetime import datetime, timedelta, timezone
 from typing import Union
@@ -141,6 +142,12 @@ class ControllerBasicService:
             self.file_params["PATH_OF_INPUT_FILE"] = os.environ.get(
                 "PATH_OF_INPUT_FILE", DefaultEnvVariables.PATH_OF_INPUT_FILE.value
             )
+            self.file_params["START_TIME_FILE"] = os.environ.get(
+                "START_TIME_FILE", DefaultEnvVariables.START_TIME_FILE.value
+            )
+            self.file_params["TIME_FORMAT_FILE"] = os.environ.get(
+                "TIME_FORMAT_FILE", DefaultEnvVariables.TIME_FORMAT_FILE.value
+            )
 
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
@@ -195,9 +202,16 @@ class ControllerBasicService:
                 crate_db_ssl=self.database_params["crate_db_ssl"],
             )
         if self.config.interfaces.file:
-            logger.info("load config for csv-file")
-
-            
+            # maybe it is nessesary to check which tiype of data file exits csv or json
+            # function to return the file extension
+            file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix
+            if file_extension == ".csv" :
+                logger.info(f"load config for {file_extension} -file")
+            elif file_extension == ".json":
+                logger.info(f"load config for {file_extension} -file") 
+            else:
+                logger.info(f"File extension {file_extension} is not supported") 
+                raise NotSupportedError
 
             
 
@@ -488,11 +502,11 @@ class ControllerBasicService:
                 output_latest_timestamps.append(output_latest_timestamp)
 
             elif output_entity.interface == Interfaces.FILE:
-                logger.warning("File interface not implemented yet.")
-                raise NotSupportedError
+                logger.warning("File interface for output_entity not implemented yet.")
+                #raise NotSupportedError
 
             elif output_entity.interface == Interfaces.MQTT:
-                logger.warning("MQTT interface not implemented yet.")
+                logger.warning("MQTT interface for output_entity not implemented yet.")
                 raise NotSupportedError
 
         if len(output_latest_timestamps) > 0:
@@ -514,11 +528,17 @@ class ControllerBasicService:
 
             elif input_entity.interface == Interfaces.FILE:
 
-                logger.warning("File interface not implemented yet.")
-                raise NotSupportedError
+                logger.debug("Load Data from File")
+                input_data.append(
+                    self.get_data_from_file(
+                        entity=input_entity,
+                        timestamp = self.file_params["START_TIME_FILE"]
+                    )
+                )
+              
 
             elif input_entity.interface == Interfaces.MQTT:
-                logger.warning("MQTT interface not implemented yet.")
+                logger.warning("MQTT interface for input_entity is not implemented yet.")
                 raise NotSupportedError
 
             await sleep(0.1)
@@ -526,6 +546,28 @@ class ControllerBasicService:
         return InputDataModel(
             input_entities=input_data, output_entities=output_timestamps
         )
+    
+
+    def get_data_from_file(
+        self,
+        entity: InputModel,
+        timestamp
+    ):
+        # Einlesen der Verbrauchs und Überschussprognose
+        path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
+        time_format = self.file_params["TIME_FORMAT_FILE"]
+        try:
+            data = pd.read_csv(path_of_file, parse_dates=['Time'],sep=';',decimal=',')
+            data.set_index('Time',inplace=True)
+            data.index = pd.to_datetime(data.index, format = time_format)
+            time = self.file_params["START_TIME_FILE"]
+            #temp = data.loc[time, 'outside_Temperature']
+            logger.debug("temp-data")
+        except:
+            print(f"Error: File not found ({path_of_file})")
+
+        return data
+
 
     def get_data_from_fiware(
         self,
@@ -1047,13 +1089,17 @@ class ControllerBasicService:
             logger.debug("Start the Prozess")
             start_time = datetime.now()
 
-            if self.fiware_token["authentication"] and (
-                self.fiware_token_client.check_token() is False
-            ):
-                self.fiware_header.__dict__["authorization"] = (
-                    self.fiware_token_client.baerer_token
-                )
-
+            # we have to check the input type, if we need something from the config
+            if self.config.interfaces.fiware :
+                if self.fiware_token["authentication"] and (
+                    self.fiware_token_client.check_token() is False
+                ):
+                    self.fiware_header.__dict__["authorization"] = (
+                        self.fiware_token_client.baerer_token
+                    )
+            elif self.config.interfaces.file:
+                logger.debug("Maybe we have to set the start_time for the file here")
+            
             data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
 
             if data_input is not None:

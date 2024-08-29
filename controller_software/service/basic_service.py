@@ -23,7 +23,8 @@ from controller_software.config import (
     Interfaces,
     OutputModel,
     TimerangeTypes,
-    DataQueryTypes
+    DataQueryTypes,
+    FileExtensionTypes
 )
 
 from controller_software.utils.cratedb import CrateDBConnection
@@ -205,13 +206,15 @@ class ControllerBasicService:
             # maybe it is nessesary to check which tiype of data file exits csv or json
             # function to return the file extension
             file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix
-            if file_extension == ".csv" :
+
+            if file_extension is FileExtensionTypes.CSV:
                 logger.info(f"load config for {file_extension} -file")
-            elif file_extension == ".json":
-                logger.info(f"load config for {file_extension} -file") 
+            elif file_extension is FileExtensionTypes.JSON:
+                logger.info(f"load config for {file_extension} -file")
             else:
                 logger.info(f"File extension {file_extension} is not supported") 
                 raise NotSupportedError
+
 
             
 
@@ -475,7 +478,7 @@ class ControllerBasicService:
                        ) -> InputDataModel:
         """
         Function to get the data of all input entities via the different interfaces (FIWARE, FILE, MQTT)
-
+        Load Data from File: Be Carefull, it's the first value in the file.
         Args:
             method (DataQueryTypes): Method for the data query
         
@@ -484,8 +487,9 @@ class ControllerBasicService:
 
 
         TODO:
-            - Implement the other interfaces(FILE, MQTT, ...)
+            - Implement the other interfaces(MQTT, ...)
             - Do we need this method parameter?
+            - loading data from a file -> first/last/specifiv value in file
         """
 
         input_data = []
@@ -528,7 +532,6 @@ class ControllerBasicService:
 
             elif input_entity.interface == Interfaces.FILE:
                 
-                logger.debug("Load Data from File. Be Carefull, it's the first value in the file.")
                 input_data.append(
                     self.get_data_from_file(
                         method=method,
@@ -1125,9 +1128,10 @@ class ControllerBasicService:
                     self.fiware_header.__dict__["authorization"] = (
                         self.fiware_token_client.baerer_token
                     )
-            elif self.config.interfaces.file:
+            if self.config.interfaces.file:
                 logger.debug("Maybe we have to set the start_time for the file here")
             
+
             data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
 
             if data_input is not None:

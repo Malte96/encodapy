@@ -47,3 +47,9 @@ class DataQueryTypes(Enum):
     
     CALCULATION = "calculation"
     CALIBRATION = "calibration"
+
+class FileExtensionTypes(Enum):
+    """Enum class for file Extensions"""
+
+    CSV = ".csv"
+    JSON = ".json"

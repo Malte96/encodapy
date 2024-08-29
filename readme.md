@@ -39,7 +39,12 @@
     CRATE_DB_USER = ["crate"]
     CRATE_DB_PW = [""]
     CRATE_DB_SSL = [False]
-    ```
 
+    # FILE - Interface
+    PATH_OF_INPUT_FILE = "path_to_the_file_\\validation_data.csv"
+    START_TIME_FILE = "01.01.2023 06:00"
+    TIME_FORMAT_FILE = "%d.%m.%Y %H:%M" - format of time in file
+    ```
+ 
 ## Examples
 - [config.ipynb](./examples/config.ipynb): Shows a example how the config could be used

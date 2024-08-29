@@ -569,17 +569,16 @@ class ControllerBasicService:
             elif attribute.type == AttributeTypes.VALUE:
                 attributes_values.append(
                     InputDataAttributeModel(
+                        id=attribute.id,
                         data=fiware_input_entity_attributes[
                             attribute.id_interface
                         ].value,
                         data_type=AttributeTypes.VALUE,
                         data_available=True,
-                        latest_timestamp_input=fiware_input_entity_attributes[
+                        latest_timestamp_input=(fiware_input_entity_attributes[
                             attribute.id_interface
-                        ]
-                        .metadata.get("TimeInstant")
-                        .value[:-1],
-                    ).replace(tzinfo=tz.UTC)
+                        ].metadata.get("TimeInstant").value[:-1]).replace(tzinfo=tz.UTC),
+                    )
                 )
             else:
                 logger.warning(

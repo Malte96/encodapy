@@ -18,3 +18,7 @@ class DefaultEnvVariables(Enum):
     CRATE_DB_PW = ""
     CRATE_DB_SSL = False
     LOG_LEVEL = "WARNING"
+
+    PATH_OF_INPUT_FILE = "./config/Input_file.csv"
+    START_TIME_FILE = "01.01.2023 00:00"    # ToDO: IsoFormat is better
+    TIME_FORMAT_FILE = "%d.%m.%Y %H:%M"

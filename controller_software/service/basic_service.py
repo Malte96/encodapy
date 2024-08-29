@@ -3,6 +3,7 @@
 # TODO: Import the necessary modules and classes - improve the imports -- Martin Altenburger
 # Author: Martin Altenburger
 import os
+import pathlib
 from asyncio import sleep
 from datetime import datetime, timedelta, timezone
 from typing import Union
@@ -22,7 +23,8 @@ from controller_software.config import (
     Interfaces,
     OutputModel,
     TimerangeTypes,
-    DataQueryTypes
+    DataQueryTypes,
+    FileExtensionTypes
 )
 
 from controller_software.utils.cratedb import CrateDBConnection
@@ -71,6 +73,8 @@ class ControllerBasicService:
         self.cb_client = None
         self.crate_db_client = None
 
+        self.file_params = {}
+
         self.timestamp_health = None
 
     def _load_config(self):
@@ -83,9 +87,9 @@ class ControllerBasicService:
         config_path = os.environ.get(
             "CONFIG_PATH", DefaultEnvVariables.CONFIG_PATH.value
         )
-
+        
         self.config = ConfigModel.from_json(file_path=config_path)
-
+        
         if self.config.interfaces.fiware:
 
             self.fiware_params["cb_url"] = os.environ.get(
@@ -135,8 +139,16 @@ class ControllerBasicService:
             ).lower() in ("true", "1", "t")
 
         if self.config.interfaces.file:
-            logger.warning("File interface not implemented yet.")
-            raise NotSupportedError
+            logger.info("Load config for File interface")
+            self.file_params["PATH_OF_INPUT_FILE"] = os.environ.get(
+                "PATH_OF_INPUT_FILE", DefaultEnvVariables.PATH_OF_INPUT_FILE.value
+            )
+            self.file_params["START_TIME_FILE"] = os.environ.get(
+                "START_TIME_FILE", DefaultEnvVariables.START_TIME_FILE.value
+            )
+            self.file_params["TIME_FORMAT_FILE"] = os.environ.get(
+                "TIME_FORMAT_FILE", DefaultEnvVariables.TIME_FORMAT_FILE.value
+            )
 
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
@@ -154,9 +166,9 @@ class ControllerBasicService:
             - Implement the other interfaces(FILE, MQTT, ...)
 
         """
-
+        
         self._load_config()
-
+        
         if self.config.interfaces.fiware:
             if self.fiware_token["authentication"]:
                 if "baerer_token" in self.fiware_token:
@@ -191,8 +203,20 @@ class ControllerBasicService:
                 crate_db_ssl=self.database_params["crate_db_ssl"],
             )
         if self.config.interfaces.file:
-            logger.warning("File interface not implemented yet.")
-            raise NotSupportedError
+            # maybe it is nessesary to check which tiype of data file exits csv or json
+            # function to return the file extension
+            file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix
+
+            if file_extension is FileExtensionTypes.CSV:
+                logger.info(f"load config for {file_extension} -file")
+            elif file_extension is FileExtensionTypes.JSON:
+                logger.info(f"load config for {file_extension} -file")
+            else:
+                logger.info(f"File extension {file_extension} is not supported") 
+                raise NotSupportedError
+
+
+            
 
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
@@ -454,7 +478,7 @@ class ControllerBasicService:
                        ) -> InputDataModel:
         """
         Function to get the data of all input entities via the different interfaces (FIWARE, FILE, MQTT)
-
+        Load Data from File: Be Carefull, it's the first value in the file.
         Args:
             method (DataQueryTypes): Method for the data query
         
@@ -463,8 +487,9 @@ class ControllerBasicService:
 
 
         TODO:
-            - Implement the other interfaces(FILE, MQTT, ...)
+            - Implement the other interfaces(MQTT, ...)
             - Do we need this method parameter?
+            - loading data from a file -> first/last/specifiv value in file
         """
 
         input_data = []
@@ -481,11 +506,11 @@ class ControllerBasicService:
                 output_latest_timestamps.append(output_latest_timestamp)
 
             elif output_entity.interface == Interfaces.FILE:
-                logger.warning("File interface not implemented yet.")
-                raise NotSupportedError
+                logger.warning("File interface for output_entity not implemented yet.")
+                #raise NotSupportedError
 
             elif output_entity.interface == Interfaces.MQTT:
-                logger.warning("MQTT interface not implemented yet.")
+                logger.warning("MQTT interface for output_entity not implemented yet.")
                 raise NotSupportedError
 
         if len(output_latest_timestamps) > 0:
@@ -494,7 +519,7 @@ class ControllerBasicService:
             output_latest_timestamp = None
 
         for input_entity in self.config.inputs:
-
+            
             if input_entity.interface == Interfaces.FIWARE:
 
                 input_data.append(
@@ -506,12 +531,18 @@ class ControllerBasicService:
                 )
 
             elif input_entity.interface == Interfaces.FILE:
-
-                logger.warning("File interface not implemented yet.")
-                raise NotSupportedError
+                
+                input_data.append(
+                    self.get_data_from_file(
+                        method=method,
+                        entity=input_entity
+                    )
+                )
+                logger.debug(input_data)
+              
 
             elif input_entity.interface == Interfaces.MQTT:
-                logger.warning("MQTT interface not implemented yet.")
+                logger.warning("MQTT interface for input_entity is not implemented yet.")
                 raise NotSupportedError
 
             await sleep(0.1)
@@ -519,6 +550,67 @@ class ControllerBasicService:
         return InputDataModel(
             input_entities=input_data, output_entities=output_timestamps
         )
+    
+
+    def get_data_from_file(
+        self,
+        method:DataQueryTypes,
+        entity: InputModel,
+        ) -> Union[InputDataEntityModel, None]:
+        """
+            Function to read input data for calculations from a input file.
+            first step: read the first values in the file / id_inputs.  Then get the data from the entity since the last timestamp of the output entity from cratedb.
+        Args:
+            - method (DataQueryTypes): Keyword for type of query
+            - entity (InputModel): Input entity
+        TODO:
+             - timestamp_latest_output (datetime): Timestamp of the input value
+             -  -> seperating Data in Calculation or here ?? 
+            
+        Returns:
+            - InputDataEntityModel: Model with the input data or None if the connection to the platform is not available
+
+        """
+         
+        attributes_timeseries = {}
+        attributes_values = []
+        path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
+        time_format = self.file_params["TIME_FORMAT_FILE"]
+        try:
+            data = pd.read_csv(path_of_file, parse_dates=['Time'],sep=';',decimal=',')
+            data.set_index('Time',inplace=True)
+            data.index = pd.to_datetime(data.index, format = time_format)
+            #time = self.file_params["START_TIME_FILE"]
+            #temp = data.loc[time, 'outside_Temperature']
+        except:
+            print(f"Error: File not found ({path_of_file})")
+        for attribute in entity.attributes:
+                
+                if attribute.type == AttributeTypes.TIMESERIES:
+                    #attributes_timeseries[attribute.id] = attribute.id_interface
+                    logger.warning(
+                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    )
+                elif attribute.type == AttributeTypes.VALUE:
+                    
+                    attributes_values.append(
+                        InputDataAttributeModel(
+                            id=attribute.id,
+                            data=data[attribute.id_interface].iloc[0],
+                            data_type=AttributeTypes.VALUE,
+                            data_available=True,
+                            latest_timestamp_input=data.index[0],
+                        )
+                    )
+                else:
+                    logger.warning(
+                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    )
+
+
+
+        return InputDataEntityModel(id=entity.id, attributes=attributes_values)
+
 
     def get_data_from_fiware(
         self,
@@ -1039,12 +1131,17 @@ class ControllerBasicService:
             logger.debug("Start the Prozess")
             start_time = datetime.now()
 
-            if self.fiware_token["authentication"] and (
-                self.fiware_token_client.check_token() is False
-            ):
-                self.fiware_header.__dict__["authorization"] = (
-                    self.fiware_token_client.baerer_token
-                )
+            # we have to check the input type, if we need something from the config
+            if self.config.interfaces.fiware :
+                if self.fiware_token["authentication"] and (
+                    self.fiware_token_client.check_token() is False
+                ):
+                    self.fiware_header.__dict__["authorization"] = (
+                        self.fiware_token_client.baerer_token
+                    )
+            if self.config.interfaces.file:
+                logger.debug("Maybe we have to set the start_time for the file here")
+            
 
             data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
 

@@ -515,7 +515,7 @@ class ControllerBasicService:
             output_latest_timestamp = None
 
         for input_entity in self.config.inputs:
-
+            
             if input_entity.interface == Interfaces.FIWARE:
 
                 input_data.append(
@@ -527,14 +527,15 @@ class ControllerBasicService:
                 )
 
             elif input_entity.interface == Interfaces.FILE:
-
-                logger.debug("Load Data from File")
+                
+                logger.debug("Load Data from File. Be Carefull, it's the first value in the file.")
                 input_data.append(
                     self.get_data_from_file(
-                        entity=input_entity,
-                        timestamp = self.file_params["START_TIME_FILE"]
+                        method=method,
+                        entity=input_entity
                     )
                 )
+                logger.debug(input_data)
               
 
             elif input_entity.interface == Interfaces.MQTT:
@@ -550,23 +551,49 @@ class ControllerBasicService:
 
     def get_data_from_file(
         self,
+        method:DataQueryTypes,
         entity: InputModel,
-        timestamp
     ):
-        # Einlesen der Verbrauchs und Überschussprognose
+        # read Input data
+        # first step: read the first values in the file / id_inputs  -> seperating Data in Calculation or here ?? 
+        attributes_timeseries = {}
+        attributes_values = []
         path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
         time_format = self.file_params["TIME_FORMAT_FILE"]
         try:
             data = pd.read_csv(path_of_file, parse_dates=['Time'],sep=';',decimal=',')
             data.set_index('Time',inplace=True)
             data.index = pd.to_datetime(data.index, format = time_format)
-            time = self.file_params["START_TIME_FILE"]
+            #time = self.file_params["START_TIME_FILE"]
             #temp = data.loc[time, 'outside_Temperature']
-            logger.debug("temp-data")
         except:
             print(f"Error: File not found ({path_of_file})")
+        for attribute in entity.attributes:
+                
+                if attribute.type == AttributeTypes.TIMESERIES:
+                    #attributes_timeseries[attribute.id] = attribute.id_interface
+                    logger.warning(
+                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    )
+                elif attribute.type == AttributeTypes.VALUE:
+                    
+                    attributes_values.append(
+                        InputDataAttributeModel(
+                            id=attribute.id,
+                            data=data[attribute.id_interface].iloc[0],
+                            data_type=AttributeTypes.VALUE,
+                            data_available=True,
+                            latest_timestamp_input=data.index[0],
+                        )
+                    )
+                else:
+                    logger.warning(
+                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    )
 
-        return data
+
+
+        return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
 
     def get_data_from_fiware(
@@ -618,6 +645,7 @@ class ControllerBasicService:
             elif attribute.type == AttributeTypes.VALUE:
                 attributes_values.append(
                     InputDataAttributeModel(
+                        id=attribute.id,
                         data=fiware_input_entity_attributes[
                             attribute.id_interface
                         ].value,

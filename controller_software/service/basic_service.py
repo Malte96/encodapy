@@ -203,13 +203,14 @@ class ControllerBasicService:
                 crate_db_ssl=self.database_params["crate_db_ssl"],
             )
         if self.config.interfaces.file:
+            
             # maybe it is nessesary to check which tiype of data file exits csv or json
             # function to return the file extension
             file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix
 
-            if file_extension is FileExtensionTypes.CSV:
+            if file_extension == FileExtensionTypes.CSV.value:
                 logger.info(f"load config for {file_extension} -file")
-            elif file_extension is FileExtensionTypes.JSON:
+            elif file_extension == FileExtensionTypes.JSON.value:
                 logger.info(f"load config for {file_extension} -file")
             else:
                 logger.info(f"File extension {file_extension} is not supported") 

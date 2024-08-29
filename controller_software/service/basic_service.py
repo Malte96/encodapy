@@ -557,8 +557,21 @@ class ControllerBasicService:
         method:DataQueryTypes,
         entity: InputModel,
         ) -> Union[InputDataEntityModel, None]:
-        # read Input data
-        # first step: read the first values in the file / id_inputs  -> seperating Data in Calculation or here ?? 
+        """
+            Function to read input data for calculations from a input file.
+            first step: read the first values in the file / id_inputs.  Then get the data from the entity since the last timestamp of the output entity from cratedb.
+        Args:
+            - method (DataQueryTypes): Keyword for type of query
+            - entity (InputModel): Input entity
+        TODO:
+             - timestamp_latest_output (datetime): Timestamp of the input value
+             -  -> seperating Data in Calculation or here ?? 
+            
+        Returns:
+            - InputDataEntityModel: Model with the input data or None if the connection to the platform is not available
+
+        """
+         
         attributes_timeseries = {}
         attributes_values = []
         path_of_file = self.file_params["PATH_OF_INPUT_FILE"]

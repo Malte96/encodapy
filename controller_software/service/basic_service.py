@@ -556,7 +556,7 @@ class ControllerBasicService:
         self,
         method:DataQueryTypes,
         entity: InputModel,
-    ):
+        ) -> Union[InputDataEntityModel, None]:
         # read Input data
         # first step: read the first values in the file / id_inputs  -> seperating Data in Calculation or here ?? 
         attributes_timeseries = {}

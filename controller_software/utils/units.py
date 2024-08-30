@@ -74,3 +74,18 @@ class DataUnits(Enum):
     WHR = "WHR" # "Wh"
     KWH = "KWH" # "kWh"
     
+    
+def get_unit_adjustment_factor(unit_actual:DataUnits,
+                               unit_target:DataUnits
+                               ) -> float:
+    """Function to get the adjustment factor for the conversion of units
+    
+    Args:
+        unit_actual (DataUnits): Actual unit
+        unit_target (DataUnits): Target unit
+    
+    Returns:
+        float: Adjustment factor for the conversion of the units
+    """
+    # TODO: Real adjustment factors
+    raise NotImplementedError("Adjustment factors for the conversion of units are not implemented yet") 

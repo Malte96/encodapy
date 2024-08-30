@@ -12,7 +12,7 @@ from controller_software.config.types import (
     TimerangeTypes,
 )
 from controller_software.utils.error_handling import ConfigError
-from controller_software.utils.units import TimeUnits
+from controller_software.utils.units import TimeUnits, DataUnits
 from filip.models.base import DataType
 from loguru import logger
 from pandas import DataFrame
@@ -43,6 +43,7 @@ class AttributeModel(BaseModel):
     - id_interface: The id of the attribute on the interface (if not set, the id is used)
     - type: The type of the attribute
     - value: The value of the attribute
+    - unit: The unit of the attribute
     - datatype: The datatype of the attribute
     - timestamp: The timestamp of the attribute
 
@@ -54,6 +55,7 @@ class AttributeModel(BaseModel):
     id_interface: str = id
     type: AttributeTypes = AttributeTypes.VALUE
     value: Union[str, float, int, bool, Dict, List, DataFrame, None] = None
+    unit: Union[DataUnits, None] = None
     datatype: DataType = DataType.NUMBER
     timestamp: Union[datetime, None] = None
 

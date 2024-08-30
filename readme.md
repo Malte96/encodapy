@@ -45,6 +45,12 @@
     START_TIME_FILE = "01.01.2023 06:00"
     TIME_FORMAT_FILE = "%d.%m.%Y %H:%M" - format of time in file
     ```
- 
+
+## Usage
+
+### Units
+- Inputs and outputs get information about the unit. The class [`DataUnits`](./controller_software/utils/units.py) is used for this.
+- TODO: Implement the adjustment for different units.
+
 ## Examples
 - [config.ipynb](./examples/config.ipynb): Shows a example how the config could be used

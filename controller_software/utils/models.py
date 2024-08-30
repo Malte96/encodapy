@@ -19,6 +19,7 @@ class InputDataAttributeModel(BaseModel):
     Contains:
     - id: The id of the input data attribute
     - data: The input data as a DataFrame or a single value
+    - unit: The unit of the input data
     - data_available: If the data is available
     - latest_timestamp_input: The latest timestamp of the input data from the query or None, if the data is not available
     """
@@ -127,12 +128,14 @@ class DataTransferComponentModel(ComponentModel):
     - entity_id: The id of the entity of the component
     - attribute_id: The id of the attribute of the component
     - value: The output data value as OutputDataModel
+    - unit: The unit of the output data
     - timestamp: The timestamp of the output
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     value: Union[str, float, int, bool, Dict, List, DataFrame, None]
+    unit: Union[DataUnits, None] = None
     timestamp: Optional[Union[datetime, None]] = None
 
 

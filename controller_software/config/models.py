@@ -12,7 +12,7 @@ from controller_software.config.types import (
     TimerangeTypes,
 )
 from controller_software.utils.error_handling import ConfigError
-from controller_software.utils.timeunit import TimeUnits
+from controller_software.utils.units import TimeUnits
 from filip.models.base import DataType
 from loguru import logger
 from pandas import DataFrame

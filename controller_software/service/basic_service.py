@@ -40,13 +40,14 @@ from controller_software.utils.models import (
     OutputDataAttributeModel,
     OutputDataEntityModel,
     OutputDataModel,
+    MetaDataModel
 )
-from controller_software.utils.timeunit import get_time_unit_seconds
+from controller_software.utils.units import get_time_unit_seconds, DataUnits
 
 from filip.clients.ngsi_v2 import ContextBrokerClient
 from filip.models.base import DataType, FiwareHeaderSecure
 from filip.models.ngsi_v2.base import NamedMetadata
-from filip.models.ngsi_v2.context import NamedCommand, NamedContextAttribute
+from filip.models.ngsi_v2.context import NamedCommand, NamedContextAttribute, ContextAttribute
 
 # from IPython.display import display
 
@@ -613,6 +614,39 @@ class ControllerBasicService:
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
 
+    def _get_metadata_from_fiware(self, 
+                                  fiware_attribute: ContextAttribute
+                                  ) ->  MetaDataModel:
+        """Function to get the metadata from the fiware attribute
+
+        Args:
+            fiware_attribute (ContextAttribute): Fiware attribute
+
+        Returns:
+            MetaDataModel: Model with the metadata (timestamp, unit) of the attribute if available
+        """
+        metadata_lowercase = {k.lower(): v for k, v in fiware_attribute.metadata.items()}
+        
+        metadata_model = MetaDataModel()
+        
+        if metadata_lowercase.get("timeinstant") is not None:
+            metadata_model.timestamp = datetime.strptime(metadata_lowercase.get("timeinstant").value, "%Y-%m-%dT%H:%M:%S.%f%z")
+
+        
+        try: 
+            if metadata_lowercase.get("unitcode") is not None:
+                metadata_model.unit = DataUnits(metadata_lowercase.get("unitcode").value)
+            elif metadata_lowercase.get("unittext") is not None:
+                metadata_model.unit = DataUnits(metadata_lowercase.get("unittext").value)
+            elif metadata_lowercase.get("unit") is not None:
+                metadata_model.unit = DataUnits(metadata_lowercase.get("unit").value)
+        except ValueError as err:
+            logger.error(f"Unit code {metadata_lowercase.get('unitcode').value} not available: {err}")
+
+        
+        return metadata_model
+        
+
     def get_data_from_fiware(
         self,
         method: DataQueryTypes,
@@ -660,6 +694,8 @@ class ControllerBasicService:
                 attributes_timeseries[attribute.id] = attribute.id_interface
 
             elif attribute.type == AttributeTypes.VALUE:
+                
+                metadata = self._get_metadata_from_fiware(fiware_input_entity_attributes[attribute.id_interface])
                 attributes_values.append(
                     InputDataAttributeModel(
                         id=attribute.id,
@@ -667,12 +703,24 @@ class ControllerBasicService:
                             attribute.id_interface
                         ].value,
                         data_type=AttributeTypes.VALUE,
-                        data_available=True,
-                        latest_timestamp_input=(fiware_input_entity_attributes[
-                            attribute.id_interface
-                        ].metadata.get("TimeInstant").value[:-1]).replace(tzinfo=tz.UTC),
+                        data_available=True if fiware_input_entity_attributes[
+                                attribute.id_interface
+                            ].value is not None else False,
+                        latest_timestamp_input=metadata.timestamp,
+                        unit=metadata.unit
                     )
                 )
+                
+                print(InputDataAttributeModel(
+                        id=attribute.id,
+                        data=fiware_input_entity_attributes[
+                            attribute.id_interface
+                        ].value,
+                        data_type=AttributeTypes.VALUE,
+                        data_available=True,
+                        latest_timestamp_input=metadata.timestamp,
+                        unit=metadata.unit
+                    ))
             else:
                 logger.warning(
                     f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."

@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Union
 
 from controller_software.config.models import AttributeModel, CommandModel
 from controller_software.config.types import AttributeTypes
+from controller_software.utils.units import DataUnits
 from pandas import DataFrame
 from pydantic import BaseModel, ConfigDict
 
@@ -26,6 +27,7 @@ class InputDataAttributeModel(BaseModel):
 
     id: str
     data: Union[str, float, int, bool, Dict, List, DataFrame, None]
+    unit: Union[DataUnits, None] = None
     data_type: AttributeTypes
     data_available: bool
     latest_timestamp_input: Union[datetime, None]
@@ -143,3 +145,16 @@ class DataTransferModell(BaseModel):
     """
 
     components: list[DataTransferComponentModel] = []
+
+
+class MetaDataModel(BaseModel):
+    """
+    Model for the metadata of datapoints of the controller.
+
+    Contains:
+    - timestamp: The timestamp of the data
+    - unit: The unit of the data
+    """
+
+    timestamp: Union[datetime, None] = None
+    unit: Union[DataUnits, None] = None

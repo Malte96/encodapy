@@ -1,4 +1,4 @@
-# Description: This file contains the time units for the use and conversion of different time units and  in the system controller.
+# Description: This file contains the units for the use and conversion of different units and in the system controller.
 # Author: Martin Altenburger
 
 import datetime
@@ -9,7 +9,11 @@ from loguru import logger
 
 
 class TimeUnits(Enum):
-    """Possible time units for the time series data"""
+    """Possible time units for the time series data
+    
+    TODO: Is it better to use standard time units? Like in the unit code?
+    
+    """
 
     SECOND = "second"
     MINUTE = "minute"
@@ -45,3 +49,28 @@ def get_time_unit_seconds(time_unit: Union[TimeUnits, str]) -> Union[int, None]:
     else:
         logger.warning(f"Time unit {time_unit} not available")
         return None
+
+class DataUnits(Enum):
+    """Possible units for the data
+    
+    TODO: 
+        - Is there a better way to handle the units? 
+        - Add more units?
+    
+    """
+
+    # Time
+    SECOND = "SEC" # "seconds"
+    
+    # Temperature
+    DEGREECELSIUS = "CEL" # "°C"
+    
+    # Volume / Volumeflow
+    LITER = "LIT" # "l"
+    MQH = "MQH" # "m³/h"
+    
+    # Energy / Power
+    WTT = "WTT" # "W"
+    WHR = "WHR" # "Wh"
+    KWH = "KWH" # "kWh"
+    

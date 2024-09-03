@@ -2,6 +2,7 @@
 # TODO: The class is not yet finished and needs to be extended with the necessary functions and methods. -- Martin Altenburger
 # TODO: Import the necessary modules and classes - improve the imports -- Martin Altenburger
 # Author: Martin Altenburger
+# ----------------------------------------
 import os
 import pathlib
 from asyncio import sleep

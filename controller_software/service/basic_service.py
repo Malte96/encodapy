@@ -38,6 +38,7 @@ from controller_software.utils.models import (
     InputDataAttributeModel,
     InputDataEntityModel,
     InputDataModel,
+    ContextDataModel,
     OutputDataAttributeModel,
     OutputDataEntityModel,
     OutputDataModel,
@@ -216,13 +217,16 @@ class ControllerBasicService:
             else:
                 logger.info(f"File extension {file_extension} is not supported") 
                 raise NotSupportedError
-
-
             
 
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
             raise NotSupportedError
+        
+
+         # we have to load contextdata from interface (config, fiware, mqtt)
+
+        self.contextdata = await self.get_contextdata(method=DataQueryTypes.CALCULATION)
 
         return
 
@@ -778,6 +782,52 @@ class ControllerBasicService:
                     )
                 )
         return input_attributes
+    
+    async def get_contextdata(self, 
+                    method: DataQueryTypes
+                    ) -> ContextDataModel:
+        """
+        Function to get the contextdata of all context entities via the different interfaces (FIWARE, FILE, MQTT)
+        Args:
+            method (DataQueryTypes): Method for the data query 
+        
+        Returns:
+            ContextDataModel: Model with the context data
+
+
+        TODO:
+            - Implement the other interfaces(MQTT, FIWARE)
+            - Do we need this method parameter?
+            - loading data from a configfile 
+
+        """
+
+        context_data = []
+        logger.info("wir sind im get_contectdata")
+
+        for input_entity in self.config.contextdata:
+            
+            if input_entity.interface == Interfaces.FIWARE:
+                logger.warning("interface Fiware for Contextdata not supported")
+                '''
+                context_data.append(
+                    self.get_data_from_fiware(
+                        method=method,
+                        entity=input_entity,
+                        timestamp_latest_output=output_latest_timestamp,
+                    )
+                )'''
+
+            if input_entity.interface == Interfaces.FILE:
+                
+                context_data.append(
+                    self.get_data_from_file(
+                        method=method,
+                        entity=input_entity
+                    )
+                )
+
+                logger.debug(context_data)
 
     def _get_output_entity_config(
         self,

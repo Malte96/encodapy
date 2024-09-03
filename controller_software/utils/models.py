@@ -45,6 +45,38 @@ class InputDataEntityModel(BaseModel):
     id: str
     attributes: List[InputDataAttributeModel]
 
+class ContextDataAttributeModel(BaseModel):
+    """
+    Model for a attribute of input data of the system controller.
+
+    Contains:
+    - id: The id of the input data attribute
+    - data: The input data as a DataFrame or a single value
+    - data_available: If the data is available
+    - latest_timestamp_input: The latest timestamp of the input data from the query or None, if the data is not available
+    """
+
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    id: str
+    data: Union[str, float, int, bool, Dict, List, DataFrame, None]
+    data_available: bool
+    latest_timestamp_input: Union[datetime, None]
+
+
+class ContextDataEntityModel(BaseModel):
+    """
+    Model for the input data of the system controller.
+
+    Contains:
+    - id: The id of the input data entity
+    - data: The input data as a DataFrame or a single value
+    - data_available: If the data is available
+    - latest_timestamp_input: The latest timestamp of the input data from the query or None, if the data is not available
+    """
+
+    id: str
+    attributes: List[ContextDataAttributeModel]
 
 class OutputDataAttributeModel(BaseModel):
     """
@@ -91,6 +123,17 @@ class InputDataModel(BaseModel):
 
     input_entities: list[InputDataEntityModel]
     output_entities: list[OutputDataEntityModel]
+
+class ContextDataModel(BaseModel):
+    """
+    Model for the input data of the system controller.
+
+    Contains:
+    - input_entitys: List of the input data entitys as InputDataEntityModel
+    - output_entitys: List of the output data entitys as OutputDataEntityModel
+    """
+
+    context_entities: list[InputDataEntityModel]
 
 
 class OutputDataModel(BaseModel):

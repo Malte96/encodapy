@@ -804,8 +804,6 @@ class ControllerBasicService:
         """
 
         context_data = []
-        logger.info("wir sind im get_contectdata")
-        logger.info(self.config.contextdata)
 
         for input_entity in self.config.contextdata:
             
@@ -830,6 +828,9 @@ class ControllerBasicService:
                 )
 
                 logger.debug(context_data)
+            
+            if input_entity.interface == Interfaces.MQTT:
+                logger.warning("interface MQTT for Contextdata not supported")
 
         return ContextDataModel(
             context_entities=context_data

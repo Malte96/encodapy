@@ -827,7 +827,6 @@ class ControllerBasicService:
                     )
                 )
 
-                logger.debug(context_data)
             
             if input_entity.interface == Interfaces.MQTT:
                 logger.warning("interface MQTT for Contextdata not supported")

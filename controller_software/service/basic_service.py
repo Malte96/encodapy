@@ -38,6 +38,8 @@ from controller_software.utils.models import (
     InputDataAttributeModel,
     InputDataEntityModel,
     InputDataModel,
+    ContextDataAttributeModel,
+    ContextDataEntityModel,
     ContextDataModel,
     OutputDataAttributeModel,
     OutputDataEntityModel,
@@ -544,8 +546,7 @@ class ControllerBasicService:
                         entity=input_entity
                     )
                 )
-                logger.debug(input_data)
-              
+                              
 
             elif input_entity.interface == Interfaces.MQTT:
                 logger.warning("MQTT interface for input_entity is not implemented yet.")
@@ -804,6 +805,7 @@ class ControllerBasicService:
 
         context_data = []
         logger.info("wir sind im get_contectdata")
+        logger.info(self.config.contextdata)
 
         for input_entity in self.config.contextdata:
             
@@ -821,13 +823,68 @@ class ControllerBasicService:
             if input_entity.interface == Interfaces.FILE:
                 
                 context_data.append(
-                    self.get_data_from_file(
+                    self.get_contextdata_from_file(
                         method=method,
                         entity=input_entity
                     )
                 )
 
                 logger.debug(context_data)
+
+        return ContextDataModel(
+            context_entities=context_data
+        )
+    
+
+
+    def get_contextdata_from_file(
+        self,
+        method:DataQueryTypes,
+        entity: ContextDataModel,
+        ) -> Union[ContextDataEntityModel, None]:
+        """
+            Function to read context data for calculations from config file.
+        Args:
+            - method (DataQueryTypes): Keyword for type of query
+            - entity (InputModel): Input entity
+        TODO:
+            - work with timeseries, for example: timetable with presence or heating_times
+            - Do we need "lates_timestamp" ?
+        Returns:
+            - ContextDataEntityModel: Model with the context data None 
+
+        """
+         
+        attributes_values = []
+
+        
+        for attribute in entity.attributes:
+                
+                if attribute.type == AttributeTypes.TIMESERIES:
+                    #attributes_timeseries[attribute.id] = attribute.id_interface
+                    logger.warning(
+                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    )
+                elif attribute.type == AttributeTypes.VALUE:
+                    
+                    attributes_values.append(
+                        ContextDataAttributeModel(
+                            id=attribute.id,
+                            data=attribute.value,
+                            data_type=AttributeTypes.VALUE,
+                            data_available=True,
+                            #latest_timestamp_input=data.index[0],
+                        )
+                    )
+                else:
+                    logger.warning(
+                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    )
+
+
+
+        return ContextDataEntityModel(id=entity.id, attributes=attributes_values)
+
 
     def _get_output_entity_config(
         self,

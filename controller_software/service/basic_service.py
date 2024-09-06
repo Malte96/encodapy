@@ -172,6 +172,9 @@ class ControllerBasicService:
         """
         
         self._load_config()
+                
+        #self.context_data = await self.get_contextdata(method="calculation")
+        #logger.info(self.context_data)
         
         if self.config.interfaces.fiware:
             if self.fiware_token["authentication"]:
@@ -224,11 +227,9 @@ class ControllerBasicService:
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
             raise NotSupportedError
-        
 
-         # we have to load contextdata from interface (config, fiware, mqtt)
 
-        self.contextdata = await self.get_contextdata(method=DataQueryTypes.CALCULATION)
+
 
         return
 

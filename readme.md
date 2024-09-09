@@ -50,6 +50,13 @@
 
 ### Units
 - Inputs and outputs get information about the unit. The class [`DataUnits`](./controller_software/utils/units.py) is used for this.
+- Timeranges:
+    - Timeranges for data queries are different for calculation and calibration.
+    - The following timeranges are possible
+        - '"minute"'
+        - '"hour"'
+        - '"day"'
+        - '"month"' --> 30 days
 - TODO: Implement the adjustment for different units.
 
 ## Examples

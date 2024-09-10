@@ -66,7 +66,7 @@ class ContextDataAttributeModel(BaseModel):
     #latest_timestamp_input: Union[datetime, None]
 
 
-class ContextDataEntityModel(BaseModel):
+class ContextDataEntityModel(BaseModel):  #may be the same like InputDataEntityModel
     """
     Model for the input data of the system controller.
 
@@ -125,6 +125,7 @@ class InputDataModel(BaseModel):
 
     input_entities: list[InputDataEntityModel]
     output_entities: list[OutputDataEntityModel]
+    context_entities: list[ContextDataEntityModel]
 
 class ContextDataModel(BaseModel):
     """

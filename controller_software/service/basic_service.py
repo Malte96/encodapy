@@ -174,7 +174,7 @@ class ControllerBasicService:
         self._load_config()
                 
         #self.context_data = await self.get_contextdata(method="calculation")
-        #logger.info(self.context_data)
+        # -> change position into get_data
         
         if self.config.interfaces.fiware:
             if self.fiware_token["authentication"]:
@@ -502,8 +502,40 @@ class ControllerBasicService:
         """
 
         input_data = []
+        context_data = []
         output_timestamps = []
         output_latest_timestamps = []
+
+
+        
+
+        for context_entity in self.config.contextdata:
+            
+            if context_entity.interface == Interfaces.FIWARE:
+    
+                context_data.append(
+                    self.get_data_from_fiware(
+                        method=method,
+                        entity=input_entity,
+                        timestamp_latest_output=output_latest_timestamp,
+                    )
+                )
+
+            if context_entity.interface == Interfaces.FILE:
+                
+                context_data.append(
+                    self.get_contextdata_from_file(
+                        method=method,
+                        entity=input_entity,
+                        timestamp_latest_output=None,
+                    )
+                )
+
+            
+            if context_entity.interface == Interfaces.MQTT:
+                logger.warning("interface MQTT for Contextdata not supported")
+
+
 
         for output_entity in self.config.outputs:
             if output_entity.interface == Interfaces.FIWARE:

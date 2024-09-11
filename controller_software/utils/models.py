@@ -136,7 +136,7 @@ class ContextDataModel(BaseModel):
     
     """
 
-    context_entities: list[ContextDataEntityModel]
+    context_entities: list[InputDataEntityModel]
 
 
 class OutputDataModel(BaseModel):

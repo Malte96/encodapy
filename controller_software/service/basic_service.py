@@ -38,8 +38,6 @@ from controller_software.utils.models import (
     InputDataAttributeModel,
     InputDataEntityModel,
     InputDataModel,
-    ContextDataAttributeModel,
-    ContextDataEntityModel,
     ContextDataModel,
     OutputDataAttributeModel,
     OutputDataEntityModel,
@@ -79,7 +77,7 @@ class ControllerBasicService:
 
         self.file_params = {}
         self.reload_contextdata = None
-        self.contextdata = []
+        self.contextdata = None
 
         self.timestamp_health = None
 
@@ -160,8 +158,8 @@ class ControllerBasicService:
             logger.warning("MQTT interface not implemented yet.")
             raise NotSupportedError
 
-        self.reload_contextdata = os.environ.get(
-                "RELOAD_CONTEXTDATA", DefaultEnvVariables.RELOAD_CONTEXTDATA.value)
+        self.reload_contextdata = os.getenv( "RELOAD_CONTEXTDATA", str(DefaultEnvVariables.RELOAD_CONTEXTDATA.value)).lower() in ("true", "1", "t")
+        
 
         logger.debug("ENVs succesfully loaded.")
 
@@ -178,8 +176,6 @@ class ControllerBasicService:
         
         self._load_config()
                 
-        #self.context_data = await self.get_contextdata(method="calculation")
-        # -> change position into get_data
         
         if self.config.interfaces.fiware:
             if self.fiware_token["authentication"]:
@@ -512,8 +508,8 @@ class ControllerBasicService:
         output_latest_timestamps = []
 
 
-        
-        if self.reload_contextdata == False and not self.contextdata:
+        if self.reload_contextdata or self.contextdata is None:
+            logger.info("Loading of ConextData from config file")
             for context_entity in self.config.contextdata:
                 
                 if context_entity.interface == Interfaces.FIWARE:
@@ -541,33 +537,6 @@ class ControllerBasicService:
                 
                 self.contextdata = context_data
 
-        elif self.reload_contextdata == True:
-            for context_entity in self.config.contextdata:
-                
-                if context_entity.interface == Interfaces.FIWARE:
-        
-                    context_data.append(
-                        self.get_data_from_fiware(
-                            method=method,
-                            entity=context_entity,
-                            timestamp_latest_output=output_latest_timestamp,
-                        )
-                    )
-
-                if context_entity.interface == Interfaces.FILE:
-                    
-                    context_data.append(
-                        self.get_contextdata_from_file(
-                            method=method,
-                            entity=context_entity,
-                        )
-                    )
-
-                
-                if context_entity.interface == Interfaces.MQTT:
-                    logger.warning("interface MQTT for Contextdata not supported")
-
-                self.contextdata = context_data
 
         for output_entity in self.config.outputs:
             if output_entity.interface == Interfaces.FIWARE:
@@ -579,8 +548,8 @@ class ControllerBasicService:
                 output_latest_timestamps.append(output_latest_timestamp)
 
             elif output_entity.interface == Interfaces.FILE:
-                logger.warning("File interface for output_entity not implemented yet.")
-                #raise NotSupportedError
+                
+                logger.info("File interface, output_latest_timestamp is not defined.")
 
             elif output_entity.interface == Interfaces.MQTT:
                 logger.warning("MQTT interface for output_entity not implemented yet.")
@@ -1267,7 +1236,7 @@ class ControllerBasicService:
             
 
             data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
-
+            logger.debug(data_input)
             if data_input is not None:
 
                 data_output = await self.calculation(data=data_input)

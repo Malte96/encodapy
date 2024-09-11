@@ -78,6 +78,8 @@ class ControllerBasicService:
         self.crate_db_client = None
 
         self.file_params = {}
+        self.reload_contextdata = None
+        self.contextdata = []
 
         self.timestamp_health = None
 
@@ -157,6 +159,9 @@ class ControllerBasicService:
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
             raise NotSupportedError
+
+        self.reload_contextdata = os.environ.get(
+                "RELOAD_CONTEXTDATA", DefaultEnvVariables.RELOAD_CONTEXTDATA.value)
 
         logger.debug("ENVs succesfully loaded.")
 
@@ -508,34 +513,61 @@ class ControllerBasicService:
 
 
         
-
-        for context_entity in self.config.contextdata:
-            
-            if context_entity.interface == Interfaces.FIWARE:
-    
-                context_data.append(
-                    self.get_data_from_fiware(
-                        method=method,
-                        entity=input_entity,
-                        timestamp_latest_output=output_latest_timestamp,
-                    )
-                )
-
-            if context_entity.interface == Interfaces.FILE:
+        if self.reload_contextdata == False and not self.contextdata:
+            for context_entity in self.config.contextdata:
                 
-                context_data.append(
-                    self.get_contextdata_from_file(
-                        method=method,
-                        entity=input_entity,
-                        timestamp_latest_output=None,
+                if context_entity.interface == Interfaces.FIWARE:
+        
+                    context_data.append(
+                        self.get_data_from_fiware(
+                            method=method,
+                            entity=context_entity,
+                            timestamp_latest_output=output_latest_timestamp,
+                        )
                     )
-                )
 
-            
-            if context_entity.interface == Interfaces.MQTT:
-                logger.warning("interface MQTT for Contextdata not supported")
+                if context_entity.interface == Interfaces.FILE:
+                    
+                    context_data.append(
+                        self.get_contextdata_from_file(
+                            method=method,
+                            entity=context_entity,
+                        )
+                    )
 
+                
+                if context_entity.interface == Interfaces.MQTT:
+                    logger.warning("interface MQTT for Contextdata not supported")
+                
+                self.contextdata = context_data
 
+        elif self.reload_contextdata == True:
+            for context_entity in self.config.contextdata:
+                
+                if context_entity.interface == Interfaces.FIWARE:
+        
+                    context_data.append(
+                        self.get_data_from_fiware(
+                            method=method,
+                            entity=context_entity,
+                            timestamp_latest_output=output_latest_timestamp,
+                        )
+                    )
+
+                if context_entity.interface == Interfaces.FILE:
+                    
+                    context_data.append(
+                        self.get_contextdata_from_file(
+                            method=method,
+                            entity=context_entity,
+                        )
+                    )
+
+                
+                if context_entity.interface == Interfaces.MQTT:
+                    logger.warning("interface MQTT for Contextdata not supported")
+
+                self.contextdata = context_data
 
         for output_entity in self.config.outputs:
             if output_entity.interface == Interfaces.FIWARE:
@@ -558,6 +590,7 @@ class ControllerBasicService:
             output_latest_timestamp = min(output_latest_timestamps)
         else:
             output_latest_timestamp = None
+
 
         for input_entity in self.config.inputs:
             
@@ -588,7 +621,7 @@ class ControllerBasicService:
             await sleep(0.1)
 
         return InputDataModel(
-            input_entities=input_data, output_entities=output_timestamps
+            input_entities=input_data, output_entities=output_timestamps, context_entities=self.contextdata
         )
     
 
@@ -817,64 +850,12 @@ class ControllerBasicService:
                 )
         return input_attributes
     
-    async def get_contextdata(self, 
-                    method: DataQueryTypes
-                    ) -> ContextDataModel:
-        """
-        Function to get the contextdata of all context entities via the different interfaces (FIWARE, FILE, MQTT)
-        Args:
-            method (DataQueryTypes): Method for the data query 
-        
-        Returns:
-            ContextDataModel: Model with the context data
-
-
-        TODO:
-            - Implement the other interfaces(MQTT, FIWARE)
-            - Do we need this method parameter?
-            - loading data from a configfile 
-
-        """
-
-        context_data = []
-
-        for input_entity in self.config.contextdata:
-            
-            if input_entity.interface == Interfaces.FIWARE:
-                logger.warning("interface Fiware for Contextdata not supported")
-                '''
-                context_data.append(
-                    self.get_data_from_fiware(
-                        method=method,
-                        entity=input_entity,
-                        timestamp_latest_output=output_latest_timestamp,
-                    )
-                )'''
-
-            if input_entity.interface == Interfaces.FILE:
-                
-                context_data.append(
-                    self.get_contextdata_from_file(
-                        method=method,
-                        entity=input_entity
-                    )
-                )
-
-            
-            if input_entity.interface == Interfaces.MQTT:
-                logger.warning("interface MQTT for Contextdata not supported")
-
-        return ContextDataModel(
-            context_entities=context_data
-        )
-    
-
 
     def get_contextdata_from_file(
         self,
         method:DataQueryTypes,
         entity: ContextDataModel,
-        ) -> Union[ContextDataEntityModel, None]:
+        ) -> Union[InputDataEntityModel, None]:
         """
             Function to read context data for calculations from config file.
         Args:
@@ -882,9 +863,9 @@ class ControllerBasicService:
             - entity (InputModel): Input entity
         TODO:
             - work with timeseries, for example: timetable with presence or heating_times
-            - Do we need "lates_timestamp" ?
+            - check if ContextDataEntityModel/ContextDataAttributeModel/ContextDataModel is nessesary
         Returns:
-            - ContextDataEntityModel: Model with the context data None 
+            - InputDataEntityModel: Model with the context data  
 
         """
          
@@ -901,12 +882,12 @@ class ControllerBasicService:
                 elif attribute.type == AttributeTypes.VALUE:
                     
                     attributes_values.append(
-                        ContextDataAttributeModel(
+                        InputDataAttributeModel(
                             id=attribute.id,
                             data=attribute.value,
                             data_type=AttributeTypes.VALUE,
                             data_available=True,
-                            #latest_timestamp_input=data.index[0],
+                            latest_timestamp_input=None,
                         )
                     )
                 else:
@@ -916,7 +897,7 @@ class ControllerBasicService:
 
 
 
-        return ContextDataEntityModel(id=entity.id, attributes=attributes_values)
+        return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
 
     def _get_output_entity_config(

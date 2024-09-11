@@ -63,7 +63,7 @@ class ContextDataAttributeModel(BaseModel):
     data: Union[str, float, int, bool, Dict, List, DataFrame, None]
     data_type: AttributeTypes
     data_available: bool
-    #latest_timestamp_input: Union[datetime, None]
+    latest_timestamp_input: Union[datetime, None]
 
 
 class ContextDataEntityModel(BaseModel):  #may be the same like InputDataEntityModel
@@ -125,7 +125,7 @@ class InputDataModel(BaseModel):
 
     input_entities: list[InputDataEntityModel]
     output_entities: list[OutputDataEntityModel]
-    context_entities: list[ContextDataEntityModel]
+    context_entities: list[InputDataEntityModel]
 
 class ContextDataModel(BaseModel):
     """

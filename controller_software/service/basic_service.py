@@ -34,7 +34,7 @@ from controller_software.utils.fiware_auth import BaererToken
 from controller_software.utils.health import update_health_file
 from controller_software.utils.logging import LoggerControl
 from controller_software.utils.models import (
-    DataTransferModell,
+    DataTransferModel,
     InputDataAttributeModel,
     InputDataEntityModel,
     InputDataModel,
@@ -483,6 +483,35 @@ class ControllerBasicService:
             timestamp_latest_output,
         )
 
+
+    def _get_last_timestamp_for_file_output(
+        self, output_entity: OutputModel
+    ) -> tuple[OutputDataEntityModel, Union[datetime, None]]:
+        """
+        Function to get the latest timestamps of the output entity from a File, if exitst
+
+        Args:
+            output_entity (OutputModel): Output entity
+
+        Returns:
+            tuple[OutputDataEntityModel, Union[datetime, None]]: OutputDataEntityModel with timestamps for the attributes
+                                                                 and the latest timestamp of the output entity for the attribute with the oldest value (None if no timestamp is available)
+        TODO:
+            - is it really nessesary to get a timestamp for file-calculations -> during calculation time is set to input_time
+        """
+        
+        output_id = output_entity.id_interface
+        
+     
+       
+        timestamps = []
+        timestamp_latest_output = None
+
+        return (
+            OutputDataEntityModel(id=output_id, attributes_status=timestamps),
+            timestamp_latest_output,
+        )
+
     async def get_data(self, 
                        method: DataQueryTypes
                        ) -> InputDataModel:
@@ -539,6 +568,7 @@ class ControllerBasicService:
 
 
         for output_entity in self.config.outputs:
+            
             if output_entity.interface == Interfaces.FIWARE:
                 entity_timestamps, output_latest_timestamp = (
                     self._get_last_timestamp_for_fiware_output(output_entity)
@@ -548,7 +578,12 @@ class ControllerBasicService:
                 output_latest_timestamps.append(output_latest_timestamp)
 
             elif output_entity.interface == Interfaces.FILE:
-                
+               
+                entity_timestamps, output_latest_timestamp = (
+                    self._get_last_timestamp_for_file_output(output_entity)
+                )
+                output_timestamps.append(entity_timestamps)
+                output_latest_timestamps.append(output_latest_timestamp)
                 logger.info("File interface, output_latest_timestamp is not defined.")
 
             elif output_entity.interface == Interfaces.MQTT:
@@ -1123,7 +1158,7 @@ class ControllerBasicService:
     async def calculation(
         self,
         data: InputDataModel,
-    ) -> Union[DataTransferModell, None]:
+    ) -> Union[DataTransferModel, None]:
         """
         Function to start the calculation, do something with data - used in the services
 
@@ -1146,7 +1181,7 @@ class ControllerBasicService:
 
         return None
 
-    def prepare_output(self, data_output: DataTransferModell) -> OutputDataModel:
+    def prepare_output(self, data_output: DataTransferModel) -> OutputDataModel:
         """Function to prepare the output data for the different interfaces (FIWARE, FILE, MQTT) - Takes the data from the DataTransferModel and prepares the data for the output
 
         Args:
@@ -1157,9 +1192,10 @@ class ControllerBasicService:
         """
 
         output_data = OutputDataModel(entities=[])
-
+        logger.debug(self.config.outputs)
         output_attrs = {}
         output_cmds = {}
+        logger.debug(data_output)
         for component in data_output.components:
 
             for output in self.config.outputs:
@@ -1236,7 +1272,7 @@ class ControllerBasicService:
             
 
             data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
-            logger.debug(data_input)
+
             if data_input is not None:
 
                 data_output = await self.calculation(data=data_input)

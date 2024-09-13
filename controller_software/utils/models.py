@@ -121,6 +121,7 @@ class InputDataModel(BaseModel):
     Contains:
     - input_entitys: List of the input data entitys as InputDataEntityModel
     - output_entitys: List of the output data entitys as OutputDataEntityModel
+    - context_entitys: List of the context data entitys as InputDataEntityModel (a extra ContextDataEntityModel is not nessesary, may be in future?)
     """
 
     input_entities: list[InputDataEntityModel]
@@ -180,7 +181,7 @@ class DataTransferComponentModel(ComponentModel):
     timestamp: Optional[Union[datetime, None]] = None
 
 
-class DataTransferModell(BaseModel):
+class DataTransferModel(BaseModel):
     """
     Model for the data transfer between calculation and the basic service.
 

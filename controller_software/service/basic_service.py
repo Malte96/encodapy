@@ -11,6 +11,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 import requests
+import json
 from dateutil import tz
 from loguru import logger
 
@@ -985,9 +986,9 @@ class ControllerBasicService:
         """
 
         if data_output is None:
-            logger.debug("No data for sending to Fiware instance")
+            logger.debug("No data for sending out to  instance (FIWARE, MQTT, FILE)")
             return
-
+        logger.debug(data_output)
         for output in data_output.entities:
 
             output_entity = self._get_output_entity_config(output_entity_id=output.id)
@@ -1040,8 +1041,11 @@ class ControllerBasicService:
                 )
 
             elif output_entity.interface is Interfaces.FILE:
-                logger.warning("File interface not implemented yet.")
-                raise NotSupportedError
+                self._send_data_to_json_file(
+                    output_entity=output_entity,
+                    output_attributes=output_attributes,
+                    output_commands=output_commands,
+                )
 
             elif output_entity.interface is Interfaces.MQTT:
                 logger.warning("MQTT interface not implemented yet.")
@@ -1050,6 +1054,35 @@ class ControllerBasicService:
             await sleep(0.1)
 
         logger.debug("Finished sending output data")
+
+    def _send_data_to_json_file(self,
+        output_entity: OutputModel,
+        output_attributes: list[AttributeModel],
+        output_commands: list[CommandModel],
+    ) -> None:
+        """_Function to create a json_file in result-folder
+
+        Args:
+            output_entity (OutputModel): _description_
+            output_attributes (list[AttributeModel]): _description_
+            output_commands (list[CommandModel]): _description_
+
+        Out: Json-file
+        """
+        logger.info("we want to create a json file")
+        logger.debug(output_attributes)
+        # Data to be written
+        dictionary = {
+            "test" : 42,
+        }
+        
+        # Serializing json
+        json_object = json.dumps(dictionary, indent=4)
+        
+        # Writing to sample.json
+        with open("./results/sample.json", "w") as outfile:
+            outfile.write(json_object)
+
 
     def _send_data_to_fiware(
         self,
@@ -1192,17 +1225,19 @@ class ControllerBasicService:
         """
 
         output_data = OutputDataModel(entities=[])
-        logger.debug(self.config.outputs)
+        
         output_attrs = {}
         output_cmds = {}
-        logger.debug(data_output)
+        
         for component in data_output.components:
 
             for output in self.config.outputs:
-
+                
                 if output.id == component.entity_id:
-
+                    
                     for attribute in output.attributes:
+                        logger.info(attribute.id)
+                        logger.info(component.attribute_id)
 
                         if attribute.id == component.attribute_id:
 
@@ -1276,9 +1311,9 @@ class ControllerBasicService:
             if data_input is not None:
 
                 data_output = await self.calculation(data=data_input)
-
+                logger.debug(data_output)
                 data_output = self.prepare_output(data_output=data_output)
-
+                
                 await self.send_outputs(data_output=data_output)
 
             await self._set_health_timestamp()

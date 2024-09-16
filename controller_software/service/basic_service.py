@@ -1078,22 +1078,19 @@ class ControllerBasicService:
         for output in output_attributes:
             outputs.append({f"id_interface" : output.id_interface,"value" : output.value, "time" : output.timestamp.strftime("%H:%M:%S %d.%m.%Y")})
             
-        # Serializing json
-        json_object = json.dumps(outputs)
         
-        # Writing to sample.json
+        # Writing to outputs.json
         with open(f"./results/outputs.json", "w") as outfile:
-            outfile.write(json_object)
+            #json.dump(outputs, outfile)
+            outfile.write(json.dumps(outputs))
 
         for command in output_commands:
             commands.append({f"id_interface" : command.id_interface,"value" : command.value, "time" : command.timestamp.strftime("%H:%M:%S %d.%m.%Y")})
             
-        # Serializing json
-        json_object = json.dumps(commands)
         
-        # Writing to sample.json
+        # Writing to commands.json
         with open(f"./results/commands.json", "w") as commandfile:
-            commandfile.write(json_object)
+            commandfile.write(json.dumps(commands))
 
 
     def _send_data_to_fiware(

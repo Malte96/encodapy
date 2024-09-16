@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Union
 
 from controller_software.config.models import AttributeModel, CommandModel
 from controller_software.config.types import AttributeTypes
+from controller_software.utils.units import DataUnits
 from pandas import DataFrame
 from pydantic import BaseModel, ConfigDict
 
@@ -18,6 +19,7 @@ class InputDataAttributeModel(BaseModel):
     Contains:
     - id: The id of the input data attribute
     - data: The input data as a DataFrame or a single value
+    - unit: The unit of the input data
     - data_available: If the data is available
     - latest_timestamp_input: The latest timestamp of the input data from the query or None, if the data is not available
     """
@@ -26,6 +28,7 @@ class InputDataAttributeModel(BaseModel):
 
     id: str
     data: Union[str, float, int, bool, Dict, List, DataFrame, None]
+    unit: Union[DataUnits, None] = None
     data_type: AttributeTypes
     data_available: bool
     latest_timestamp_input: Union[datetime, None]
@@ -172,12 +175,14 @@ class DataTransferComponentModel(ComponentModel):
     - entity_id: The id of the entity of the component
     - attribute_id: The id of the attribute of the component
     - value: The output data value as OutputDataModel
+    - unit: The unit of the output data
     - timestamp: The timestamp of the output
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     value: Union[str, float, int, bool, Dict, List, DataFrame, None]
+    unit: Union[DataUnits, None] = None
     timestamp: Optional[Union[datetime, None]] = None
 
 
@@ -190,3 +195,16 @@ class DataTransferModel(BaseModel):
     """
 
     components: list[DataTransferComponentModel] = []
+
+
+class MetaDataModel(BaseModel):
+    """
+    Model for the metadata of datapoints of the controller.
+
+    Contains:
+    - timestamp: The timestamp of the data
+    - unit: The unit of the data
+    """
+
+    timestamp: Union[datetime, None] = None
+    unit: Union[DataUnits, None] = None

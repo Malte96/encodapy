@@ -54,7 +54,7 @@ class DataUnits(Enum):
     """
     Possible units for the data
     Units which are defined by Unit Code (https://unece.org/trade/cefact/UNLOCODE-Download or https://github.com/RWTH-EBC/FiLiP/blob/master/filip/data/unece-units/units_of_measure.csv)
-    
+    or here: https://unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_rev3_Annex3e.pdf 
     TODO: 
         - Is there a better way to handle the units? 
         - Add more units?

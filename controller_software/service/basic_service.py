@@ -1281,7 +1281,7 @@ class ControllerBasicService:
         Args:
             - data: InputDataModel with the input data
         Returns:
-            - Union[DataTransferModell, None]: Output data from the calculation
+            - Union[DataTransferModel, None]: Output data from the calculation
         """
         # do the calculation
         data_output = None
@@ -1304,7 +1304,7 @@ class ControllerBasicService:
         Takes the data from the DataTransferModel and prepares the data for the output (Creates a OutputDataModel for the use in Function `send_outputs()`).
 
         Args:
-            data_output (DataTransferModell): DataTransferModel with the output data from the calculation
+            data_output (DataTransferModel): DataTransferModel with the output data from the calculation
 
         Returns:
             OutputDataModel: OutputDataModel with the output data as formatted data

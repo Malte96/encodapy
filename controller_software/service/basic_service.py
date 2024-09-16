@@ -1070,6 +1070,7 @@ class ControllerBasicService:
         Out: Json-file
         """
         outputs = []
+        commands = []
         logger.info("we want to create a json file")
         # Data to be written
 
@@ -1083,6 +1084,16 @@ class ControllerBasicService:
         # Writing to sample.json
         with open(f"./results/outputs.json", "w") as outfile:
             outfile.write(json_object)
+
+        for command in output_commands:
+            commands.append({f"id_interface" : command.id_interface,"value" : command.value, "time" : command.timestamp.strftime("%H:%M:%S %d.%m.%Y")})
+            
+        # Serializing json
+        json_object = json.dumps(commands)
+        
+        # Writing to sample.json
+        with open(f"./results/commands.json", "w") as commandfile:
+            commandfile.write(json_object)
 
 
     def _send_data_to_fiware(

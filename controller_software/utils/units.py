@@ -51,7 +51,9 @@ def get_time_unit_seconds(time_unit: Union[TimeUnits, str]) -> Union[int, None]:
         return None
 
 class DataUnits(Enum):
-    """Possible units for the data
+    """
+    Possible units for the data
+    Units which are defined by Unit Code (https://unece.org/trade/cefact/UNLOCODE-Download or https://github.com/RWTH-EBC/FiLiP/blob/master/filip/data/unece-units/units_of_measure.csv)
     
     TODO: 
         - Is there a better way to handle the units? 

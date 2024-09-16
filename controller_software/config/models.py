@@ -94,6 +94,23 @@ class InputModel(BaseModel):
     id_interface: str
     attributes: list[AttributeModel]
 
+class ContextModel(BaseModel):
+    """
+    Model for the configuration of inputs.
+
+    Contains:
+    - id: The id of the input
+    - interface: The interface of the input
+    - id_interface: The id of the input on the interface
+    - attributes: The attributes of the
+
+    """
+
+    id: str
+    interface: Interfaces
+    id_interface: str
+    attributes: list[AttributeModel]
+
 
 class OutputModel(BaseModel):
     """
@@ -268,7 +285,7 @@ class ConfigModel(BaseModel):
     - interfaces: The interfaces of the system controller
     - inputs: The inputs of the system controller
     - outputs: The outputs of the system controller
-    - metadata: The metadata for devices the system controller #TODO: Is this needed? Import on other places?
+    - contextdata: The metadata for devices the system controller #TODO: Is this needed? Import on other places?
     - controller_components: The components of the controller
     - controller_settings: The settings for the controller #TODO: What is needed here?
     """
@@ -277,7 +294,7 @@ class ConfigModel(BaseModel):
 
     inputs: list[InputModel]
     outputs: list[OutputModel]
-    metadata: list
+    contextdata: list[ContextModel]
 
     controller_components: list[ControllerComponentModel]
 

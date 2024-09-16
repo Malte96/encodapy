@@ -54,7 +54,7 @@ class DataUnits(Enum):
     """
     Possible units for the data
     Units which are defined by Unit Code (https://unece.org/trade/cefact/UNLOCODE-Download or https://github.com/RWTH-EBC/FiLiP/blob/master/filip/data/unece-units/units_of_measure.csv)
-    
+    or here: https://unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_rev3_Annex3e.pdf 
     TODO: 
         - Is there a better way to handle the units? 
         - Add more units?
@@ -63,18 +63,28 @@ class DataUnits(Enum):
 
     # Time
     SECOND = "SEC" # "seconds"
+    HOUR = "HUR" # "hour"
     
     # Temperature
     DEGREECELSIUS = "CEL" # "°C"
     
     # Volume / Volumeflow
     LITER = "LIT" # "l"
+    MTQ = "MTW" # "m³"
     MQH = "MQH" # "m³/h"
     
     # Energy / Power
     WTT = "WTT" # "W"
     WHR = "WHR" # "Wh"
     KWH = "KWH" # "kWh"
+
+    # Distance/ Area
+    CMT = "CMT" # "cm"
+    MTR = "MTR" # "m"
+    MTK = "MTK" # "m²"
+
+    MTS = "MTS" # "m/s"
+    P1  = "P1" # "%"
     
     
 def get_unit_adjustment_factor(unit_actual:DataUnits,

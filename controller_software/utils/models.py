@@ -49,6 +49,21 @@ class InputDataEntityModel(BaseModel):
     attributes: List[InputDataAttributeModel]
 
 
+
+class ContextDataEntityModel(BaseModel):  #may be the same like InputDataEntityModel
+    """
+    Model for the input data of the system controller.
+
+    Contains:
+    - id: The id of the input data entity
+    - data: The input data as a DataFrame or a single value
+    - data_available: If the data is available
+    - latest_timestamp_input: The latest timestamp of the input data from the query or None, if the data is not available
+    """
+
+    id: str
+    attributes: List[InputDataAttributeModel]
+
 class OutputDataAttributeModel(BaseModel):
     """
     Model for a attribute of output data of the system controller - status based on the status of the interface.
@@ -90,10 +105,23 @@ class InputDataModel(BaseModel):
     Contains:
     - input_entitys: List of the input data entitys as InputDataEntityModel
     - output_entitys: List of the output data entitys as OutputDataEntityModel
+    - context_entitys: List of the context data entitys as InputDataEntityModel (a extra ContextDataEntityModel is not nessesary, may be in future?)
     """
 
     input_entities: list[InputDataEntityModel]
     output_entities: list[OutputDataEntityModel]
+    context_entities: list[InputDataEntityModel]
+
+class ContextDataModel(BaseModel):
+    """
+    Model for the context data of the system controller.
+
+    Contains:
+    - input_entitys: List of the context data entitys as ContexttDataEntityModel
+    
+    """
+
+    context_entities: list[InputDataEntityModel]
 
 
 class OutputDataModel(BaseModel):
@@ -139,7 +167,7 @@ class DataTransferComponentModel(ComponentModel):
     timestamp: Optional[Union[datetime, None]] = None
 
 
-class DataTransferModell(BaseModel):
+class DataTransferModel(BaseModel):
     """
     Model for the data transfer between calculation and the basic service.
 

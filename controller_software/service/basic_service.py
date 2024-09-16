@@ -2,6 +2,7 @@
 # TODO: The class is not yet finished and needs to be extended with the necessary functions and methods. -- Martin Altenburger
 # TODO: Import the necessary modules and classes - improve the imports -- Martin Altenburger
 # Author: Martin Altenburger
+# ----------------------------------------
 import os
 import pathlib
 from asyncio import sleep
@@ -10,6 +11,7 @@ from typing import Union
 import numpy as np
 import pandas as pd
 import requests
+import json
 from dateutil import tz
 from loguru import logger
 
@@ -33,10 +35,11 @@ from controller_software.utils.fiware_auth import BaererToken
 from controller_software.utils.health import update_health_file
 from controller_software.utils.logging import LoggerControl
 from controller_software.utils.models import (
-    DataTransferModell,
+    DataTransferModel,
     InputDataAttributeModel,
     InputDataEntityModel,
     InputDataModel,
+    ContextDataModel,
     OutputDataAttributeModel,
     OutputDataEntityModel,
     OutputDataModel,
@@ -79,6 +82,8 @@ class ControllerBasicService:
         self.crate_db_client = None
 
         self.file_params = {}
+        self.reload_contextdata = None
+        self.contextdata = None
 
         self.timestamp_health = None
 
@@ -159,6 +164,9 @@ class ControllerBasicService:
             logger.warning("MQTT interface not implemented yet.")
             raise NotSupportedError
 
+        self.reload_contextdata = os.getenv( "RELOAD_CONTEXTDATA", str(DefaultEnvVariables.RELOAD_CONTEXTDATA.value)).lower() in ("true", "1", "t")
+        
+
         logger.debug("ENVs succesfully loaded.")
 
         return config_path
@@ -173,6 +181,7 @@ class ControllerBasicService:
         """
         
         self._load_config()
+                
         
         if self.config.interfaces.fiware:
             if self.fiware_token["authentication"]:
@@ -220,13 +229,14 @@ class ControllerBasicService:
             else:
                 logger.info(f"File extension {file_extension} is not supported") 
                 raise NotSupportedError
-
-
             
 
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
             raise NotSupportedError
+
+
+
 
         return
 
@@ -479,6 +489,35 @@ class ControllerBasicService:
             timestamp_latest_output,
         )
 
+
+    def _get_last_timestamp_for_file_output(
+        self, output_entity: OutputModel
+    ) -> tuple[OutputDataEntityModel, Union[datetime, None]]:
+        """
+        Function to get the latest timestamps of the output entity from a File, if exitst
+
+        Args:
+            output_entity (OutputModel): Output entity
+
+        Returns:
+            tuple[OutputDataEntityModel, Union[datetime, None]]: OutputDataEntityModel with timestamps for the attributes
+                                                                 and the latest timestamp of the output entity for the attribute with the oldest value (None if no timestamp is available)
+        TODO:
+            - is it really nessesary to get a timestamp for file-calculations -> during calculation time is set to input_time
+        """
+        
+        output_id = output_entity.id_interface
+        
+     
+       
+        timestamps = []
+        timestamp_latest_output = None
+
+        return (
+            OutputDataEntityModel(id=output_id, attributes_status=timestamps),
+            timestamp_latest_output,
+        )
+
     async def get_data(self, 
                        method: DataQueryTypes
                        ) -> InputDataModel:
@@ -499,10 +538,43 @@ class ControllerBasicService:
         """
 
         input_data = []
+        context_data = []
         output_timestamps = []
         output_latest_timestamps = []
 
+
+        if self.reload_contextdata or self.contextdata is None:
+            logger.info("Loading of ConextData from config file")
+            for context_entity in self.config.contextdata:
+                
+                if context_entity.interface == Interfaces.FIWARE:
+        
+                    context_data.append(
+                        self.get_data_from_fiware(
+                            method=method,
+                            entity=context_entity,
+                            timestamp_latest_output=output_latest_timestamp,
+                        )
+                    )
+
+                if context_entity.interface == Interfaces.FILE:
+                    
+                    context_data.append(
+                        self.get_contextdata_from_file(
+                            method=method,
+                            entity=context_entity,
+                        )
+                    )
+
+                
+                if context_entity.interface == Interfaces.MQTT:
+                    logger.warning("interface MQTT for Contextdata not supported")
+                
+                self.contextdata = context_data
+
+
         for output_entity in self.config.outputs:
+            
             if output_entity.interface == Interfaces.FIWARE:
                 entity_timestamps, output_latest_timestamp = (
                     self._get_last_timestamp_for_fiware_output(output_entity)
@@ -512,8 +584,13 @@ class ControllerBasicService:
                 output_latest_timestamps.append(output_latest_timestamp)
 
             elif output_entity.interface == Interfaces.FILE:
-                logger.warning("File interface for output_entity not implemented yet.")
-                #raise NotSupportedError
+               
+                entity_timestamps, output_latest_timestamp = (
+                    self._get_last_timestamp_for_file_output(output_entity)
+                )
+                output_timestamps.append(entity_timestamps)
+                output_latest_timestamps.append(output_latest_timestamp)
+                logger.info("File interface, output_latest_timestamp is not defined.")
 
             elif output_entity.interface == Interfaces.MQTT:
                 logger.warning("MQTT interface for output_entity not implemented yet.")
@@ -523,6 +600,7 @@ class ControllerBasicService:
             output_latest_timestamp = min(output_latest_timestamps)
         else:
             output_latest_timestamp = None
+
 
         for input_entity in self.config.inputs:
             
@@ -544,8 +622,7 @@ class ControllerBasicService:
                         entity=input_entity
                     )
                 )
-                logger.debug(input_data)
-              
+                              
 
             elif input_entity.interface == Interfaces.MQTT:
                 logger.warning("MQTT interface for input_entity is not implemented yet.")
@@ -554,7 +631,7 @@ class ControllerBasicService:
             await sleep(0.1)
 
         return InputDataModel(
-            input_entities=input_data, output_entities=output_timestamps
+            input_entities=input_data, output_entities=output_timestamps, context_entities=self.contextdata
         )
     
 
@@ -823,6 +900,56 @@ class ControllerBasicService:
                 )
                 
         return input_attributes
+    
+
+    def get_contextdata_from_file(
+        self,
+        method:DataQueryTypes,
+        entity: ContextDataModel,
+        ) -> Union[InputDataEntityModel, None]:
+        """
+            Function to read context data for calculations from config file.
+        Args:
+            - method (DataQueryTypes): Keyword for type of query
+            - entity (InputModel): Input entity
+        TODO:
+            - work with timeseries, for example: timetable with presence or heating_times
+            - check if ContextDataEntityModel/ContextDataAttributeModel/ContextDataModel is nessesary
+        Returns:
+            - InputDataEntityModel: Model with the context data  
+
+        """
+         
+        attributes_values = []
+
+        
+        for attribute in entity.attributes:
+                
+                if attribute.type == AttributeTypes.TIMESERIES:
+                    #attributes_timeseries[attribute.id] = attribute.id_interface
+                    logger.warning(
+                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    )
+                elif attribute.type == AttributeTypes.VALUE:
+                    
+                    attributes_values.append(
+                        InputDataAttributeModel(
+                            id=attribute.id,
+                            data=attribute.value,
+                            data_type=AttributeTypes.VALUE,
+                            data_available=True,
+                            latest_timestamp_input=None,
+                        )
+                    )
+                else:
+                    logger.warning(
+                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    )
+
+
+
+        return InputDataEntityModel(id=entity.id, attributes=attributes_values)
+
 
     def _get_output_entity_config(
         self,
@@ -905,7 +1032,7 @@ class ControllerBasicService:
         """
 
         if data_output is None:
-            logger.debug("No data for sending to Fiware instance")
+            logger.debug("No data for sending out to  instance (FIWARE, MQTT, FILE)")
             return
 
         for output in data_output.entities:
@@ -961,8 +1088,11 @@ class ControllerBasicService:
                 )
 
             elif output_entity.interface is Interfaces.FILE:
-                logger.warning("File interface not implemented yet.")
-                raise NotSupportedError
+                self._send_data_to_json_file(
+                    output_entity=output_entity,
+                    output_attributes=output_attributes,
+                    output_commands=output_commands,
+                )
 
             elif output_entity.interface is Interfaces.MQTT:
                 logger.warning("MQTT interface not implemented yet.")
@@ -971,6 +1101,45 @@ class ControllerBasicService:
             await sleep(0.1)
 
         logger.debug("Finished sending output data")
+
+    def _send_data_to_json_file(self,
+        output_entity: OutputModel,
+        output_attributes: list[AttributeModel],
+        output_commands: list[CommandModel],
+    ) -> None:
+        """_Function to create a json_file in result-folder
+
+        Args:
+            output_entity (OutputModel): _description_
+            output_attributes (list[AttributeModel]): _description_
+            output_commands (list[CommandModel]): _description_
+
+        Out: Json-file
+        
+        TODO:
+            - Is it better to set the results-folder via env?
+        """
+        outputs = []
+        commands = []
+        logger.debug("Write outputs to json-output-files")
+
+        if not os.path.exists('./results'):
+            os.makedirs('./results')
+
+        for output in output_attributes:
+            outputs.append({"id_interface" : output.id_interface,"value" : output.value, "time" : output.timestamp.strftime("%H:%M:%S %d.%m.%Y")})   
+        
+        with open(f"./results/outputs.json", "w") as outputfile:
+            json.dump(outputs, outputfile)
+
+
+        for command in output_commands:
+            commands.append({"id_interface" : command.id_interface,"value" : command.value, "time" : command.timestamp.strftime("%H:%M:%S %d.%m.%Y")})
+            
+        with open(f"./results/commands.json", "w") as commandfile:
+            json.dump(commands, commandfile)
+
+
 
     def _send_data_to_fiware(
         self,
@@ -1105,14 +1274,14 @@ class ControllerBasicService:
     async def calculation(
         self,
         data: InputDataModel,
-    ) -> Union[DataTransferModell, None]:
+    ) -> Union[DataTransferModel, None]:
         """
         Function to start the calculation, do something with data - used in the services
 
         Args:
             - data: InputDataModel with the input data
         Returns:
-            - Union[DataTransferModell, None]: Output data from the calculation
+            - Union[DataTransferModel, None]: Output data from the calculation
         """
         # do the calculation
         data_output = None
@@ -1128,28 +1297,30 @@ class ControllerBasicService:
 
         return None
 
-    def prepare_output(self, data_output: DataTransferModell) -> OutputDataModel:
+
+    def prepare_output(self, data_output: DataTransferModel) -> OutputDataModel:
         """
         Function to prepare the output data for the different interfaces (FIWARE, FILE, MQTT)
         Takes the data from the DataTransferModel and prepares the data for the output (Creates a OutputDataModel for the use in Function `send_outputs()`).
 
         Args:
-            data_output (DataTransferModell): DataTransferModel with the output data from the calculation
+            data_output (DataTransferModel): DataTransferModel with the output data from the calculation
 
         Returns:
             OutputDataModel: OutputDataModel with the output data as formatted data
         """
 
         output_data = OutputDataModel(entities=[])
-
+        
         output_attrs = {}
         output_cmds = {}
+        
         for component in data_output.components:
 
             for output in self.config.outputs:
-
+                
                 if output.id == component.entity_id:
-
+                    
                     for attribute in output.attributes:
 
                         if attribute.id == component.attribute_id:

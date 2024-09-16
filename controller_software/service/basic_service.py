@@ -1046,7 +1046,7 @@ class ControllerBasicService:
                             metadata=meta_data,
                         )
                     )
-
+                
             else:
 
                 meta_data.append(NamedMetadata(
@@ -1054,11 +1054,16 @@ class ControllerBasicService:
                     type=DataType.DATETIME,
                     value=attribute.timestamp.strftime("%Y-%m-%dT%H:%M:%S%z"),
                 ))
-
+                
+                if attribute.value is None:
+                    value = None
+                else:
+                    value = attribute.value * factor_unit_adjustment
+                    
                 attrs.append(
                     NamedContextAttribute(
                         name=attribute.id_interface,
-                        value=attribute.value * factor_unit_adjustment,
+                        value=value,
                         type=datatype,
                         metadata=meta_data,
                     )

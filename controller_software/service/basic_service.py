@@ -43,13 +43,18 @@ from controller_software.utils.models import (
     OutputDataAttributeModel,
     OutputDataEntityModel,
     OutputDataModel,
+    MetaDataModel
 )
-from controller_software.utils.timeunit import get_time_unit_seconds
+from controller_software.utils.units import (
+    DataUnits,
+    get_time_unit_seconds,
+    get_unit_adjustment_factor
+)
 
 from filip.clients.ngsi_v2 import ContextBrokerClient
 from filip.models.base import DataType, FiwareHeaderSecure
 from filip.models.ngsi_v2.base import NamedMetadata
-from filip.models.ngsi_v2.context import NamedCommand, NamedContextAttribute
+from filip.models.ngsi_v2.context import NamedCommand, NamedContextAttribute, ContextAttribute
 
 # from IPython.display import display
 
@@ -661,7 +666,9 @@ class ControllerBasicService:
             #time = self.file_params["START_TIME_FILE"]
             #temp = data.loc[time, 'outside_Temperature']
         except:
-            print(f"Error: File not found ({path_of_file})")
+            logger.error(f"Error: File not found ({path_of_file})")
+            #TODO: What to do if the file is not found?
+            return None
         for attribute in entity.attributes:
                 
                 if attribute.type == AttributeTypes.TIMESERIES:
@@ -689,6 +696,39 @@ class ControllerBasicService:
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
+
+    def _get_metadata_from_fiware(self, 
+                                  fiware_attribute: ContextAttribute
+                                  ) ->  MetaDataModel:
+        """Function to get the metadata from the fiware attribute
+
+        Args:
+            fiware_attribute (ContextAttribute): Fiware attribute
+
+        Returns:
+            MetaDataModel: Model with the metadata (timestamp, unit) of the attribute if available
+        """
+        metadata_lowercase = {k.lower(): v for k, v in fiware_attribute.metadata.items()}
+        
+        metadata_model = MetaDataModel()
+        
+        if metadata_lowercase.get("timeinstant") is not None:
+            metadata_model.timestamp = datetime.strptime(metadata_lowercase.get("timeinstant").value, "%Y-%m-%dT%H:%M:%S.%f%z")
+
+        
+        try: 
+            if metadata_lowercase.get("unitcode") is not None:
+                metadata_model.unit = DataUnits(metadata_lowercase.get("unitcode").value)
+            elif metadata_lowercase.get("unittext") is not None:
+                metadata_model.unit = DataUnits(metadata_lowercase.get("unittext").value)
+            elif metadata_lowercase.get("unit") is not None:
+                metadata_model.unit = DataUnits(metadata_lowercase.get("unit").value)
+        except ValueError as err:
+            logger.error(f"Unit code {metadata_lowercase.get('unitcode').value} not available: {err}")
+
+        
+        return metadata_model
+        
 
     def get_data_from_fiware(
         self,
@@ -734,9 +774,12 @@ class ControllerBasicService:
                 continue  # TODO: What to do if the attribute is not found?
 
             if attribute.type == AttributeTypes.TIMESERIES:
-                attributes_timeseries[attribute.id] = attribute.id_interface
+                attributes_timeseries[attribute.id] = {"id_interface": attribute.id_interface, 
+                                                       "metadata": self._get_metadata_from_fiware(fiware_input_entity_attributes[attribute.id_interface])}
 
             elif attribute.type == AttributeTypes.VALUE:
+                
+                metadata = self._get_metadata_from_fiware(fiware_input_entity_attributes[attribute.id_interface])
                 attributes_values.append(
                     InputDataAttributeModel(
                         id=attribute.id,
@@ -744,10 +787,11 @@ class ControllerBasicService:
                             attribute.id_interface
                         ].value,
                         data_type=AttributeTypes.VALUE,
-                        data_available=True,
-                        latest_timestamp_input=(fiware_input_entity_attributes[
-                            attribute.id_interface
-                        ].metadata.get("TimeInstant").value[:-1]).replace(tzinfo=tz.UTC),
+                        data_available=True if fiware_input_entity_attributes[
+                                attribute.id_interface
+                            ].value is not None else False,
+                        latest_timestamp_input=metadata.timestamp,
+                        unit=metadata.unit
                     )
                 )
             else:
@@ -782,7 +826,7 @@ class ControllerBasicService:
         Args:
             - entity_id: id of the entity
             - entity_type: type of the entity
-            - entity_attributes: dict with the attributes of the entity
+            - entity_attributes: dict with the attributes of the entity (id, metadata)
             - method (DataQueryTypes): method of the function which queries the data (calculation or calibration)
             - timestamp_latest_output: timestamp of the last output of the entity
 
@@ -797,12 +841,11 @@ class ControllerBasicService:
         from_date, to_date = self._calculate_dates(
             method=method, last_timestamp=timestamp_latest_output
         )
-
         df = self.crate_db_client.get_data(
             service=self.fiware_params["service"],
             entity=entity_id,
             entity_type=entity_type,
-            attributes=list(entity_attributes.values()),
+            attributes=[attribute['id_interface'] for attribute in entity_attributes.values()],
             from_date=from_date,
             to_date=to_date,
             limit=200000,
@@ -824,8 +867,8 @@ class ControllerBasicService:
 
         input_attributes = []
 
-        for attribute_id, attribute_id_interface in entity_attributes.items():
-            df.rename(columns={attribute_id_interface: attribute_id}, inplace=True)
+        for attribute_id, attribute_data in entity_attributes.items():
+            df.rename(columns={attribute_data["id_interface"]: attribute_id}, inplace=True)
             data = df.filter([attribute_id]).dropna()
             if data.empty:
                 logger.debug(
@@ -838,6 +881,7 @@ class ControllerBasicService:
                         data_type=AttributeTypes.TIMESERIES,
                         data_available=False,
                         latest_timestamp_input=None,
+                        unit=attribute_data["metadata"].unit
                     )
                 )
             else:
@@ -851,8 +895,10 @@ class ControllerBasicService:
                         data_type=AttributeTypes.TIMESERIES,
                         data_available=True,
                         latest_timestamp_input=to_date,
+                        unit=attribute_data["metadata"].unit
                     )
                 )
+                
         return input_attributes
     
 
@@ -1012,6 +1058,7 @@ class ControllerBasicService:
                     continue
 
                 output_attribute.value = attribute.value
+                output_attribute.unit = attribute.unit
                 output_attribute.timestamp = attribute.timestamp
                 output_attributes.append(output_attribute)
 
@@ -1122,43 +1169,69 @@ class ControllerBasicService:
         attrs = []
         for attribute in output_attributes:
 
+            fiware_unit = None
+            factor_unit_adjustment = 1
+            
             if attribute.id_interface in entity_attributes:
                 datatype = entity_attributes[attribute.id_interface].type
+                if entity_attributes[attribute.id_interface].metadata.get("unitCode") is not None:
+                    fiware_unit = DataUnits(entity_attributes[attribute.id_interface].metadata.get("unitCode").value)
             else:
                 datatype = attribute.datatype
+                
+            meta_data = []
+            
+            if attribute.unit is not None and fiware_unit is None:
+                meta_data.append(NamedMetadata(
+                    name="unitCode",
+                    type=DataType.TEXT,
+                    value=attribute.unit.value))
+            elif attribute.unit is None:
+                logger.debug(f"No information about the unit of the attribute {attribute.id} from entity {output_entity.id} available!")
+                
+            else:
+                if fiware_unit is not attribute.unit.value:
+                    
+                    factor_unit_adjustment = get_unit_adjustment_factor(unit_actual=attribute.unit, unit_target=fiware_unit)
+                
 
             if isinstance(attribute.value, pd.DataFrame):
                 if len(attribute.value) == 0:
                     continue
 
                 for index, row in attribute.value.iterrows():
-                    meta_data = NamedMetadata(
+                    meta_data_row = meta_data + [NamedMetadata(
                         name="TimeInstant",
                         type=DataType.DATETIME,
                         value=index.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                    )
+                    )]
 
                     attrs.append(
                         NamedContextAttribute(
                             name=attribute.id_interface,
-                            value=row[attribute.id],
+                            value=row[attribute.id] * factor_unit_adjustment,
                             type=datatype,
                             metadata=meta_data,
                         )
                     )
-
+                
             else:
 
-                meta_data = NamedMetadata(
+                meta_data.append(NamedMetadata(
                     name="TimeInstant",
                     type=DataType.DATETIME,
                     value=attribute.timestamp.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                )
-
+                ))
+                
+                if attribute.value is None:
+                    value = None
+                else:
+                    value = attribute.value * factor_unit_adjustment
+                    
                 attrs.append(
                     NamedContextAttribute(
                         name=attribute.id_interface,
-                        value=attribute.value,
+                        value=value,
                         type=datatype,
                         metadata=meta_data,
                     )
@@ -1223,14 +1296,17 @@ class ControllerBasicService:
 
         return None
 
-    def prepare_output(self, data_output: DataTransferModel) -> OutputDataModel:
-        """Function to prepare the output data for the different interfaces (FIWARE, FILE, MQTT) - Takes the data from the DataTransferModel and prepares the data for the output
+
+    def prepare_output(self, data_output: DataTransferModell) -> OutputDataModel:
+        """
+        Function to prepare the output data for the different interfaces (FIWARE, FILE, MQTT)
+        Takes the data from the DataTransferModel and prepares the data for the output (Creates a OutputDataModel for the use in Function `send_outputs()`).
 
         Args:
             data_output (DataTransferModell): DataTransferModel with the output data from the calculation
 
         Returns:
-            OutputDataModel: OutputDataModel with the output data for the different interfaces
+            OutputDataModel: OutputDataModel with the output data as formatted data
         """
 
         output_data = OutputDataModel(entities=[])
@@ -1255,6 +1331,7 @@ class ControllerBasicService:
                                 AttributeModel(
                                     id=attribute.id,
                                     value=component.value,
+                                    unit = component.unit,
                                     timestamp=component.timestamp,
                                 )
                             )

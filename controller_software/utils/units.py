@@ -63,18 +63,28 @@ class DataUnits(Enum):
 
     # Time
     SECOND = "SEC" # "seconds"
+    HOUR = "HUR" # "hour"
     
     # Temperature
     DEGREECELSIUS = "CEL" # "°C"
     
     # Volume / Volumeflow
     LITER = "LIT" # "l"
+    MTQ = "MTW" # "m³"
     MQH = "MQH" # "m³/h"
     
     # Energy / Power
     WTT = "WTT" # "W"
     WHR = "WHR" # "Wh"
     KWH = "KWH" # "kWh"
+
+    # Distance/ Area
+    CMT = "CMT" # "cm"
+    MTR = "MTR" # "m"
+    MTK = "MTK" # "m²"
+
+    MTS = "MTS" # "m/s"
+    P1  = "P1" # "%"
     
     
 def get_unit_adjustment_factor(unit_actual:DataUnits,

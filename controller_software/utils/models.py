@@ -48,25 +48,6 @@ class InputDataEntityModel(BaseModel):
     id: str
     attributes: List[InputDataAttributeModel]
 
-class ContextDataAttributeModel(BaseModel):
-    """
-    Model for a attribute of input data of the system controller.
-
-    Contains:
-    - id: The id of the input data attribute
-    - data: The input data as a DataFrame or a single value
-    - data_available: If the data is available
-    TODO: 
-    - Nessesary:?  - latest_timestamp_input: The latest timestamp of the input data from the query or None, if the data is not available
-    """
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    id: str
-    data: Union[str, float, int, bool, Dict, List, DataFrame, None]
-    data_type: AttributeTypes
-    data_available: bool
-    latest_timestamp_input: Union[datetime, None]
 
 
 class ContextDataEntityModel(BaseModel):  #may be the same like InputDataEntityModel
@@ -81,7 +62,7 @@ class ContextDataEntityModel(BaseModel):  #may be the same like InputDataEntityM
     """
 
     id: str
-    attributes: List[ContextDataAttributeModel]
+    attributes: List[InputDataAttributeModel]
 
 class OutputDataAttributeModel(BaseModel):
     """

@@ -1297,7 +1297,7 @@ class ControllerBasicService:
         return None
 
 
-    def prepare_output(self, data_output: DataTransferModell) -> OutputDataModel:
+    def prepare_output(self, data_output: DataTransferModel) -> OutputDataModel:
         """
         Function to prepare the output data for the different interfaces (FIWARE, FILE, MQTT)
         Takes the data from the DataTransferModel and prepares the data for the output (Creates a OutputDataModel for the use in Function `send_outputs()`).

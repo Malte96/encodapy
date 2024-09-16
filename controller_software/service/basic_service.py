@@ -1115,29 +1115,30 @@ class ControllerBasicService:
             output_commands (list[CommandModel]): _description_
 
         Out: Json-file
+        
+        TODO:
+            - Is it better to set the results-folder via env?
         """
         outputs = []
         commands = []
-        logger.info("we want to create a json file")
-        # Data to be written
+        logger.debug("Write outputs to json-output-files")
 
+        if not os.path.exists('./results'):
+            os.makedirs('./results')
 
         for output in output_attributes:
-            outputs.append({f"id_interface" : output.id_interface,"value" : output.value, "time" : output.timestamp.strftime("%H:%M:%S %d.%m.%Y")})
-            
+            outputs.append({"id_interface" : output.id_interface,"value" : output.value, "time" : output.timestamp.strftime("%H:%M:%S %d.%m.%Y")})   
         
-        # Writing to outputs.json
-        with open(f"./results/outputs.json", "w") as outfile:
-            #json.dump(outputs, outfile)
-            outfile.write(json.dumps(outputs))
+        with open(f"./results/outputs.json", "w") as outputfile:
+            json.dump(outputs, outputfile)
+
 
         for command in output_commands:
-            commands.append({f"id_interface" : command.id_interface,"value" : command.value, "time" : command.timestamp.strftime("%H:%M:%S %d.%m.%Y")})
+            commands.append({"id_interface" : command.id_interface,"value" : command.value, "time" : command.timestamp.strftime("%H:%M:%S %d.%m.%Y")})
             
-        
-        # Writing to commands.json
         with open(f"./results/commands.json", "w") as commandfile:
-            commandfile.write(json.dumps(commands))
+            json.dump(commands, commandfile)
+
 
 
     def _send_data_to_fiware(

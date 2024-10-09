@@ -5,14 +5,11 @@ import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from controller_software.config.types import (
-    AttributeTypes,
-    ControllerComponents,
-    Interfaces,
-    TimerangeTypes,
-)
+from controller_software.config.types import (AttributeTypes,
+                                              ControllerComponents, Interfaces,
+                                              TimerangeTypes)
 from controller_software.utils.error_handling import ConfigError
-from controller_software.utils.units import TimeUnits, DataUnits
+from controller_software.utils.units import DataUnits, TimeUnits
 from filip.models.base import DataType
 from loguru import logger
 from pandas import DataFrame

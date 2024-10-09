@@ -7,53 +7,39 @@ import pathlib
 from asyncio import sleep
 from datetime import datetime, timedelta, timezone
 from typing import Union
+
 import numpy as np
 import pandas as pd
 import requests
-from dateutil import tz
-from loguru import logger
-
-from controller_software.config import (
-    AttributeModel,
-    AttributeTypes,
-    CommandModel,
-    ConfigModel,
-    DefaultEnvVariables,
-    InputModel,
-    Interfaces,
-    OutputModel,
-    TimerangeTypes,
-    DataQueryTypes,
-    FileExtensionTypes
-)
-
+from controller_software.config import (AttributeModel, AttributeTypes,
+                                        CommandModel, ConfigModel,
+                                        DataQueryTypes, DefaultEnvVariables,
+                                        FileExtensionTypes, InputModel,
+                                        Interfaces, OutputModel,
+                                        TimerangeTypes)
 from controller_software.utils.cratedb import CrateDBConnection
-from controller_software.utils.error_handling import NotSupportedError, NoCredentials
+from controller_software.utils.error_handling import (NoCredentials,
+                                                      NotSupportedError)
 from controller_software.utils.fiware_auth import BaererToken
 from controller_software.utils.health import update_health_file
 from controller_software.utils.logging import LoggerControl
-from controller_software.utils.models import (
-    DataTransferModell,
-    InputDataAttributeModel,
-    InputDataEntityModel,
-    InputDataModel,
-    OutputDataAttributeModel,
-    OutputDataEntityModel,
-    OutputDataModel,
-    MetaDataModel
-)
-from controller_software.utils.units import (
-    DataUnits,
-    get_time_unit_seconds,
-    get_unit_adjustment_factor
-)
-
+from controller_software.utils.models import (DataTransferModell,
+                                              InputDataAttributeModel,
+                                              InputDataEntityModel,
+                                              InputDataModel, MetaDataModel,
+                                              OutputDataAttributeModel,
+                                              OutputDataEntityModel,
+                                              OutputDataModel)
+from controller_software.utils.units import (DataUnits, get_time_unit_seconds,
+                                             get_unit_adjustment_factor)
+from dateutil import tz
 from filip.clients.ngsi_v2 import ContextBrokerClient
 from filip.models.base import DataType, FiwareHeaderSecure
 from filip.models.ngsi_v2.base import NamedMetadata
-from filip.models.ngsi_v2.context import NamedCommand, NamedContextAttribute, ContextAttribute
-
-# from IPython.display import display
+from filip.models.ngsi_v2.context import (ContextAttribute, NamedCommand,
+                                          NamedContextAttribute)
+from IPython.display import display
+from loguru import logger
 
 
 class ControllerBasicService:
@@ -1221,6 +1207,7 @@ class ControllerBasicService:
             
 
             data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
+            display(data_input)
 
             if data_input is not None:
 

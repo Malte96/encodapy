@@ -1,7 +1,8 @@
-# Description: Enum classes for the types in the configuration
-# Authors: Martin Altenburger
+"""
+Description: Enum classes for the types in the configuration
+Authors: Martin Altenburger
+"""
 
-# TODO: Add the needed types
 from enum import Enum
 
 
@@ -35,7 +36,9 @@ class TimerangeTypes(Enum):
 
 
 class ControllerComponents(Enum):
-    """Enum class for the controller components"""
+    """
+    Enum class for the controller components, could be extended by the needed components
+    """
 
     # TODO: Which components are needed?
 
@@ -43,11 +46,13 @@ class ControllerComponents(Enum):
     ENERGYTRENDBAND = "energytrendband_controller"
     HYGIENICCONTROLLER = "hygienic_controller"
 
+
 class DataQueryTypes(Enum):
     """Enum class for the data query types"""
-    
+
     CALCULATION = "calculation"
     CALIBRATION = "calibration"
+
 
 class FileExtensionTypes(Enum):
     """Enum class for file Extensions"""

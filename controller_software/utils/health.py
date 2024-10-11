@@ -1,9 +1,10 @@
-# Description: This module is used to update the health file for the health check. The health file is checked by the healthcheck.
-# Author: Martin Altenburger
+"""
+Description: This module is used to update the health file for the health check. The health file is checked by the healthcheck.
+Author: Martin Altenburger
+"""
 
 from datetime import datetime, timedelta
 from typing import Union
-
 from loguru import logger
 
 

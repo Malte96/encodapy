@@ -58,6 +58,7 @@ from filip.models.ngsi_v2.context import (
     ContextAttribute,
     NamedCommand,
     NamedContextAttribute,
+    ContextEntity
 )
 from loguru import logger
 
@@ -701,8 +702,8 @@ class ControllerBasicService:
             if attribute.type == AttributeTypes.TIMESERIES:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id} "
+                    f"of entity {entity.id} not supported."
                 )
             elif attribute.type == AttributeTypes.VALUE:
 
@@ -717,8 +718,8 @@ class ControllerBasicService:
                 )
             else:
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id} "
+                    f"of entity {entity.id} not supported."
                 )
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
@@ -828,8 +829,8 @@ class ControllerBasicService:
                 )
             else:
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id} "
+                    f"of entity {entity.id} not supported."
                 )
 
         if len(attributes_timeseries) > 0:
@@ -920,8 +921,8 @@ class ControllerBasicService:
                 )
             else:
                 logger.debug(
-                    f"Service received data from CrateDB for attribute {attribute_id} \
-                        of entity {entity_id}"
+                    f"Service received data from CrateDB for attribute {attribute_id} "
+                    f"of entity {entity_id}"
                 )
                 input_attributes.append(
                     InputDataAttributeModel(
@@ -975,8 +976,8 @@ class ControllerBasicService:
             else:
                 # Not supported attribute type - should not happen
                 raise NotSupportedError(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported"
+                    f"Attribute type {attribute.type} for attribute {attribute.id} "
+                    f"of entity {entity.id} not supported"
                 )
 
         return StaticDataEntityModel(id=entity.id, attributes=attributes_values)
@@ -1227,6 +1228,103 @@ class ControllerBasicService:
 
             concurrent.futures.wait(futures)
 
+    async def _prepare_sending_timeseries_to_fiware(
+        self,
+        fiware_entity: ContextEntity,
+        attribute: AttributeModel,
+        meta_data: list[NamedMetadata],
+        factor_unit_adjustment:float,
+        datatype: DataType
+    )-> NamedContextAttribute:
+        """
+        Function to prepare the sending of the timeseries data to the FIWARE platform
+        Split the timeseries data into single values and send them to the FIWARE platform
+
+        Args:
+            fiware_entity (OutputModel): EntityModel of the FIWARE entity
+            attribute (AttributeModel): AttributeModel of the attribute to send
+            meta_data (list[NamedMetadata]): Basic metadata for the attribute
+            factor_unit_adjustment (float): Factor to adjust the unit
+            datatype (DataType): Datatype of the attribute
+
+        Returns:
+            NamedContextAttribute: NamedContextAttribute with the last value of the timeseries
+        """
+
+        attrs_timeseries = []
+
+        df = attribute.value.sort_index()
+
+        for index, row in attribute.value.iterrows():
+            if index == df.index[-1]:
+                continue
+
+            meta_data_row = meta_data + [
+                NamedMetadata(
+                    name="TimeInstant",
+                    type=DataType.DATETIME,
+                    value=index.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                )
+            ]
+
+            attrs_timeseries.append(
+                NamedContextAttribute(
+                    name=attribute.id_interface,
+                    value=row[attribute.id] * factor_unit_adjustment,
+                    type=datatype,
+                    metadata=meta_data_row,
+                )
+            )
+
+        if len(attrs_timeseries) > 0:
+            await self._send_timeseries_to_fiware(
+                entity_id=fiware_entity.id,
+                entity_type=fiware_entity.type,
+                attrs_timeseries=attrs_timeseries,
+            )
+
+        meta_data_row = meta_data + [
+            NamedMetadata(
+                name="TimeInstant",
+                type=DataType.DATETIME,
+                value=df.index[-1].strftime("%Y-%m-%dT%H:%M:%S%z"),
+            )
+        ]
+
+        return NamedContextAttribute(
+            name=attribute.id_interface,
+            value=df[attribute.id].iloc[-1] * factor_unit_adjustment,
+            type=datatype,
+            metadata=meta_data_row
+            )
+
+    def _send_commands_to_fiware(
+        self,
+        entity_id:str,
+        entity_type: str,
+        commands: list[CommandModel],
+        ) -> None:
+        """
+        Function to send the commands to the FIWARE platform
+
+        Args:
+            entity_id (str): ID of the entity
+            entity_type (str): Type of the entity
+            commands (list[CommandModel]): List with the commands to send
+        """
+
+        if len(commands) == 0:
+            return
+
+        for command in commands:
+            self.cb_client.post_command(entity_id=entity_id,
+                                        entity_type=entity_type,
+                                        command=NamedCommand(name=command.id_interface,
+                                                             value=command.value,
+                                                             type=DataType.COMMAND,
+                                                             ))
+
+
     async def _send_data_to_fiware(
         self,
         output_entity: OutputModel,
@@ -1237,11 +1335,11 @@ class ControllerBasicService:
         Function to send the output data to the FIWARE platform
 
         Args:
-            - output_entity: OutputModel with the output entity
-            - output_attributes: list with the output attributes
-            - output_commands: list with the output commands
-
-        TODO:
+            output_entity (OutputModel): OutputModel with the output entity
+            output_attributes (list[AttributeModel]): list with the output attributes
+            output_commands (list[CommandModel]): list with the output commands
+            
+        TODO: 
             - Is there a better way to send the data from dataframes to the FIWARE platform?
         """
 
@@ -1253,10 +1351,10 @@ class ControllerBasicService:
 
         attrs = []
         for attribute in output_attributes:
-            attrs_timeseries = []
 
             fiware_unit = None
             factor_unit_adjustment = 1
+            datatype = attribute.datatype
 
             if attribute.id_interface in entity_attributes:
                 datatype = entity_attributes[attribute.id_interface].type
@@ -1264,27 +1362,26 @@ class ControllerBasicService:
                     fiware_unit = DataUnits(
                         entity_attributes[attribute.id_interface].metadata.get("unitCode").value
                     )
-            else:
-                datatype = attribute.datatype
 
             meta_data = []
 
             if attribute.unit is not None and fiware_unit is None:
                 meta_data.append(
-                    NamedMetadata(name="unitCode", type=DataType.TEXT, value=attribute.unit.value)
+                    NamedMetadata(name="unitCode",
+                                  type=DataType.TEXT,
+                                  value=attribute.unit.value)
                 )
             elif attribute.unit is None:
                 logger.debug(
-                    f"No information about the unit of the attribute {attribute.id} \
-                    from entity {output_entity.id} available!"
+                    f"No information about the unit of the attribute {attribute.id} "
+                    f"from entity {output_entity.id} available!"
                 )
 
-            else:
-                if fiware_unit is not attribute.unit:
+            elif fiware_unit is not attribute.unit:
 
-                    factor_unit_adjustment = get_unit_adjustment_factor(
-                        unit_actual=attribute.unit, unit_target=fiware_unit
-                    )
+                factor_unit_adjustment = get_unit_adjustment_factor(
+                    unit_actual=attribute.unit, unit_target=fiware_unit
+                )
 
             if isinstance(attribute.value, pd.DataFrame):
                 if len(attribute.value) == 0:
@@ -1292,97 +1389,46 @@ class ControllerBasicService:
                 if attribute.id not in attribute.value.columns:
                     logger.error(f"Attribute {attribute.id} not in the dataframe.")
                     continue
-                df = attribute.value.sort_index()
 
-                meta_data_row = meta_data + [
-                    NamedMetadata(
-                        name="TimeInstant",
-                        type=DataType.DATETIME,
-                        value=df.index[-1].strftime("%Y-%m-%dT%H:%M:%S%z"),
-                    )
-                ]
+                attrs.append(await self._prepare_sending_timeseries_to_fiware(
+                    fiware_entity=fiware_entity,
+                    attribute=attribute,
+                    meta_data=meta_data,
+                    factor_unit_adjustment=factor_unit_adjustment,
+                    datatype=datatype))
+                continue
 
-                attrs.append(
-                    NamedContextAttribute(
-                        name=attribute.id_interface,
-                        value=df[attribute.id].iloc[-1] * factor_unit_adjustment,
-                        type=datatype,
-                        metadata=meta_data_row,
-                    )
-                )
-
-                for index, row in attribute.value.iterrows():
-                    if index == df.index[-1]:
-                        continue
-
-                    meta_data_row = meta_data + [
-                        NamedMetadata(
-                            name="TimeInstant",
-                            type=DataType.DATETIME,
-                            value=index.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                        )
-                    ]
-
-                    attrs_timeseries.append(
-                        NamedContextAttribute(
-                            name=attribute.id_interface,
-                            value=row[attribute.id] * factor_unit_adjustment,
-                            type=datatype,
-                            metadata=meta_data_row,
-                        )
-                    )
-                if len(attrs_timeseries) > 0:
-                    await self._send_timeseries_to_fiware(
-                        entity_id=fiware_entity.id,
-                        entity_type=fiware_entity.type,
-                        attrs_timeseries=attrs_timeseries,
-                    )
-
-            else:
-
-                meta_data.append(
-                    NamedMetadata(
-                        name="TimeInstant",
-                        type=DataType.DATETIME,
-                        value=attribute.timestamp.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                    )
-                )
-
-                if attribute.value is None:
-                    value = None
-                else:
-                    value = attribute.value * factor_unit_adjustment
-
-                attrs.append(
-                    NamedContextAttribute(
-                        name=attribute.id_interface,
-                        value=value,
-                        type=datatype,
-                        metadata=meta_data,
-                    )
-                )
-
-        cmds = []
-        for command in output_commands:
-            cmds.append(
-                NamedCommand(
-                    name=command.id_interface,
-                    value=command.value,
-                    type=DataType.COMMAND,
+            meta_data.append(
+                NamedMetadata(
+                    name="TimeInstant",
+                    type=DataType.DATETIME,
+                    value=attribute.timestamp.strftime("%Y-%m-%dT%H:%M:%S%z"),
                 )
             )
 
-        output_points = attrs + cmds
+            if attribute.value is None:
+                value = None
+            else:
+                value = attribute.value * factor_unit_adjustment
 
-        if len(output_points) == 0:
-            logger.debug("No output data available for sending to the FIWARE platform.")
-            return
+            attrs.append(
+                NamedContextAttribute(
+                    name=attribute.id_interface,
+                    value=value,
+                    type=datatype,
+                    metadata=meta_data,
+                )
+            )
+        if len(attrs) > 0:
+            self.cb_client.update_or_append_entity_attributes(
+                entity_id=fiware_entity.id,
+                entity_type=fiware_entity.type,
+                attrs=attrs,
+            )
 
-        self.cb_client.update_or_append_entity_attributes(
-            entity_id=fiware_entity.id,
-            entity_type=fiware_entity.type,
-            attrs=output_points,
-        )
+        self._send_commands_to_fiware(entity_id= fiware_entity.id,
+                                        entity_type= fiware_entity.type,
+                                        commands= output_commands)
 
     async def _hold_sampling_time(self, start_time: datetime, hold_time: Union[int, float]):
         """
@@ -1394,8 +1440,8 @@ class ControllerBasicService:
         """
         if ((datetime.now() - start_time).total_seconds()) > hold_time:
             logger.warning(
-                "The processing time is longer than the sampling time. \
-                The sampling time must be increased!"
+                "The processing time is longer than the sampling time. "
+                "The sampling time must be increased!"
             )
         while ((datetime.now() - start_time).total_seconds()) < hold_time:
             await sleep(0.1)

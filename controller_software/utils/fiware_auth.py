@@ -1,7 +1,9 @@
-# Description: This file contains the class BaererToken, which is used to check if an OAuth2 bearer token is valid.
-# Author: Martin Altenburger
-from typing import Union
+"""
+Description: This file contains the class BaererToken, which is used to check if an OAuth2 bearer token is valid.
+Author: Martin Altenburger
+"""
 
+from typing import Union
 import requests
 from oauthlib.oauth2 import BackendApplicationClient
 from requests_oauthlib import OAuth2Session

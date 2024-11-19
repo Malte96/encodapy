@@ -1,13 +1,18 @@
-# Description: This file contains the models for the configuration of the system controller.
-# Authors: Martin Altenburger
+"""
+Description: This file contains the models for the configuration of the system controller.
+Authors: Martin Altenburger
+"""
 
 import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
 
-from controller_software.config.types import (AttributeTypes,
-                                              ControllerComponents, Interfaces,
-                                              TimerangeTypes)
+from controller_software.config.types import (
+    AttributeTypes,
+    ControllerComponents,
+    Interfaces,
+    TimerangeTypes,
+)
 from controller_software.utils.error_handling import ConfigError
 from controller_software.utils.units import DataUnits, TimeUnits
 from filip.models.base import DataType
@@ -91,7 +96,8 @@ class InputModel(BaseModel):
     id_interface: str
     attributes: list[AttributeModel]
 
-class ContextModel(BaseModel):
+
+class StaticDataModel(InputModel):
     """
     Model for the configuration of inputs.
 
@@ -102,11 +108,6 @@ class ContextModel(BaseModel):
     - attributes: The attributes of the
 
     """
-
-    id: str
-    interface: Interfaces
-    id_interface: str
-    attributes: list[AttributeModel]
 
 
 class OutputModel(BaseModel):
@@ -135,8 +136,8 @@ class ControllerComponentModel(BaseModel):
 
     active: bool = True
     id: str
-    type: ControllerComponents  # TODO: How to reference the component types?
-    inputs: dict  # TODO: How to reference the input/output models? Need this also a modell? Would that be better?
+    type: Union[ControllerComponents, str]  # TODO: How to reference the component types?
+    inputs: dict  # TODO: How to reference the input/output models?
     outputs: dict
     config: dict
 
@@ -146,14 +147,20 @@ class TimeSettingsCalculationModel(BaseModel):
     Base class for the calculation time settings of the controller / system.
 
     Contains:
-    - timerange: The timerange for the calculation (if only one value is needed and primary value - otherwise use timerange_min and timerange_max)
-    - timerange_min: The minimum timerange for the calculation (only used if timerange is not set and timerange_max is set too)
-    - timerange_max: The maximum timerange for the calculation (only used if timerange is not set and timerange_min is set too)
-    - timerange_type: Type of time period, relative to the last result or absolute at the current time (if not set, the default type is absolute)
+    - timerange: The timerange for the calculation (if only one value is needed and primary value,
+    otherwise use timerange_min and timerange_max)
+    - timerange_min: The minimum timerange for the calculation (only used if timerange is not set 
+    and timerange_max is set too)
+    - timerange_max: The maximum timerange for the calculation (only used if timerange is not set 
+    and timerange_min is set too)
+    - timerange_type: Type of time period, relative to the last result or absolute at the current 
+    time (if not set, the default type is absolute)
     - timerange_unit: The unit of the timerange (if not set, the default unit is minute)
-    - timestep: The timestep for the calculation (if not set, the default value is 1), the related unit is defined in the timestep_unit attribute
+    - timestep: The timestep for the calculation (if not set, the default value is 1), the 
+    related unit is defined in the timestep_unit attribute
     - timestep_unit: The unit of the timestep (if not set, the default unit is second)
-    - sampling_time: The sampling time for the calculation (if not set, the default value is 1), the related unit is defined in the sampling_time_unit attribute
+    - sampling_time: The sampling time for the calculation (if not set, the default value is 1), 
+    the related unit is defined in the sampling_time_unit attribute
     - sampling_time_unit: The unit of the sampling time (if not set, the default unit is minute)
     """
 
@@ -180,9 +187,7 @@ class TimeSettingsCalculationModel(BaseModel):
             TimeSettingsCalculationModel: The model with the validated parameters
         """
 
-        if self.timerange is None and (
-            self.timerange_min is None or self.timerange_max is None
-        ):
+        if self.timerange is None and (self.timerange_min is None or self.timerange_max is None):
             raise ValueError(
                 "Either 'timerange' or 'timerange_min' and 'timerange_max' must be set."
             )
@@ -191,7 +196,8 @@ class TimeSettingsCalculationModel(BaseModel):
             self.timerange_min is not None or self.timerange_max is not None
         ):
             logger.warning(
-                "Either 'timerange' or both 'timerange_min' and 'timerange_max' should be set, not both. Using 'timerange' as the only value."
+                "Either 'timerange' or both 'timerange_min' and 'timerange_max' should be set, \
+                not both. Using 'timerange' as the only value."
             )
 
             self.timerange_min = None
@@ -202,7 +208,8 @@ class TimeSettingsCalculationModel(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def check_timestep_units(cls, data: Any) -> Any:
-        """Checks the units of the times in the configuration and provides feedback (debug logging) if the default values are used
+        """Checks the units of the times in the configuration and provides feedback (debug logging) 
+        if the default values are used
 
         Args:
             data (Any): The data to check (input data)
@@ -230,18 +237,32 @@ class TimeSettingsCalibrationModel(BaseModel):
     Base class for the calibration time settings of the controller / system.
 
     Contains:
-    - sampling_time: The sampling time for the calibration (if not set, the default value is 1), the related unit is defined in the sampling_time_unit attribute
+    - timerange: The timerange for the calibration (if not set, the default value is 1), 
+    the related unit is defined in the timerange_unit attribute
+    - timerange_unit: The unit of the timerange (if not set, the default unit is minute)
+    - timestep: The timestep for the calibration (if not set, the default value is 1), 
+    the related unit is defined in the timestep_unit attribute
+    - timestep_unit: The unit of the timestep (if not set, the default unit is second)
+    - sampling_time: The sampling time for the calibration (if not set, the default value is 1), 
+    the related unit is defined in the sampling_time_unit attribute
     - sampling_time_unit: The unit of the sampling time (if not set, the default unit is day)
 
-    TODO: Add the needed fields
-        - timerange: The timerange for the calibration
     """
+
+    timerange: Optional[float] = None
+    timerange_unit: Optional[TimeUnits] = TimeUnits.MINUTE
+
+    timestep: Union[float, int] = 1
+    timestep_unit: TimeUnits = TimeUnits.SECOND
 
     sampling_time: Union[float, int] = 1
     sampling_time_unit: TimeUnits = TimeUnits.DAY
 
 
 class TimeSettingsResultsModel(BaseModel):
+    """
+    Settings for the timesteps of the results.
+    """
 
     timestep: Union[float, int] = 1
     timestep_unit: TimeUnits = TimeUnits.SECOND
@@ -268,10 +289,15 @@ class ControllerSettingModel(BaseModel):
     """
     Model for the configuration of the controller settings.
 
+    Contains:
+    - time_settings: The time settings for the controller
+    - specific_settings: The specific settings for the controller - not defined as a model
+
     TODO: What is needed here?
     """
 
     time_settings: TimeSettingsModel
+    specific_settings: Optional[dict] = {}
 
 
 class ConfigModel(BaseModel):
@@ -282,34 +308,35 @@ class ConfigModel(BaseModel):
     - interfaces: The interfaces of the system controller
     - inputs: The inputs of the system controller
     - outputs: The outputs of the system controller
-    - contextdata: The metadata for devices the system controller #TODO: Is this needed? Import on other places?
+    - staticdata: The static configuration data for devices the system controller
     - controller_components: The components of the controller
-    - controller_settings: The settings for the controller #TODO: What is needed here?
+    - controller_settings: The settings for the controller
     """
 
     interfaces: InterfaceModel
 
     inputs: list[InputModel]
     outputs: list[OutputModel]
-    contextdata: list[ContextModel]
+    staticdata: list[StaticDataModel]
 
     controller_components: list[ControllerComponentModel]
 
     controller_settings: ControllerSettingModel
 
     @classmethod
-    def from_json(cls, file_path: str):
+    def from_json(cls, file_path: str
+                  ):
         """
         Load the configuration from a JSON file.
         """
-        
+
         try:
-            with open(file_path, "r") as f:
+            with open(file_path, "r", encoding="utf-8") as f:
                 config_data = json.load(f)
             return cls(**config_data)
         except (FileNotFoundError, json.JSONDecodeError) as e:
-            logger.error(f"Couldn't load configuration from json file: {e}")
-
+            logger.error(f"Couldn't load the json file: {e}")
         except ValidationError as e:
             logger.error(e)
-            raise ConfigError("Coudn't load configuration from json file")
+
+        raise ConfigError("Coudn't load configuration from json file")

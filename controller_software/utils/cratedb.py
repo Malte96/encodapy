@@ -1,5 +1,7 @@
-# Description: Class to connect to a CrateDB and query data from it
-# Author: Martin Altenburger
+"""
+Description: Class to connect to a CrateDB and query data from it
+Author: Martin Altenburger
+"""
 
 import crate.client
 import pandas as pd
@@ -92,9 +94,7 @@ class CrateDBConnection:
             columns = [desc[0] for desc in cursor.description]
             df.columns = columns
 
-            df.time_index = pd.to_datetime(df.time_index, unit="ms").dt.tz_localize(
-                "UTC"
-            )
+            df.time_index = pd.to_datetime(df.time_index, unit="ms").dt.tz_localize("UTC")
             df.rename(columns={"time_index": "datetime"}, inplace=True)
             df.set_index(keys="datetime", drop=True, inplace=True)
 

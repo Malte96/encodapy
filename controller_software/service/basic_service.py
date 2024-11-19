@@ -1,8 +1,11 @@
-# Module for the basic service class for the data processing and transfer via different interfaces.
-# TODO: The class is not yet finished and needs to be extended with the necessary functions and methods. -- Martin Altenburger
-# TODO: Import the necessary modules and classes - improve the imports -- Martin Altenburger
-# Author: Martin Altenburger
-# ----------------------------------------
+"""
+Module for the basic service class for the data processing and transfer via different interfaces.
+Author: Martin Altenburger
+"""
+
+import concurrent.futures
+import json
+import multiprocessing
 import os
 import pathlib
 from asyncio import sleep
@@ -12,27 +15,22 @@ from typing import Union
 import numpy as np
 import pandas as pd
 import requests
-import json
-from dateutil import tz
-from loguru import logger
-
 from controller_software.config import (
     AttributeModel,
     AttributeTypes,
     CommandModel,
     ConfigModel,
+    DataQueryTypes,
     DefaultEnvVariables,
+    FileExtensionTypes,
     InputModel,
     Interfaces,
     OutputModel,
+    StaticDataModel,
     TimerangeTypes,
-    DataQueryTypes,
-    FileExtensionTypes
 )
-
 from controller_software.utils.cratedb import CrateDBConnection
-from controller_software.utils.error_handling import (NoCredentials,
-                                                      NotSupportedError)
+from controller_software.utils.error_handling import NoCredentials, NotSupportedError
 from controller_software.utils.fiware_auth import BaererToken
 from controller_software.utils.health import update_health_file
 from controller_software.utils.logging import LoggerControl
@@ -41,24 +39,27 @@ from controller_software.utils.models import (
     InputDataAttributeModel,
     InputDataEntityModel,
     InputDataModel,
-    ContextDataModel,
+    MetaDataModel,
     OutputDataAttributeModel,
     OutputDataEntityModel,
     OutputDataModel,
-    MetaDataModel
+    StaticDataEntityModel,
 )
 from controller_software.utils.units import (
     DataUnits,
     get_time_unit_seconds,
-    get_unit_adjustment_factor
+    get_unit_adjustment_factor,
 )
-
+from dateutil import tz
 from filip.clients.ngsi_v2 import ContextBrokerClient
 from filip.models.base import DataType, FiwareHeaderSecure
 from filip.models.ngsi_v2.base import NamedMetadata
-from filip.models.ngsi_v2.context import (ContextAttribute, NamedCommand,
-                                          NamedContextAttribute)
-from IPython.display import display
+from filip.models.ngsi_v2.context import (
+    ContextAttribute,
+    NamedCommand,
+    NamedContextAttribute,
+    ContextEntity
+)
 from loguru import logger
 
 
@@ -85,8 +86,8 @@ class ControllerBasicService:
         self.crate_db_client = None
 
         self.file_params = {}
-        self.reload_contextdata = None
-        self.contextdata = None
+        self.reload_staticdata = False
+        self.staticdata = None
 
         self.timestamp_health = None
 
@@ -97,12 +98,10 @@ class ControllerBasicService:
         TODO: Is it simpler to use the configuration file directly?
 
         """
-        config_path = os.environ.get(
-            "CONFIG_PATH", DefaultEnvVariables.CONFIG_PATH.value
-        )
-        
+        config_path = os.environ.get("CONFIG_PATH", DefaultEnvVariables.CONFIG_PATH.value)
+
         self.config = ConfigModel.from_json(file_path=config_path)
-        
+
         if self.config.interfaces.fiware:
 
             self.fiware_params["cb_url"] = os.environ.get(
@@ -126,14 +125,10 @@ class ControllerBasicService:
                     and os.environ.get("FIWARE_TOKEN_URL") is not None
                 ):
                     self.fiware_token["client_id"] = os.environ.get("FIWARE_CLIENT_ID")
-                    self.fiware_token["client_secret"] = os.environ.get(
-                        "FIWARE_CLIENT_PW"
-                    )
+                    self.fiware_token["client_secret"] = os.environ.get("FIWARE_CLIENT_PW")
                     self.fiware_token["token_url"] = os.environ.get("FIWARE_TOKEN_URL")
                 elif os.environ.get("FIWARE_BAERER_TOKEN") is not None:
-                    self.fiware_token["baerer_token"] = os.environ.get(
-                        "FIWARE_BAERER_TOKEN"
-                    )
+                    self.fiware_token["baerer_token"] = os.environ.get("FIWARE_BAERER_TOKEN")
                 else:
                     logger.error("No authentication credentials available")
                     raise NoCredentials
@@ -167,8 +162,9 @@ class ControllerBasicService:
             logger.warning("MQTT interface not implemented yet.")
             raise NotSupportedError
 
-        self.reload_contextdata = os.getenv( "RELOAD_CONTEXTDATA", str(DefaultEnvVariables.RELOAD_CONTEXTDATA.value)).lower() in ("true", "1", "t")
-        
+        self.reload_staticdata = os.getenv(
+            "RELOAD_STATICDATA", str(DefaultEnvVariables.RELOAD_STATICDATA.value)
+        ).lower() in ("true", "1", "t")
 
         logger.debug("ENVs succesfully loaded.")
 
@@ -176,22 +172,20 @@ class ControllerBasicService:
 
     async def prepare_basic_start(self):
         """
-        Function to create important objects with the configuration from the configuration file (.env) and prepare the start basics of the service.
+        Function to create important objects with the configuration from the configuration 
+        file (.env) and prepare the start basics of the service.
 
         TODO:
             - Implement the other interfaces(FILE, MQTT, ...)
 
         """
-        
+
         self._load_config()
-                
-        
+
         if self.config.interfaces.fiware:
             if self.fiware_token["authentication"]:
                 if "baerer_token" in self.fiware_token:
-                    self.fiware_token_client = BaererToken(
-                        token=self.fiware_token["baerer_token"]
-                    )
+                    self.fiware_token_client = BaererToken(token=self.fiware_token["baerer_token"])
                 else:
                     self.fiware_token_client = BaererToken(
                         client_id=self.fiware_token["client_id"],
@@ -220,7 +214,7 @@ class ControllerBasicService:
                 crate_db_ssl=self.database_params["crate_db_ssl"],
             )
         if self.config.interfaces.file:
-            
+
             # maybe it is nessesary to check which tiype of data file exits csv or json
             # function to return the file extension
             file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix
@@ -230,16 +224,12 @@ class ControllerBasicService:
             elif file_extension == FileExtensionTypes.JSON.value:
                 logger.info(f"load config for {file_extension} -file")
             else:
-                logger.info(f"File extension {file_extension} is not supported") 
+                logger.info(f"File extension {file_extension} is not supported")
                 raise NotSupportedError
-            
 
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
             raise NotSupportedError
-
-
-
 
         return
 
@@ -253,9 +243,7 @@ class ControllerBasicService:
         await self.prepare_basic_start()
 
     def _calculate_dates(
-        self,
-        method: DataQueryTypes,
-        last_timestamp: Union[datetime, None]
+        self, method: DataQueryTypes, last_timestamp: Union[datetime, None]
     ) -> tuple[str, str]:
         """Function to calculate the dates for the input data query
 
@@ -280,7 +268,7 @@ class ControllerBasicService:
                 time_now, last_timestamp, timeframe
             )
         elif method is DataQueryTypes.CALIBRATION:
-            from_date, to_date = self._handle_calibration_method(last_timestamp)
+            from_date, to_date = self._handle_calibration_method(time_now, last_timestamp)
 
         if to_date is None:
             to_date = time_now.strftime("%Y-%m-%dT%H:%M:%S%z")
@@ -314,10 +302,17 @@ class ControllerBasicService:
                 calculation.timerange_type,
                 get_time_unit_seconds(calculation.timerange_unit),
             )
-        if (
-            calculation.timerange_min is not None
-            and calculation.timerange_max is not None
-        ):
+        if calculation.timerange_min is not None and calculation.timerange_max is not None:
+            if calculation.timerange_type is TimerangeTypes.ABSOLUTE:
+                return self._calculate_timerange(
+                    time_now,
+                    last_timestamp,
+                    timeframe,
+                    calculation.timerange_max,
+                    calculation.timerange_type,
+                    get_time_unit_seconds(calculation.timerange_unit),
+                )
+
             return self._calculate_timerange_min_max(
                 time_now,
                 last_timestamp,
@@ -335,13 +330,14 @@ class ControllerBasicService:
     def _calculate_timerange(
         self,
         time_now: datetime,
-        last_timestamp: datetime,
+        last_timestamp: Union[datetime, None],
         timeframe: timedelta,
         timerange_value: int,
         timerange_type: Union[TimerangeTypes, None],
         timerange_unit_factor: int,
     ) -> tuple[str, str]:
-        """Function to calculate the timerange for the input data query based on a fixed timerange from the configuration
+        """Function to calculate the timerange for the input data query based on 
+        a fixed timerange from the configuration
 
         Args:
             time_now (datetime): Time now
@@ -354,25 +350,25 @@ class ControllerBasicService:
         Returns:
             tuple[str, str]: Timestamps for the input data query (from_date, to_date)
         """
-        if timerange_type is TimerangeTypes.ABSOLUTE:
+        if timerange_type is TimerangeTypes.ABSOLUTE or last_timestamp is None:
             from_date = (
                 time_now - timedelta(seconds=timerange_value * timerange_unit_factor)
             ).strftime("%Y-%m-%dT%H:%M:%S%z")
             return from_date, None
+
         if timerange_type is TimerangeTypes.RELATIVE:
             if timeframe < timerange_value:
                 from_date = (
-                    time_now
-                    - timedelta(seconds=timerange_value * timerange_unit_factor)
+                    time_now - timedelta(seconds=timerange_value * timerange_unit_factor)
                 ).strftime("%Y-%m-%dT%H:%M:%S%z")
                 return from_date, None
 
             from_date = last_timestamp.strftime("%Y-%m-%dT%H:%M:%S%z")
             to_date = (
-                last_timestamp
-                + timedelta(seconds=timerange_value * timerange_unit_factor)
+                last_timestamp + timedelta(seconds=timerange_value * timerange_unit_factor)
             ).strftime("%Y-%m-%dT%H:%M:%S%z")
             return from_date, to_date
+
         # Fallback to absolute if no type is specified
         from_date = (
             time_now - timedelta(seconds=timerange_value * timerange_unit_factor)
@@ -382,25 +378,34 @@ class ControllerBasicService:
     def _calculate_timerange_min_max(
         self,
         time_now: datetime,
-        last_timestamp: datetime,
+        last_timestamp: Union[datetime, None],
         timeframe: int,
         timerange_min: int,
         timerange_max: int,
         timerange_unit_factor: int,
     ) -> tuple[str, str]:
-        """Function to calculate the timerange for the input data query based on a min and max timerange from the configuration
+        """Function to calculate the timerange for the input data query based on a min 
+        and max timerange from the configuration
 
         Args:
             time_now (datetime): Time now
-            last_timestamp (datetime): Timestamp of the last output
+            last_timestamp (datetime): Timestamp of the last output, if available
             timeframe (int): Timeframe between now and the last output in seconds
             timerange_min (int): Minimal value of the timerange in the configuration
             timerange_max (int): Maximal value of the timerange in the configuration
             timerange_unit_factor (int): Factor to convert the time unit to seconds
+            timerange_type (TimerangeTypes): Type of the timerange (absolute or relative)
 
         Returns:
             tuple[str, str]: Timestamps for the input data query (from_date, to_date)
         """
+        if last_timestamp is None:
+            from_date = (
+                (time_now - timedelta(seconds=timerange_max * timerange_unit_factor))
+                .replace(tzinfo=tz.UTC)
+                .strftime("%Y-%m-%dT%H:%M:%S%z")
+            )
+            return from_date, None
 
         if timeframe < timerange_min:
             from_date = (
@@ -409,6 +414,7 @@ class ControllerBasicService:
                 .strftime("%Y-%m-%dT%H:%M:%S%z")
             )
             return from_date, None
+
         if timeframe < timerange_max:
             from_date = last_timestamp.strftime("%Y-%m-%dT%H:%M:%S%z")
             return from_date, None
@@ -419,25 +425,42 @@ class ControllerBasicService:
         ).strftime("%Y-%m-%dT%H:%M:%S%z")
         return from_date, to_date
 
-    def _handle_calibration_method(self, last_timestamp: datetime) -> tuple[str, str]:
+    def _handle_calibration_method(
+        self, time_now: datetime, last_timestamp: Union[datetime, None]
+    ) -> tuple[str, str]:
         """Funtion to calculate the dates for the calibration method
+            - Use the last timestamp of the output entity as the from_date if available 
+            and time range is relative
+            - Use the timenow - timerange as the from_date if the time range is absolute 
+            or no last timestamp is available
 
         Args:
-            last_timestamp (datetime): Timestamp of the last output
+            time_now (datetime): Time now
+            last_timestamp (datetime): Timestamp of the last output, if available
 
         Returns:
             tuple[str, str]: Timestamps for the input data query (from_date, to_date)
         """
-        calibration = (
-            self.config.controller_settings.time_settings.calibration
-        )  # input_data_timeranges.get("calibration", {})
+        calibration_time_settings = self.config.controller_settings.time_settings.calibration
 
-        # TODO: How to handle the calibration time?
-        timerange = calibration.get("timeoffset_hours")
-        from_date = (last_timestamp - timedelta(hours=timerange)).strftime(
-            "%Y-%m-%dT%H:%M:%S%z"
+        timerange = calibration_time_settings.timerange * get_time_unit_seconds(
+            calibration_time_settings.timerange_unit
         )
-        to_date = last_timestamp
+
+        if (
+            self.config.controller_settings.time_settings.calculation.timerange_type
+            is TimerangeTypes.RELATIVE
+            and last_timestamp is not None
+        ):
+            from_date = (last_timestamp - timedelta(seconds=timerange)).strftime(
+                "%Y-%m-%dT%H:%M:%S%z"
+            )
+            to_date = last_timestamp
+
+            return from_date, None
+
+        from_date = (time_now - timedelta(seconds=timerange)).strftime("%Y-%m-%dT%H:%M:%S%z")
+        to_date = time_now
 
         return from_date, to_date
 
@@ -451,8 +474,10 @@ class ControllerBasicService:
             output_entity (OutputModel): Output entity
 
         Returns:
-            tuple[OutputDataEntityModel, Union[datetime, None]]: OutputDataEntityModel with timestamps for the attributes
-                                                                 and the latest timestamp of the output entity for the attribute with the oldest value (None if no timestamp is available)
+            tuple[OutputDataEntityModel, Union[datetime, None]]: 
+                - OutputDataEntityModel with timestamps for the attributes
+                - the latest timestamp of the output entity for the attribute 
+                with the oldest value (None if no timestamp is available)
         """
 
         output_attributes_entity = self.cb_client.get_entity_attributes(
@@ -472,18 +497,14 @@ class ControllerBasicService:
                     OutputDataAttributeModel(
                         id=output_attributes_controller[attr],
                         latest_timestamp_output=datetime.strptime(
-                            output_attributes_entity[attr]
-                            .metadata.get("TimeInstant")
-                            .value,
+                            output_attributes_entity[attr].metadata.get("TimeInstant").value,
                             "%Y-%m-%dT%H:%M:%S.%f%z",
                         ),
                     )
                 )
 
         if len(timestamps) > 0:
-            timestamp_latest_output = min(
-                [item.latest_timestamp_output for item in timestamps]
-            )
+            timestamp_latest_output = min(item.latest_timestamp_output for item in timestamps)
         else:
             timestamp_latest_output = None
 
@@ -491,7 +512,6 @@ class ControllerBasicService:
             OutputDataEntityModel(id=output_entity.id, attributes_status=timestamps),
             timestamp_latest_output,
         )
-
 
     def _get_last_timestamp_for_file_output(
         self, output_entity: OutputModel
@@ -503,16 +523,17 @@ class ControllerBasicService:
             output_entity (OutputModel): Output entity
 
         Returns:
-            tuple[OutputDataEntityModel, Union[datetime, None]]: OutputDataEntityModel with timestamps for the attributes
-                                                                 and the latest timestamp of the output entity for the attribute with the oldest value (None if no timestamp is available)
+            tuple[OutputDataEntityModel, Union[datetime, None]]: 
+                - OutputDataEntityModel with timestamps for the attributes
+                - the latest timestamp of the output entity for the attribute 
+                with the oldest value (None if no timestamp is available)
         TODO:
-            - is it really nessesary to get a timestamp for file-calculations -> during calculation time is set to input_time
+            - is it really nessesary to get a timestamp for file-calculations /
+            during calculation time is set to input_time
         """
-        
+
         output_id = output_entity.id_interface
-        
-     
-       
+
         timestamps = []
         timestamp_latest_output = None
 
@@ -521,73 +542,40 @@ class ControllerBasicService:
             timestamp_latest_output,
         )
 
-    async def get_data(self, 
-                       method: DataQueryTypes
-                       ) -> InputDataModel:
+    async def get_data(self, method: DataQueryTypes) -> InputDataModel:
         """
-        Function to get the data of all input entities via the different interfaces (FIWARE, FILE, MQTT)
-        Load Data from File: Be Carefull, it's the first value in the file.
+        Function to get the data of all input entities via the different interfaces 
+        (FIWARE, FILE, MQTT)
+
         Args:
             method (DataQueryTypes): Method for the data query
-        
+
         Returns:
             InputDataModel: Model with the input data
 
 
         TODO:
             - Implement the other interfaces(MQTT, ...)
-            - Do we need this method parameter?
-            - loading data from a file -> first/last/specifiv value in file
+            - loading data from a file -> first/last/specific value in file
         """
 
         input_data = []
-        context_data = []
+        staticdata = []
         output_timestamps = []
         output_latest_timestamps = []
 
-
-        if self.reload_contextdata or self.contextdata is None:
-            logger.info("Loading of ConextData from config file")
-            for context_entity in self.config.contextdata:
-                
-                if context_entity.interface == Interfaces.FIWARE:
-        
-                    context_data.append(
-                        self.get_data_from_fiware(
-                            method=method,
-                            entity=context_entity,
-                            timestamp_latest_output=output_latest_timestamp,
-                        )
-                    )
-
-                if context_entity.interface == Interfaces.FILE:
-                    
-                    context_data.append(
-                        self.get_contextdata_from_file(
-                            method=method,
-                            entity=context_entity,
-                        )
-                    )
-
-                
-                if context_entity.interface == Interfaces.MQTT:
-                    logger.warning("interface MQTT for Contextdata not supported")
-                
-                self.contextdata = context_data
-
-
         for output_entity in self.config.outputs:
-            
+
             if output_entity.interface == Interfaces.FIWARE:
                 entity_timestamps, output_latest_timestamp = (
                     self._get_last_timestamp_for_fiware_output(output_entity)
-                )  # TODO: What do we need, all of the timestamps or only the latest one?
+                )
 
                 output_timestamps.append(entity_timestamps)
                 output_latest_timestamps.append(output_latest_timestamp)
 
             elif output_entity.interface == Interfaces.FILE:
-               
+
                 entity_timestamps, output_latest_timestamp = (
                     self._get_last_timestamp_for_file_output(output_entity)
                 )
@@ -599,14 +587,15 @@ class ControllerBasicService:
                 logger.warning("MQTT interface for output_entity not implemented yet.")
                 raise NotSupportedError
 
+            await sleep(0.1)
+
         if len(output_latest_timestamps) > 0:
             output_latest_timestamp = min(output_latest_timestamps)
         else:
             output_latest_timestamp = None
 
-
         for input_entity in self.config.inputs:
-            
+
             if input_entity.interface == Interfaces.FIWARE:
 
                 input_data.append(
@@ -618,14 +607,8 @@ class ControllerBasicService:
                 )
 
             elif input_entity.interface == Interfaces.FILE:
-                
-                input_data.append(
-                    self.get_data_from_file(
-                        method=method,
-                        entity=input_entity
-                    )
-                )
-                              
+
+                input_data.append(self.get_data_from_file(method=method, entity=input_entity))
 
             elif input_entity.interface == Interfaces.MQTT:
                 logger.warning("MQTT interface for input_entity is not implemented yet.")
@@ -633,76 +616,115 @@ class ControllerBasicService:
 
             await sleep(0.1)
 
+        if self.reload_staticdata or self.staticdata is None:
+
+            if len(self.config.staticdata) == 0:
+                self.staticdata = []
+
+            else:
+                for static_entity in self.config.staticdata:
+
+                    if static_entity.interface == Interfaces.FIWARE:
+
+                        staticdata.append(
+                            StaticDataEntityModel(
+                                **self.get_data_from_fiware(
+                                    method=method,
+                                    entity=static_entity,
+                                    timestamp_latest_output=None,
+                                ).model_dump()
+                            )
+                        )
+
+                    if static_entity.interface == Interfaces.FILE:
+
+                        staticdata.append(
+                            StaticDataEntityModel(
+                                **self.get_staticdata_from_file(
+                                    entity=static_entity,
+                                ).model_dump()
+                            )
+                        )
+
+                    if static_entity.interface == Interfaces.MQTT:
+                        logger.warning("interface MQTT for staticdata not supported")
+
+                    self.staticdata = staticdata
+
+                    await sleep(0.1)
+
         return InputDataModel(
-            input_entities=input_data, output_entities=output_timestamps, context_entities=self.contextdata
+            input_entities=input_data,
+            output_entities=output_timestamps,
+            static_entities=self.staticdata,
         )
-    
 
     def get_data_from_file(
         self,
-        method:DataQueryTypes,
+        method: DataQueryTypes,
         entity: InputModel,
-        ) -> Union[InputDataEntityModel, None]:
+    ) -> Union[InputDataEntityModel, None]:
         """
             Function to read input data for calculations from a input file.
-            first step: read the first values in the file / id_inputs.  Then get the data from the entity since the last timestamp of the output entity from cratedb.
+            first step: read the first values in the file / id_inputs.  
+            Then get the data from the entity since the last timestamp 
+            of the output entity from cratedb.
         Args:
             - method (DataQueryTypes): Keyword for type of query
             - entity (InputModel): Input entity
         TODO:
              - timestamp_latest_output (datetime): Timestamp of the input value
-             -  -> seperating Data in Calculation or here ?? 
-            
+             -  -> seperating Data in Calculation or here ??
+             - handle the methods for the file interface
+
         Returns:
-            - InputDataEntityModel: Model with the input data or None if the connection to the platform is not available
+            - InputDataEntityModel: Model with the input data or None if the connection 
+            to the platform is not available
 
         """
-         
-        attributes_timeseries = {}
+
+        # attributes_timeseries = {}
         attributes_values = []
         path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
         time_format = self.file_params["TIME_FORMAT_FILE"]
         try:
-            data = pd.read_csv(path_of_file, parse_dates=['Time'],sep=';',decimal=',')
-            data.set_index('Time',inplace=True)
-            data.index = pd.to_datetime(data.index, format = time_format)
-            #time = self.file_params["START_TIME_FILE"]
-            #temp = data.loc[time, 'outside_Temperature']
-        except:
+            data = pd.read_csv(path_of_file, parse_dates=["Time"], sep=";", decimal=",")
+            data.set_index("Time", inplace=True)
+            data.index = pd.to_datetime(data.index, format=time_format)
+            # time = self.file_params["START_TIME_FILE"]
+            # temp = data.loc[time, 'outside_Temperature']
+        except FileNotFoundError:
             logger.error(f"Error: File not found ({path_of_file})")
-            #TODO: What to do if the file is not found?
+            # TODO: What to do if the file is not found?
             return None
         for attribute in entity.attributes:
-                
-                if attribute.type == AttributeTypes.TIMESERIES:
-                    #attributes_timeseries[attribute.id] = attribute.id_interface
-                    logger.warning(
-                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
-                    )
-                elif attribute.type == AttributeTypes.VALUE:
-                    
-                    attributes_values.append(
-                        InputDataAttributeModel(
-                            id=attribute.id,
-                            data=data[attribute.id_interface].iloc[0],
-                            data_type=AttributeTypes.VALUE,
-                            data_available=True,
-                            latest_timestamp_input=data.index[0],
-                        )
-                    )
-                else:
-                    logger.warning(
-                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
-                    )
 
+            if attribute.type == AttributeTypes.TIMESERIES:
+                # attributes_timeseries[attribute.id] = attribute.id_interface
+                logger.warning(
+                    f"Attribute type {attribute.type} for attribute {attribute.id} "
+                    f"of entity {entity.id} not supported."
+                )
+            elif attribute.type == AttributeTypes.VALUE:
 
+                attributes_values.append(
+                    InputDataAttributeModel(
+                        id=attribute.id,
+                        data=data[attribute.id_interface].iloc[0],
+                        data_type=AttributeTypes.VALUE,
+                        data_available=True,
+                        latest_timestamp_input=data.index[0],
+                    )
+                )
+            else:
+                logger.warning(
+                    f"Attribute type {attribute.type} for attribute {attribute.id} "
+                    f"of entity {entity.id} not supported."
+                )
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
-
-    def _get_metadata_from_fiware(self, 
-                                  fiware_attribute: ContextAttribute
-                                  ) ->  MetaDataModel:
+    def _get_metadata_from_fiware(self, fiware_attribute: ContextAttribute) -> MetaDataModel:
         """Function to get the metadata from the fiware attribute
 
         Args:
@@ -712,14 +734,15 @@ class ControllerBasicService:
             MetaDataModel: Model with the metadata (timestamp, unit) of the attribute if available
         """
         metadata_lowercase = {k.lower(): v for k, v in fiware_attribute.metadata.items()}
-        
-        metadata_model = MetaDataModel()
-        
-        if metadata_lowercase.get("timeinstant") is not None:
-            metadata_model.timestamp = datetime.strptime(metadata_lowercase.get("timeinstant").value, "%Y-%m-%dT%H:%M:%S.%f%z")
 
-        
-        try: 
+        metadata_model = MetaDataModel()
+
+        if metadata_lowercase.get("timeinstant") is not None:
+            metadata_model.timestamp = datetime.strptime(
+                metadata_lowercase.get("timeinstant").value, "%Y-%m-%dT%H:%M:%S.%f%z"
+            )
+
+        try:
             if metadata_lowercase.get("unitcode") is not None:
                 metadata_model.unit = DataUnits(metadata_lowercase.get("unitcode").value)
             elif metadata_lowercase.get("unittext") is not None:
@@ -727,11 +750,11 @@ class ControllerBasicService:
             elif metadata_lowercase.get("unit") is not None:
                 metadata_model.unit = DataUnits(metadata_lowercase.get("unit").value)
         except ValueError as err:
-            logger.error(f"Unit code {metadata_lowercase.get('unitcode').value} not available: {err}")
+            logger.error(
+                f"Unit code {metadata_lowercase.get('unitcode').value} not available: {err}"
+            )
 
-        
         return metadata_model
-        
 
     def get_data_from_fiware(
         self,
@@ -741,14 +764,16 @@ class ControllerBasicService:
     ) -> Union[InputDataEntityModel, None]:
         """
         Function fetches the data for evaluation which have not yet been evaluated.
-            First get the last timestamp of the output entity. Then get the data from the entity since the last timestamp of the output entity from cratedb.
+            First get the last timestamp of the output entity. Then get the data from 
+            the entity since the last timestamp of the output entity from cratedb.
         Args:
             - method (DataQueryTypes): Keyword for type of query
             - entity (InputModel): Input entity
             - timestamp_latest_output (datetime): Timestamp of the last output
-            
+
         Returns:
-            - InputDataEntityModel: Model with the input data or None if the connection to the platform is not available
+            - InputDataEntityModel: Model with the input data or None 
+            if the connection to the platform is not available
 
         """
 
@@ -756,9 +781,7 @@ class ControllerBasicService:
         attributes_values = []
 
         try:
-            fiware_input_entity_type = self.cb_client.get_entity(
-                entity_id=entity.id_interface
-            ).type
+            fiware_input_entity_type = self.cb_client.get_entity(entity_id=entity.id_interface).type
             fiware_input_entity_attributes = self.cb_client.get_entity_attributes(
                 entity_id=entity.id_interface, entity_type=fiware_input_entity_type
             )
@@ -777,32 +800,41 @@ class ControllerBasicService:
                 continue  # TODO: What to do if the attribute is not found?
 
             if attribute.type == AttributeTypes.TIMESERIES:
-                attributes_timeseries[attribute.id] = {"id_interface": attribute.id_interface, 
-                                                       "metadata": self._get_metadata_from_fiware(fiware_input_entity_attributes[attribute.id_interface])}
+                attributes_timeseries[attribute.id] = {
+                    "id_interface": attribute.id_interface,
+                    "metadata": self._get_metadata_from_fiware(
+                        fiware_input_entity_attributes[attribute.id_interface]
+                    ),
+                }
 
             elif attribute.type == AttributeTypes.VALUE:
-                
-                metadata = self._get_metadata_from_fiware(fiware_input_entity_attributes[attribute.id_interface])
+
+                metadata = self._get_metadata_from_fiware(
+                    fiware_input_entity_attributes[attribute.id_interface]
+                )
                 attributes_values.append(
                     InputDataAttributeModel(
                         id=attribute.id,
-                        data=fiware_input_entity_attributes[
-                            attribute.id_interface
-                        ].value,
+                        data=fiware_input_entity_attributes[attribute.id_interface].value,
                         data_type=AttributeTypes.VALUE,
-                        data_available=True if fiware_input_entity_attributes[
-                                attribute.id_interface
-                            ].value is not None else False,
+                        data_available=(
+                            True
+                            if fiware_input_entity_attributes[attribute.id_interface].value
+                            is not None
+                            else False
+                        ),
                         latest_timestamp_input=metadata.timestamp,
-                        unit=metadata.unit
+                        unit=metadata.unit,
                     )
                 )
             else:
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id} "
+                    f"of entity {entity.id} not supported."
                 )
 
         if len(attributes_timeseries) > 0:
+
             attributes_values.extend(
                 self.get_data_from_datebase(
                     entity_id=entity.id_interface,
@@ -830,14 +862,16 @@ class ControllerBasicService:
             - entity_id: id of the entity
             - entity_type: type of the entity
             - entity_attributes: dict with the attributes of the entity (id, metadata)
-            - method (DataQueryTypes): method of the function which queries the data (calculation or calibration)
+            - method (DataQueryTypes): method of the function which queries the data 
+            (calculation or calibration)
             - timestamp_latest_output: timestamp of the last output of the entity
 
         Returns:
             - list of InputDataAttributeModel: list with the input attributes
 
         TODO:
-            - Does it make sense to use the quantumleap client for this? https://github.com/RWTH-EBC/FiLiP/blob/master/filip/clients/ngsi_v2/quantumleap.py#L449
+            - Does it make sense to use the quantumleap client for this? 
+                https://github.com/RWTH-EBC/FiLiP/blob/master/filip/clients/ngsi_v2/quantumleap.py#L449
             - Improve the error handling
         """
 
@@ -848,7 +882,7 @@ class ControllerBasicService:
             service=self.fiware_params["service"],
             entity=entity_id,
             entity_type=entity_type,
-            attributes=[attribute['id_interface'] for attribute in entity_attributes.values()],
+            attributes=[attribute["id_interface"] for attribute in entity_attributes.values()],
             from_date=from_date,
             to_date=to_date,
             limit=200000,
@@ -856,7 +890,7 @@ class ControllerBasicService:
 
         if df.empty:
             logger.debug("Service has not received data from CrateDB")
-            return None
+            return []
 
         # resample the time series with configured time step size
         df.fillna(value=np.nan, inplace=True)
@@ -874,9 +908,7 @@ class ControllerBasicService:
             df.rename(columns={attribute_data["id_interface"]: attribute_id}, inplace=True)
             data = df.filter([attribute_id]).dropna()
             if data.empty:
-                logger.debug(
-                    f"Data for attribute {attribute_id} of entity {entity_id} is empty"
-                )
+                logger.debug(f"Data for attribute {attribute_id} of entity {entity_id} is empty")
                 input_attributes.append(
                     InputDataAttributeModel(
                         id=attribute_id,
@@ -884,12 +916,13 @@ class ControllerBasicService:
                         data_type=AttributeTypes.TIMESERIES,
                         data_available=False,
                         latest_timestamp_input=None,
-                        unit=attribute_data["metadata"].unit
+                        unit=attribute_data["metadata"].unit,
                     )
                 )
             else:
                 logger.debug(
-                    f"Service received data from CrateDB for attribute {attribute_id} of entity {entity_id}"
+                    f"Service received data from CrateDB for attribute {attribute_id} "
+                    f"of entity {entity_id}"
                 )
                 input_attributes.append(
                     InputDataAttributeModel(
@@ -898,61 +931,56 @@ class ControllerBasicService:
                         data_type=AttributeTypes.TIMESERIES,
                         data_available=True,
                         latest_timestamp_input=to_date,
-                        unit=attribute_data["metadata"].unit
+                        unit=attribute_data["metadata"].unit,
                     )
                 )
-                
-        return input_attributes
-    
 
-    def get_contextdata_from_file(
+        return input_attributes
+
+    def get_staticdata_from_file(
         self,
-        method:DataQueryTypes,
-        entity: ContextDataModel,
-        ) -> Union[InputDataEntityModel, None]:
+        entity: StaticDataModel,
+    ) -> Union[StaticDataEntityModel, None]:
         """
-            Function to read context data for calculations from config file.
+        Function to read static data for calculations from config file.
         Args:
-            - method (DataQueryTypes): Keyword for type of query
-            - entity (InputModel): Input entity
+            - entity (StaticDataModel): Input entity
         TODO:
             - work with timeseries, for example: timetable with presence or heating_times
-            - check if ContextDataEntityModel/ContextDataAttributeModel/ContextDataModel is nessesary
+
         Returns:
-            - InputDataEntityModel: Model with the context data  
+            - StaticDataEntityModel: Model with the static data
 
         """
-         
+
         attributes_values = []
 
-        
         for attribute in entity.attributes:
-                
-                if attribute.type == AttributeTypes.TIMESERIES:
-                    #attributes_timeseries[attribute.id] = attribute.id_interface
-                    logger.warning(
-                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+
+            if attribute.type == AttributeTypes.TIMESERIES:
+                raise NotSupportedError("Timeseries not supported for static data")
+            # TODO: Implement the timeseries
+
+            if attribute.type == AttributeTypes.VALUE:
+
+                attributes_values.append(
+                    InputDataAttributeModel(
+                        id=attribute.id,
+                        data=attribute.value,
+                        data_type=AttributeTypes.VALUE,
+                        data_available=True,
+                        latest_timestamp_input=None,
                     )
-                elif attribute.type == AttributeTypes.VALUE:
-                    
-                    attributes_values.append(
-                        InputDataAttributeModel(
-                            id=attribute.id,
-                            data=attribute.value,
-                            data_type=AttributeTypes.VALUE,
-                            data_available=True,
-                            latest_timestamp_input=None,
-                        )
-                    )
-                else:
-                    logger.warning(
-                        f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
-                    )
+                )
 
+            else:
+                # Not supported attribute type - should not happen
+                raise NotSupportedError(
+                    f"Attribute type {attribute.type} for attribute {attribute.id} "
+                    f"of entity {entity.id} not supported"
+                )
 
-
-        return InputDataEntityModel(id=entity.id, attributes=attributes_values)
-
+        return StaticDataEntityModel(id=entity.id, attributes=attributes_values)
 
     def _get_output_entity_config(
         self,
@@ -965,7 +993,8 @@ class ControllerBasicService:
             - output_entity: id of the output entity
 
         Returns:
-            - Union[OutputModel, None]: configuration of the output entity or None if the entity is not found
+            - Union[OutputModel, None]: configuration of the output entity 
+            or None if the entity is not found
         """
         for entity in self.config.outputs:
             if entity.id == output_entity_id:
@@ -986,7 +1015,8 @@ class ControllerBasicService:
             - output_attribute: id of the output attribute
 
         Returns:
-            - Union[AttributeModel, None]: configuration of the output attribute or None if the attribute is not found
+            - Union[AttributeModel, None]: configuration of the output attribute 
+            or None if the attribute is not found
         """
         for entity in self.config.outputs:
             if entity.id == output_entity_id:
@@ -1010,7 +1040,8 @@ class ControllerBasicService:
             - output_attribute: id of the output attribute
 
         Returns:
-            - Union[AttributeModel, None]: configuration of the output attribute or None if the attribute is not found
+            - Union[AttributeModel, None]: configuration of the output attribute 
+            or None if the attribute is not found
         """
         for entity in self.config.outputs:
             if entity.id == output_entity_id:
@@ -1021,17 +1052,15 @@ class ControllerBasicService:
 
         return None
 
-    async def send_outputs(self,
-                           data_output: Union[OutputDataModel, None]
-                           ):
+    async def send_outputs(self, data_output: Union[OutputDataModel, None]):
         """
-        Send output data to the interfaces defined in the Config (FIWARE, MQTT, ?)
+        Send output data to the interfaces defined in the Config (FIWARE, MQTT, File)
 
         Args:
             - data_output: OutputDataModel with the output data
 
         TODO:
-            - Implement a way to use different interfaces (MQTT, ?)
+            - Implement a way to use different interfaces (MQTT)
         """
 
         if data_output is None:
@@ -1055,9 +1084,7 @@ class ControllerBasicService:
                 )
 
                 if output_attribute is None:
-                    logger.debug(
-                        f"Output attribute {attribute.id} not found in configuration."
-                    )
+                    logger.debug(f"Output attribute {attribute.id} not found in configuration.")
                     continue
 
                 output_attribute.value = attribute.value
@@ -1072,19 +1099,15 @@ class ControllerBasicService:
                 )
 
                 if output_command is None:
-                    logger.debug(
-                        f"Output attribute {command.id} not found in configuration."
-                    )
+                    logger.debug(f"Output attribute {command.id} not found in configuration.")
                     continue
 
                 output_command.value = command.value
                 output_commands.append(output_command)
 
-            # TODO: Implement the sending of the data to the other interfaces (FILE, MQTT, ...)
-
             if output_entity.interface is Interfaces.FIWARE:
 
-                self._send_data_to_fiware(
+                await self._send_data_to_fiware(
                     output_entity=output_entity,
                     output_attributes=output_attributes,
                     output_commands=output_commands,
@@ -1098,14 +1121,16 @@ class ControllerBasicService:
                 )
 
             elif output_entity.interface is Interfaces.MQTT:
+                # TODO: Implement the sending of the data to the mqtt interface
                 logger.warning("MQTT interface not implemented yet.")
                 raise NotSupportedError
-            
+
             await sleep(0.1)
 
         logger.debug("Finished sending output data")
 
-    def _send_data_to_json_file(self,
+    def _send_data_to_json_file(
+        self,
         output_entity: OutputModel,
         output_attributes: list[AttributeModel],
         output_commands: list[CommandModel],
@@ -1118,7 +1143,7 @@ class ControllerBasicService:
             output_commands (list[CommandModel]): _description_
 
         Out: Json-file
-        
+
         TODO:
             - Is it better to set the results-folder via env?
         """
@@ -1126,25 +1151,181 @@ class ControllerBasicService:
         commands = []
         logger.debug("Write outputs to json-output-files")
 
-        if not os.path.exists('./results'):
-            os.makedirs('./results')
+        if not os.path.exists("./results"):
+            os.makedirs("./results")
 
         for output in output_attributes:
-            outputs.append({"id_interface" : output.id_interface,"value" : output.value, "time" : output.timestamp.strftime("%H:%M:%S %d.%m.%Y")})   
-        
-        with open(f"./results/outputs.json", "w") as outputfile:
+            outputs.append(
+                {
+                    "id_interface": output.id_interface,
+                    "value": output.value,
+                    "time": output.timestamp.strftime("%H:%M:%S %d.%m.%Y"),
+                }
+            )
+
+        with open("./results/outputs.json", "w", encoding="utf-8") as outputfile:
             json.dump(outputs, outputfile)
 
-
         for command in output_commands:
-            commands.append({"id_interface" : command.id_interface,"value" : command.value, "time" : command.timestamp.strftime("%H:%M:%S %d.%m.%Y")})
-            
-        with open(f"./results/commands.json", "w") as commandfile:
+            commands.append(
+                {
+                    "id_interface": command.id_interface,
+                    "value": command.value,
+                    "time": command.timestamp.strftime("%H:%M:%S %d.%m.%Y"),
+                }
+            )
+
+        with open("./results/commands.json", "w", encoding="utf-8") as commandfile:
             json.dump(commands, commandfile)
 
+    def update_fiware_entity(
+        self,
+        entity_id: str,
+        entity_type: str,
+        attrs: list[NamedContextAttribute],
+    ) -> None:
+        """
+        Function to update the entity in the FIWARE platform with filip
+
+        Args:
+            entity_id (str): ID of the entity
+            entity_type (str): Type of the entity
+            attrs (list[NamedContextAttribute]): List with the attributes to update
+        """
+
+        self.cb_client.update_or_append_entity_attributes(
+            entity_id=entity_id, entity_type=entity_type, attrs=attrs
+        )
+
+    async def _send_timeseries_to_fiware(
+        self,
+        entity_id: str,
+        entity_type: str,
+        attrs_timeseries: list[NamedContextAttribute],
+    ) -> None:
+        """
+        Function to send the timeseries data to the FIWARE platform in async mode 
+        and parallel processing
+
+        Args:
+            entity_id (str): ID of the entity
+            entity_type (str): Type of the entity
+            attrs_timeseries (list[NamedContextAttribute]): List with the timeseries data
+        TODO:
+            - Is there a better way to send the data from dataframes to the FIWARE platform?
+        """
+        max_workers = multiprocessing.cpu_count()
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+            futures = []
+            for attribute in attrs_timeseries:
+                future = executor.submit(
+                    self.update_fiware_entity, entity_id, entity_type, [attribute]
+                )
+                futures.append(future)
+
+                await sleep(0.01)
+
+            concurrent.futures.wait(futures)
+
+    async def _prepare_sending_timeseries_to_fiware(
+        self,
+        fiware_entity: ContextEntity,
+        attribute: AttributeModel,
+        meta_data: list[NamedMetadata],
+        factor_unit_adjustment:float,
+        datatype: DataType
+    )-> NamedContextAttribute:
+        """
+        Function to prepare the sending of the timeseries data to the FIWARE platform
+        Split the timeseries data into single values and send them to the FIWARE platform
+
+        Args:
+            fiware_entity (OutputModel): EntityModel of the FIWARE entity
+            attribute (AttributeModel): AttributeModel of the attribute to send
+            meta_data (list[NamedMetadata]): Basic metadata for the attribute
+            factor_unit_adjustment (float): Factor to adjust the unit
+            datatype (DataType): Datatype of the attribute
+
+        Returns:
+            NamedContextAttribute: NamedContextAttribute with the last value of the timeseries
+        """
+
+        attrs_timeseries = []
+
+        df = attribute.value.sort_index()
+
+        for index, row in attribute.value.iterrows():
+            if index == df.index[-1]:
+                continue
+
+            meta_data_row = meta_data + [
+                NamedMetadata(
+                    name="TimeInstant",
+                    type=DataType.DATETIME,
+                    value=index.strftime("%Y-%m-%dT%H:%M:%S%z"),
+                )
+            ]
+
+            attrs_timeseries.append(
+                NamedContextAttribute(
+                    name=attribute.id_interface,
+                    value=row[attribute.id] * factor_unit_adjustment,
+                    type=datatype,
+                    metadata=meta_data_row,
+                )
+            )
+
+        if len(attrs_timeseries) > 0:
+            await self._send_timeseries_to_fiware(
+                entity_id=fiware_entity.id,
+                entity_type=fiware_entity.type,
+                attrs_timeseries=attrs_timeseries,
+            )
+
+        meta_data_row = meta_data + [
+            NamedMetadata(
+                name="TimeInstant",
+                type=DataType.DATETIME,
+                value=df.index[-1].strftime("%Y-%m-%dT%H:%M:%S%z"),
+            )
+        ]
+
+        return NamedContextAttribute(
+            name=attribute.id_interface,
+            value=df[attribute.id].iloc[-1] * factor_unit_adjustment,
+            type=datatype,
+            metadata=meta_data_row
+            )
+
+    def _send_commands_to_fiware(
+        self,
+        entity_id:str,
+        entity_type: str,
+        commands: list[CommandModel],
+        ) -> None:
+        """
+        Function to send the commands to the FIWARE platform
+
+        Args:
+            entity_id (str): ID of the entity
+            entity_type (str): Type of the entity
+            commands (list[CommandModel]): List with the commands to send
+        """
+
+        if len(commands) == 0:
+            return
+
+        for command in commands:
+            self.cb_client.post_command(entity_id=entity_id,
+                                        entity_type=entity_type,
+                                        command=NamedCommand(name=command.id_interface,
+                                                             value=command.value,
+                                                             type=DataType.COMMAND,
+                                                             ))
 
 
-    def _send_data_to_fiware(
+    async def _send_data_to_fiware(
         self,
         output_entity: OutputModel,
         output_attributes: list[AttributeModel],
@@ -1154,20 +1335,18 @@ class ControllerBasicService:
         Function to send the output data to the FIWARE platform
 
         Args:
-            - output_entity: OutputModel with the output entity
-            - output_attributes: list with the output attributes
-            - output_commands: list with the output commands
-
-        TODO:
-            - Maybe use parallel processing for the sending of the data
+            output_entity (OutputModel): OutputModel with the output entity
+            output_attributes (list[AttributeModel]): list with the output attributes
+            output_commands (list[CommandModel]): list with the output commands
+            
+        TODO: 
             - Is there a better way to send the data from dataframes to the FIWARE platform?
-            - Could there be a problem with big dataframes --> so that the data is not sent to the FIWARE platform?
         """
 
-        context_entity = self.cb_client.get_entity(output_entity.id_interface)
+        fiware_entity = self.cb_client.get_entity(output_entity.id_interface)
 
         entity_attributes = self.cb_client.get_entity_attributes(
-            entity_id=context_entity.id, entity_type=context_entity.type
+            entity_id=fiware_entity.id, entity_type=fiware_entity.type
         )
 
         attrs = []
@@ -1175,89 +1354,83 @@ class ControllerBasicService:
 
             fiware_unit = None
             factor_unit_adjustment = 1
-            
+            datatype = attribute.datatype
+
             if attribute.id_interface in entity_attributes:
                 datatype = entity_attributes[attribute.id_interface].type
                 if entity_attributes[attribute.id_interface].metadata.get("unitCode") is not None:
-                    fiware_unit = DataUnits(entity_attributes[attribute.id_interface].metadata.get("unitCode").value)
-            else:
-                datatype = attribute.datatype
-                
+                    fiware_unit = DataUnits(
+                        entity_attributes[attribute.id_interface].metadata.get("unitCode").value
+                    )
+
             meta_data = []
-            
+
             if attribute.unit is not None and fiware_unit is None:
-                meta_data.append(NamedMetadata(
-                    name="unitCode",
-                    type=DataType.TEXT,
-                    value=attribute.unit.value))
+                meta_data.append(
+                    NamedMetadata(name="unitCode",
+                                  type=DataType.TEXT,
+                                  value=attribute.unit.value)
+                )
             elif attribute.unit is None:
-                logger.debug(f"No information about the unit of the attribute {attribute.id} from entity {output_entity.id} available!")
-                
-            else:
-                if fiware_unit is not attribute.unit.value:
-                    
-                    factor_unit_adjustment = get_unit_adjustment_factor(unit_actual=attribute.unit, unit_target=fiware_unit)
-                
+                logger.debug(
+                    f"No information about the unit of the attribute {attribute.id} "
+                    f"from entity {output_entity.id} available!"
+                )
+
+            elif fiware_unit is not attribute.unit:
+
+                factor_unit_adjustment = get_unit_adjustment_factor(
+                    unit_actual=attribute.unit, unit_target=fiware_unit
+                )
 
             if isinstance(attribute.value, pd.DataFrame):
                 if len(attribute.value) == 0:
                     continue
+                if attribute.id not in attribute.value.columns:
+                    logger.error(f"Attribute {attribute.id} not in the dataframe.")
+                    continue
 
-                for index, row in attribute.value.iterrows():
-                    meta_data_row = meta_data + [NamedMetadata(
-                        name="TimeInstant",
-                        type=DataType.DATETIME,
-                        value=index.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                    )]
+                attrs.append(await self._prepare_sending_timeseries_to_fiware(
+                    fiware_entity=fiware_entity,
+                    attribute=attribute,
+                    meta_data=meta_data,
+                    factor_unit_adjustment=factor_unit_adjustment,
+                    datatype=datatype))
+                continue
 
-                    attrs.append(
-                        NamedContextAttribute(
-                            name=attribute.id_interface,
-                            value=row[attribute.id] * factor_unit_adjustment,
-                            type=datatype,
-                            metadata=meta_data,
-                        )
-                    )
-                
-            else:
-
-                meta_data.append(NamedMetadata(
+            meta_data.append(
+                NamedMetadata(
                     name="TimeInstant",
                     type=DataType.DATETIME,
                     value=attribute.timestamp.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                ))
-                
-                if attribute.value is None:
-                    value = None
-                else:
-                    value = attribute.value * factor_unit_adjustment
-                    
-                attrs.append(
-                    NamedContextAttribute(
-                        name=attribute.id_interface,
-                        value=value,
-                        type=datatype,
-                        metadata=meta_data,
-                    )
-                )
-
-        cmds = []
-        for command in output_commands:
-            cmds.append(
-                NamedCommand(
-                    name=command.id_interface,
-                    value=command.value,
-                    type=DataType.COMMAND,
                 )
             )
 
-        output_points = attrs + cmds
+            if attribute.value is None:
+                value = None
+            else:
+                value = attribute.value * factor_unit_adjustment
 
-        self.cb_client.update_or_append_entity_attributes(entity_id=context_entity.id, entity_type=context_entity.type, attrs=output_points)
+            attrs.append(
+                NamedContextAttribute(
+                    name=attribute.id_interface,
+                    value=value,
+                    type=datatype,
+                    metadata=meta_data,
+                )
+            )
+        if len(attrs) > 0:
+            self.cb_client.update_or_append_entity_attributes(
+                entity_id=fiware_entity.id,
+                entity_type=fiware_entity.type,
+                attrs=attrs,
+            )
 
-    async def _hold_sampling_time(
-        self, start_time: datetime, hold_time: Union[int, float]
-    ):
+        self._send_commands_to_fiware(entity_id= fiware_entity.id,
+                                        entity_type= fiware_entity.type,
+                                        commands= output_commands)
+
+    async def _hold_sampling_time(self, start_time: datetime, hold_time: Union[int, float]):
         """
         Wait in each cycle until the sampling time (or cycle time) is up. If the algorithm takes
         more time than the sampling time, a warning will be given.
@@ -1267,7 +1440,8 @@ class ControllerBasicService:
         """
         if ((datetime.now() - start_time).total_seconds()) > hold_time:
             logger.warning(
-                "The processing time is longer than the sampling time. The sampling time must be increased!"
+                "The processing time is longer than the sampling time. "
+                "The sampling time must be increased!"
             )
         while ((datetime.now() - start_time).total_seconds()) < hold_time:
             await sleep(0.1)
@@ -1291,39 +1465,38 @@ class ControllerBasicService:
 
         return data_output
 
-    async def calibration(
-        self, 
-        data: InputDataModel):
+    async def calibration(self, data: InputDataModel):
         """
         Function to start the calibration, do something with data - used in the services
         """
 
         return None
 
-
     def prepare_output(self, data_output: DataTransferModel) -> OutputDataModel:
         """
         Function to prepare the output data for the different interfaces (FIWARE, FILE, MQTT)
-        Takes the data from the DataTransferModel and prepares the data for the output (Creates a OutputDataModel for the use in Function `send_outputs()`).
+        Takes the data from the DataTransferModel and prepares the data for the output 
+        (Creates a OutputDataModel for the use in Function `send_outputs()`).
 
         Args:
-            data_output (DataTransferModel): DataTransferModel with the output data from the calculation
+            data_output (DataTransferModel): DataTransferModel with the output data 
+            from the calculation
 
         Returns:
             OutputDataModel: OutputDataModel with the output data as formatted data
         """
 
         output_data = OutputDataModel(entities=[])
-        
+
         output_attrs = {}
         output_cmds = {}
-        
+
         for component in data_output.components:
 
             for output in self.config.outputs:
-                
+
                 if output.id == component.entity_id:
-                    
+
                     for attribute in output.attributes:
 
                         if attribute.id == component.attribute_id:
@@ -1335,7 +1508,7 @@ class ControllerBasicService:
                                 AttributeModel(
                                     id=attribute.id,
                                     value=component.value,
-                                    unit = component.unit,
+                                    unit=component.unit,
                                     timestamp=component.timestamp,
                                 )
                             )
@@ -1365,9 +1538,7 @@ class ControllerBasicService:
                 commands = []
 
             output_data.entities.append(
-                OutputDataEntityModel(
-                    id=output.id, attributes=attributes, commands=commands
-                )
+                OutputDataEntityModel(id=output.id, attributes=attributes, commands=commands)
             )
 
         return output_data
@@ -1383,7 +1554,7 @@ class ControllerBasicService:
             start_time = datetime.now()
 
             # we have to check the input type, if we need something from the config
-            if self.config.interfaces.fiware :
+            if self.config.interfaces.fiware:
                 if self.fiware_token["authentication"] and (
                     self.fiware_token_client.check_token() is False
                 ):
@@ -1392,10 +1563,8 @@ class ControllerBasicService:
                     )
             if self.config.interfaces.file:
                 logger.debug("Maybe we have to set the start_time for the file here")
-            
 
             data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
-            display(data_input)
 
             if data_input is not None:
 
@@ -1413,9 +1582,7 @@ class ControllerBasicService:
                     self.config.controller_settings.time_settings.calculation.sampling_time_unit
                 )
             )
-            await self._hold_sampling_time(
-                start_time=start_time, hold_time=sampling_time
-            )
+            await self._hold_sampling_time(start_time=start_time, hold_time=sampling_time)
 
     async def start_calibration(self):
         """
@@ -1423,29 +1590,23 @@ class ControllerBasicService:
         """
 
         if self.config.controller_settings.time_settings.calibration is None:
-            logger.error(
-                "No Information about the calibration time in the configuration."
-            )
+            logger.error("No Information about the calibration time in the configuration.")
             return
+
+        sampling_time = (
+            self.config.controller_settings.time_settings.calibration.sampling_time
+            * get_time_unit_seconds(
+                self.config.controller_settings.time_settings.calibration.sampling_time_unit
+            )
+        )
+
         while True:
             logger.debug("Start Calibration")
             start_time = datetime.now()
             data_input = await self.get_data(method=DataQueryTypes.CALIBRATION)
-            if data_input is not None and data_input["data_available"]:
-                await self.calibration(df=data_input)
-            else:
-                logger.debug("No data available for calibration - skip calibration")
+            await self.calibration(data=data_input)
 
-            sampling_time = (
-                self.config.controller_settings.time_settings.calibration.sampling_time
-                * get_time_unit_seconds(
-                    self.config.controller_settings.time_settings.calibration.sampling_time_unit
-                )
-            )
-
-            await self._hold_sampling_time(
-                start_time=start_time, hold_time=sampling_time
-            )
+            await self._hold_sampling_time(start_time=start_time, hold_time=sampling_time)
 
     async def check_health_status(self):
         """

@@ -108,17 +108,6 @@ class InputDataModel(BaseModel):
     static_entities: list[StaticDataEntityModel]
 
 
-# class ContextDataModel(BaseModel):
-#     """
-#     Model for the context data of the system controller.
-
-#     Contains:
-#     - input_entitys: List of the context data entitys as ContexttDataEntityModel
-
-#     """
-
-#     context_entities: list[InputDataEntityModel]
-
 
 class OutputDataModel(BaseModel):
     """

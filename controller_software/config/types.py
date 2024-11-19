@@ -42,7 +42,7 @@ class ControllerComponents(Enum):
 
     # TODO: Which components are needed?
 
-    STORAGE = "storage_controller"
+    STORAGE = "storage_controller" 
     ENERGYTRENDBAND = "energytrendband_controller"
     HYGIENICCONTROLLER = "hygienic_controller"
 

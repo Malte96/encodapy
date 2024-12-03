@@ -44,6 +44,7 @@ class ControllerComponents(Enum):
 
     STORAGE = "storage_controller" 
     ENERGYTRENDBAND = "energytrendband_controller"
+    SCHEDULE = "schedule_controller"
     HYGIENICCONTROLLER = "hygienic_controller"
 
 

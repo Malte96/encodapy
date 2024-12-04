@@ -1148,6 +1148,7 @@ class ControllerBasicService:
             - Is it better to set the results-folder via env?
         """
         outputs = []
+        data = []
         commands = []
         logger.debug("Write outputs to json-output-files")
 
@@ -1155,13 +1156,16 @@ class ControllerBasicService:
             os.makedirs("./results")
 
         for output in output_attributes:
-            outputs.append(
+            data.append(
                 {
                     "id_interface": output.id_interface,
                     "value": output.value,
                     "time": output.timestamp.strftime("%H:%M:%S %d.%m.%Y"),
                 }
             )
+
+        outputs = [{"id": output_entity.id_interface},
+                   {"values" : data}]
 
         with open("./results/outputs.json", "w", encoding="utf-8") as outputfile:
             json.dump(outputs, outputfile)

@@ -6,20 +6,21 @@ Authors: Martin Altenburger
 import json
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Union
+from pydantic import BaseModel, ConfigDict, ValidationError
+from pydantic.functional_validators import model_validator
+from loguru import logger
+from pandas import DataFrame
+from filip.models.base import DataType
 
-from controller_software.config.types import (
+from encodapy.config.types import (
     AttributeTypes,
     ControllerComponents,
     Interfaces,
     TimerangeTypes,
 )
-from controller_software.utils.error_handling import ConfigError
-from controller_software.utils.units import DataUnits, TimeUnits
-from filip.models.base import DataType
-from loguru import logger
-from pandas import DataFrame
-from pydantic import BaseModel, ConfigDict, ValidationError
-from pydantic.functional_validators import model_validator
+from encodapy.utils.error_handling import ConfigError
+from encodapy.utils.units import DataUnits, TimeUnits
+
 
 # TODO: Add the configuration parameters and the import from a json-file
 # TODO: Add a documentation for the models
@@ -136,7 +137,9 @@ class ControllerComponentModel(BaseModel):
 
     active: bool = True
     id: str
-    type: Union[ControllerComponents, str]  # TODO: How to reference the component types?
+    type: Union[
+        ControllerComponents, str
+    ]  # TODO: How to reference the component types?
     inputs: dict  # TODO: How to reference the input/output models?
     outputs: dict
     config: dict
@@ -149,17 +152,17 @@ class TimeSettingsCalculationModel(BaseModel):
     Contains:
     - timerange: The timerange for the calculation (if only one value is needed and primary value,
     otherwise use timerange_min and timerange_max)
-    - timerange_min: The minimum timerange for the calculation (only used if timerange is not set 
+    - timerange_min: The minimum timerange for the calculation (only used if timerange is not set
     and timerange_max is set too)
-    - timerange_max: The maximum timerange for the calculation (only used if timerange is not set 
+    - timerange_max: The maximum timerange for the calculation (only used if timerange is not set
     and timerange_min is set too)
-    - timerange_type: Type of time period, relative to the last result or absolute at the current 
+    - timerange_type: Type of time period, relative to the last result or absolute at the current
     time (if not set, the default type is absolute)
     - timerange_unit: The unit of the timerange (if not set, the default unit is minute)
-    - timestep: The timestep for the calculation (if not set, the default value is 1), the 
+    - timestep: The timestep for the calculation (if not set, the default value is 1), the
     related unit is defined in the timestep_unit attribute
     - timestep_unit: The unit of the timestep (if not set, the default unit is second)
-    - sampling_time: The sampling time for the calculation (if not set, the default value is 1), 
+    - sampling_time: The sampling time for the calculation (if not set, the default value is 1),
     the related unit is defined in the sampling_time_unit attribute
     - sampling_time_unit: The unit of the sampling time (if not set, the default unit is minute)
     """
@@ -187,7 +190,9 @@ class TimeSettingsCalculationModel(BaseModel):
             TimeSettingsCalculationModel: The model with the validated parameters
         """
 
-        if self.timerange is None and (self.timerange_min is None or self.timerange_max is None):
+        if self.timerange is None and (
+            self.timerange_min is None or self.timerange_max is None
+        ):
             raise ValueError(
                 "Either 'timerange' or 'timerange_min' and 'timerange_max' must be set."
             )
@@ -208,7 +213,7 @@ class TimeSettingsCalculationModel(BaseModel):
     @model_validator(mode="before")
     @classmethod
     def check_timestep_units(cls, data: Any) -> Any:
-        """Checks the units of the times in the configuration and provides feedback (debug logging) 
+        """Checks the units of the times in the configuration and provides feedback (debug logging)
         if the default values are used
 
         Args:
@@ -237,13 +242,13 @@ class TimeSettingsCalibrationModel(BaseModel):
     Base class for the calibration time settings of the controller / system.
 
     Contains:
-    - timerange: The timerange for the calibration (if not set, the default value is 1), 
+    - timerange: The timerange for the calibration (if not set, the default value is 1),
     the related unit is defined in the timerange_unit attribute
     - timerange_unit: The unit of the timerange (if not set, the default unit is minute)
-    - timestep: The timestep for the calibration (if not set, the default value is 1), 
+    - timestep: The timestep for the calibration (if not set, the default value is 1),
     the related unit is defined in the timestep_unit attribute
     - timestep_unit: The unit of the timestep (if not set, the default unit is second)
-    - sampling_time: The sampling time for the calibration (if not set, the default value is 1), 
+    - sampling_time: The sampling time for the calibration (if not set, the default value is 1),
     the related unit is defined in the sampling_time_unit attribute
     - sampling_time_unit: The unit of the sampling time (if not set, the default unit is day)
 
@@ -324,8 +329,7 @@ class ConfigModel(BaseModel):
     controller_settings: ControllerSettingModel
 
     @classmethod
-    def from_json(cls, file_path: str
-                  ):
+    def from_json(cls, file_path: str):
         """
         Load the configuration from a JSON file.
         """

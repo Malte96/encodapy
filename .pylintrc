@@ -1,0 +1,5 @@
+[MASTER]
+fail-under = 9.5
+
+disable=
+    fixme

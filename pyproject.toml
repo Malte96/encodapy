@@ -3,10 +3,12 @@ requires = ["setuptools>=42", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "n5geh.system_controller"
+name = "n5geh.encodapy"
 version = "0.1.0"
-description = "Tool for scalable system control"
-authors = [{name = "Martin Altenburger", email = "martin.altenburger@tu-dresden.de"}]
+description = "EnCoDaPy – Energy Control and Data Preparation in Python."
+authors = [{name = "Martin Altenburger", email = "martin.altenburger@tu-dresden.de"},
+           {name = "Paul Seidel", email = "paul.seidel@tu-dresden.de"},
+           {name = "Maximilian Beyer", email = "maximilian.beyer@​tu-dresden.de"}]
 dependencies = [
     "python>=3.9,<3.12",
     "pandas>=1.3.5",
@@ -24,16 +26,16 @@ dependencies = [
 
 
 [tool.poetry]
-name = "n5geh.system_controller"
+name = "n5geh.encodapy"
 version = "0.1.0"
-description = "Tool for scalable system control"
+description = "EnCoDaPy – Energy Control and Data Preparation in Python."
 authors = ["Martin Altenburger <martin.altenburger@tu-dresden.de>"]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.12"
 pandas = ">=2.1.4,<2.2.0"
 nbformat = "^5.7.1"
-filip = "^0.5.0"
+filip = ">=0.5.0"
 numpy = "^1.23.5"
 statsmodels = "^0.13.5"
 loguru = ">=0.6.0"

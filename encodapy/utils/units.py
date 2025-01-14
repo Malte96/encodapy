@@ -1,5 +1,6 @@
 """
-Description: This file contains the units for the use and conversion of different units and in the system controller.
+Description: This file contains the units for the use and conversion
+of different units and in the system controller.
 Author: Martin Altenburger
 """
 
@@ -41,22 +42,24 @@ def get_time_unit_seconds(time_unit: Union[TimeUnits, str]) -> Union[int, None]:
         time_unit (Union[TimeUnits, str]): time unit / Name of the time unit
 
     Returns:
-        Union[int, None]: Number of seconds for the time unit or None if the time unit is not available
+        Union[int, None]: Number of seconds for the time unit\
+            or None if the time unit is not available
     """
     if isinstance(time_unit, TimeUnits):
         return TimeUnitsSeconds[time_unit.name].value
 
-    elif time_unit in [unit.value for unit in TimeUnits]:
+    if time_unit in [unit.value for unit in TimeUnits]:
         return TimeUnitsSeconds[TimeUnits(time_unit).name].value
-    else:
-        logger.warning(f"Time unit {time_unit} not available")
-        return None
+
+    logger.warning(f"Time unit {time_unit} not available")
+    return None
 
 
 class DataUnits(Enum):
     """
     Possible units for the data
-    Units which are defined by Unit Code (https://unece.org/trade/cefact/UNLOCODE-Download or https://github.com/RWTH-EBC/FiLiP/blob/master/filip/data/unece-units/units_of_measure.csv)
+    Units which are defined by Unit Code (https://unece.org/trade/cefact/UNLOCODE-Download 
+    or https://github.com/RWTH-EBC/FiLiP/blob/master/filip/data/unece-units/units_of_measure.csv)
     or here: https://unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_rev3_Annex3e.pdf
     TODO:
         - Is there a better way to handle the units?

@@ -25,7 +25,8 @@ class NotSupportedError(Exception):
 
     def __init__(
         self,
-        message: str = "The configuration is not supported yet. Please contact the developer for further information.",
+        message: str = "The configuration is not supported yet.\
+            Please contact the developer for further information.",
     ):
         self.message = message
         super().__init__(self.message)

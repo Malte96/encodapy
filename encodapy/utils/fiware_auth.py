@@ -1,5 +1,6 @@
 """
-Description: This file contains the class BaererToken, which is used to check if an OAuth2 bearer token is valid.
+Description: This file contains the class BaererToken,\
+    which is used to check if an OAuth2 bearer token is valid.
 Author: Martin Altenburger
 """
 
@@ -44,20 +45,21 @@ class BaererToken:
         """
         if self.token_typ == "static":
             return True
-        else:
-            response = requests.get(
-                f"""{self.token_url}/tokeninfo""", params={"access_token": self.token}
-            )
 
-            if response.status_code == 200:
+        response = requests.get(
+            url=f"""{self.token_url}/tokeninfo""", params={"access_token": self.token},
+            timeout=10
+        )
 
-                token_info = response.json()
-                expires_in = token_info.get("expires_in")
+        if response.status_code == 200:
 
-                if expires_in is None or expires_in > 10:
-                    return True
+            token_info = response.json()
+            expires_in = token_info.get("expires_in")
 
-            return False
+            if expires_in is None or expires_in > 10:
+                return True
+
+        return False
 
     def _get_new_token(self) -> None:
         """
@@ -71,25 +73,29 @@ class BaererToken:
             client_secret=self.client_secret,
         )["access_token"]
 
-        return
-
     @property
-    def token_type(self):
+    def token_type(self) -> str:
+        """
+        Returns the token type
+        """
         return self.token_type
 
     @property
     def baerer_token(self) -> str:
+        """
+        Returns the baerer-token
+        """
         return f"""Bearer {self.token}"""
 
     def check_token(self) -> None:
         """
-        Function to check if the actual baerer-token is valid and if not, get a new baerer-token from oauth2-provider
+        Function to check if the actual baerer-token is valid and if not,\
+            get a new baerer-token from oauth2-provider
 
         Returns:
             bool: True if old token is valid, false if new token has been received
         """
         if self._is_token_valid():
             return True
-        else:
-            self._get_new_token()
-            return False
+        self._get_new_token()
+        return False

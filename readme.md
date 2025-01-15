@@ -1,4 +1,4 @@
-# System Controller
+# "EnCoDaPy" – Energy Control and Data Preparation in Python.
 
 ## Basics
 - The Basic Controller provides a system for 
@@ -28,11 +28,11 @@
     FIWARE_SERVICE = ["service"]
     FIWARE_SERVICE_PATH = [/]
     FIWARE_AUTH = [False]
-    # only used if FIWARE_AUTH = true    
+    # only used if FIWARE_AUTH = true / Option 1 for authentication
     FIWARE_CLIENT_ID = 
     FIWARE_CLIENT_PW = 
     FIWARE_TOKEN_URL = 
-    # only used if FIWARE_AUTH = true and the three previously not set
+    # only used if FIWARE_AUTH = true and the three previously not set / Option 2 for authentication
     FIWARE_BAERER_TOKEN = []
 
     CRATE_DB_URL = ["http://localhost:4200"]

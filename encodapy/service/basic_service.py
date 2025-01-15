@@ -28,7 +28,7 @@ from encodapy.utils.models import (
     StaticDataEntityModel,
 )
 from encodapy.utils.units import get_time_unit_seconds
-from encodapy.service.communcation import (
+from encodapy.service.communication import (
     FiwareConnection,
     FileConnection,
     MqttConnection,

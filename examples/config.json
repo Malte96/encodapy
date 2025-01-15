@@ -44,7 +44,7 @@
             ]
         }
     ],
-    "metadata": [],
+    "staticdata": [],
     "controller_components": [
         {
             "id": "hygienic_controller",

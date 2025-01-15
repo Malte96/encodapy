@@ -46,4 +46,4 @@ pydantic = "^2.5.2,<2.7.0"
 python-dotenv = "^1.0.1"
 
 [tool.poetry.dev-dependencies]
-pylint = "^3.3.0"
+pylint = "^3.2.6"

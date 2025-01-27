@@ -265,7 +265,8 @@ class FiwareConnection:
         for attr in list(output_attributes_entity.keys()):
             if attr not in list(output_attributes_controller.keys()):
                 continue
-            if output_attributes_entity[attr].metadata.get("TimeInstant") is not None:
+            if (output_attributes_entity[attr].metadata.get("TimeInstant") is not None
+                and output_attributes_entity[attr].metadata.get("TimeInstant").value is not None):
                 timestamps.append(
                     OutputDataAttributeModel(
                         id=output_attributes_controller[attr],

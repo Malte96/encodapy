@@ -676,6 +676,7 @@ class FiwareConnection:
         from_date, to_date = self._calculate_dates(
             method=method, last_timestamp=timestamp_latest_output
         )
+
         df = self.crate_db_client.get_data(
             service=self.fiware_conn_params.fiware_params.service,
             entity=entity,
@@ -684,7 +685,7 @@ class FiwareConnection:
             ],
             from_date=from_date,
             to_date=to_date,
-            limit=200000,
+            limit=1000000,
         )
 
         if df.empty:
@@ -724,7 +725,7 @@ class FiwareConnection:
                 )
             else:
                 logger.debug(
-                    f"Service received data from CrateDB for attribute {attribute_id}"
+                    f"Service received data from CrateDB for attribute {attribute_id} "
                     f"of entity {entity.id}"
                 )
                 input_attributes.append(
@@ -913,8 +914,8 @@ class FiwareConnection:
                 )
             elif attribute.unit is None:
                 logger.debug(
-                    f"No information about the unit of the attribute {attribute.id} \
-                    from entity {output_entity.id} available!"
+                    f"No information about the unit of the attribute {attribute.id} "
+                    f"from entity {output_entity.id} available!"
                 )
 
             elif fiware_unit is not attribute.unit:

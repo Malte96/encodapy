@@ -121,16 +121,25 @@ class CrateDBConnection:
 
         # query existing columns
         attrs = ""
+        attrs_not_null = ""
         for attribute in attributes_db:
             if attribute == attributes_db[-1]:
                 attrs += '"' + str(attribute) + '"'
+
             else:
                 attrs += '"' + str(attribute) + '", '
+
+            if attribute != 'time_index' and attrs_not_null != "":
+                attrs_not_null += ' OR "' + str(attribute) + '" IS NOT NULL'
+            elif attribute != 'time_index':
+                attrs_not_null += '"' + str(attribute) + '" IS NOT NULL'
+
 
         cursor.execute(
             f"SELECT {attrs} FROM mt{service}.et{entity.type} "
             f"WHERE entity_id = '{entity.id}' "
             f"AND time_index > '{from_date}' AND time_index < '{to_date}' "
+            f"AND ({attrs_not_null}) "
             f"limit {limit}"
         )
         results = cursor.fetchall()

@@ -208,11 +208,14 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 raise NotSupportedError
 
             await sleep(0.1)
-
-        if len(output_latest_timestamps) > 0:
-            output_latest_timestamp = min(output_latest_timestamps)
-        else:
+        
+        if None in output_latest_timestamps:
             output_latest_timestamp = None
+        else:
+            if len(output_latest_timestamps) > 0:
+                output_latest_timestamp = min(output_latest_timestamps)
+            else:
+                output_latest_timestamp = None
 
         for input_entity in self.config.inputs:
 
@@ -459,7 +462,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         output_data = OutputDataModel(entities=[])
         output_attrs = {}
         output_cmds = {}
-
+        
         for component in data_output.components:
             for output in self.config.outputs:
                 if output.id == component.entity_id:

@@ -533,7 +533,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             if data_input is not None:
 
                 data_output = await self.calculation(data=data_input, timestamp = start_time)
-
+                
                 data_output = self.prepare_output(data_output=data_output)
 
                 await self.send_outputs(data_output=data_output)

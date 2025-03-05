@@ -929,8 +929,8 @@ class FiwareConnection:
                 attrs.append(
                     await self.prepare_timeseries_for_fiware(
                         fiware_datapoint = FiwareDatapointParameter(
-                            entity=ContextEntity(id = fiware_entity.id,
-                                                 type=fiware_entity.type),
+                            entity=ContextEntity(id= fiware_entity.id,
+                                                 type= fiware_entity.type),
                             attribute=attribute,
                             metadata=meta_data),
                         datatype=datatype,

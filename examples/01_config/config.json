@@ -7,17 +7,17 @@
     },
     "inputs": [
         {
-            "id": "dhw_calculation",
+            "id": "input_fiware_01",
             "interface": "fiware",
-            "id_interface": "urn:dhw_calculation:10",
+            "id_interface": "urn:input_fiware:01",
             "attributes": [
                 {"id": "temperature", 
-                "id_interface":"dhw:temperature",
+                "id_interface":"temperature",
                 "type": "timeseries"
                 },
-                {"id": "tapping", 
-                "id_interface":"dhw:tapping",
-                "type": "timeseries"
+                {"id": "power", 
+                "id_interface":"power",
+                "type": "value"
                 }
             ]
         }

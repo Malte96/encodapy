@@ -11,12 +11,13 @@
 
 ## Configuration
 - The config has several sections:
-    - Interfaces: Indicates which interfaces are active
-    - Inputs': Configuration of the inputs to the controller
-    - Outputs: Configuration of the outputs
-    - metadata # TODO
-    - controller_components: Configuration of the controller components
-    - controller_settings: General settings about the controller 
+    - `name`: Controller name - for documentation purposes only
+    - `interfaces`: Indicates which interfaces are active
+    - `inputs`: Configuration of the inputs to the controller
+    - `outputs`: Configuration of the outputs
+    - `staticdata`: Static data point configuration (Data that is not continuously updated)
+    - `controller_components`: Configuration of the controller components
+    - `controller_settings`: General settings about the controller 
 
 - ENVs are required to configure the interfaces / get the config with the default value [`default`]:
     ```
@@ -60,4 +61,5 @@
 - TODO: Implement the adjustment for different units.
 
 ## Examples
+- [Configs](./examples/01_config/): Basic Information about the Config
 - [config.ipynb](./examples/config.ipynb): Shows a example how the config could be used

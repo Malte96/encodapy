@@ -1,0 +1,16 @@
+# Example for usage with a simple service
+As an example of a simple service using Encodapy, a heating regulator based on a two-position regulator is created. The following parts show different aspects of the application:
+- [configure_fiware_platform.ipynb](./configure_fiware_platform.ipynb): Notebook to add the needed configuration and values to the fiware platform
+- [config.json](./config.json): Configuration for the service - see [01_config](./../01_config/)
+- [example_service.py](./example_service.py): Code of the service example
+- [main.py](./main.py): Script to start the service
+- [run_simple_service.ipynb](./run_simple_service.ipynb): Notebook to run the service (also possible to run the [main.py](./main.py))
+
+To run the example, you need to add a [.env](.env):
+```
+FIWARE_IOTA= ["http://localhost:4041"]      # URL of the IoT Agent
+FIWARE_CB= ["http://localhost:1026"]        # URL of the Context Broker
+FIWARE_SERVICE= ["example_service"]         # Name of the FIWARE Service
+FIWARE_SERVICE_PATH= ["/"]                  # FIWARE Service Path, usually "/"
+```
+It is also necessary to have a running software platform.

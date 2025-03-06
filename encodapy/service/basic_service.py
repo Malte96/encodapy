@@ -216,9 +216,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_latest_timestamp = min(output_latest_timestamps)
             else:
                 output_latest_timestamp = None
-
+        
         for input_entity in self.config.inputs:
-
+            
             if input_entity.interface == Interfaces.FIWARE:
 
                 input_data.append(
@@ -228,7 +228,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                         timestamp_latest_output=output_latest_timestamp,
                     )
                 )
-
+                
             elif input_entity.interface == Interfaces.FILE:
 
                 input_data.append(

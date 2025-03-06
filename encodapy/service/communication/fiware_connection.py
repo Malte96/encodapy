@@ -36,7 +36,7 @@ from encodapy.config import (
     OutputModel,
     TimerangeTypes,
 )
-from encodapy.utils.error_handling import NoCredentials
+from encodapy.utils.error_handling import NoCredentials, InterfaceNotActive
 from encodapy.utils.cratedb import CrateDBConnection
 from encodapy.utils.fiware_auth import BaererToken
 from encodapy.utils.models import (
@@ -355,7 +355,10 @@ class FiwareConnection:
         attributes_timeseries = {}
         attributes_values = []
 
+        if self.cb_client is None:
+            raise InterfaceNotActive
         try:
+
             fiware_input_entity_type = self.cb_client.get_entity(
                 entity_id=entity.id_interface
             ).type
@@ -365,7 +368,7 @@ class FiwareConnection:
         except requests.exceptions.ConnectionError as err:
             logger.error(f"""No connection to platform (ConnectionError): {err}""")
 
-            return None  # TODO: What to do if the connection is not available?
+            return None
 
         for attribute in entity.attributes:
 
@@ -373,8 +376,18 @@ class FiwareConnection:
                 logger.error(
                     f"Attribute {attribute.id_interface} not found in entity {entity.id_interface}"
                 )
+                attributes_values.append(
+                    InputDataAttributeModel(
+                        id=attribute.id,
+                        data=None,
+                        data_type=attribute.type,
+                        data_available=False,
+                        latest_timestamp_input=None,
+                        unit=None,
+                    )
+                )
 
-                continue  # TODO: What to do if the attribute is not found?
+                continue
 
             if attribute.type == AttributeTypes.TIMESERIES:
                 attributes_timeseries[attribute.id] = {
@@ -409,6 +422,7 @@ class FiwareConnection:
                     f"Attribute type {attribute.type} for attribute {attribute.id} \
                     of entity {entity.id} not supported."
                 )
+                raise NotImplementedError
 
         if len(attributes_timeseries) > 0:
 

@@ -45,3 +45,17 @@ class NoCredentials(Exception):
     ):
         self.message = message
         super().__init__(self.message)
+
+class InterfaceNotActive(Exception):
+    """Exception raised if the interface is not active.
+
+    Attributes:
+        message -- explanation of the error
+    """
+
+    def __init__(
+        self,
+        message: str = "The interface is not active, could not get the data",
+    ):
+        self.message = message
+        super().__init__(self.message)

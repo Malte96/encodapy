@@ -6,11 +6,14 @@
     - receive data
     - start a calculation
     - return the results
-- This interaction is possible with several interfaces.
+- This interaction is possible with several interfaces, see [n5geh.encodapy/examples/03_interfaces](./examples/03_interfaces/):
+    - FIWARE-API
+    - MQTT
+    - File
 - The controller has the functionality to read a configuration from JSON and ENV, validate it and return it as a model.
 
 ## Configuration
-- The config has several sections:
+- The configuration of the service must be provided via `config.json` and has several sections (see the [examples](###Examples)):
     - `name`: Controller name - for documentation purposes only
     - `interfaces`: Indicates which interfaces are active
     - `inputs`: Configuration of the inputs to the controller
@@ -49,8 +52,23 @@
 
 ## Usage
 
+To create your own custom service, you have to overwrite two functions of the [ControllerBasicService](./../../encodapy/service/basic_service.py):
+- `calculation()`: Asynchronous function to perform the main calculation in the service
+- `calibration()`: Asynchrone function to calibrate the service or coefficients in the service if required
+
+To start the service, you need to call
+- `prepare_start()`: To prepare the start of the service
+- `start_calibration()`: To start the calibration if required
+- `start_service()`: To start the service
+
+A easy posibility to start the service is to run the base [main.py](./service_main/main.py). For more details, see the [examples](###Examples)
+
+### Examples
+For different examples and documentation, how to use the tool - see [examples](./examples/)
+
 ### Units
 - Inputs and outputs get information about the unit. The class [`DataUnits`](./controller_software/utils/units.py) is used for this.
+- More units must be added manually.
 - Timeranges:
     - Timeranges for data queries are different for calculation and calibration.
     - The following timeranges are possible
@@ -58,8 +76,9 @@
         - '"hour"'
         - '"day"'
         - '"month"' --> 30 days
-- TODO: Implement the adjustment for different units.
+- Today, there ist no adjustment for different units. Its a TODO for the future
 
-## Examples
-- [Configs](./examples/01_config/): Basic Information about the Config
-- [config.ipynb](./examples/config.ipynb): Shows a example how the config could be used
+### Deployment
+The recommended way to run the service is:
+- Create a Python environment using Poetry (see [pyproject.toml](./pyproject.toml)).
+- Use a Docker container for production deployments (create a custom image using the [dockerfile](dockerfile)).

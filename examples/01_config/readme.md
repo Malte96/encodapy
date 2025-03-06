@@ -1,4 +1,5 @@
 # Examples for the Configuration
+The service requires a configuration via `config.json`, which needs to be created and contains all the necessary information. The configuration will be imported as a pydantic BaseModel, so the part of the config for the base service will be validated before the service starts. Additional information needed in an individual service could be added under the `controller_components` part, see [Contents of the configuration](##Content-of-the-configuration).
 ## Overview
 - [config_doc_creation.py](./config_doc_creation.py): Configuration model export script
 - [config_schema.drawio](config_schema.drawio.png): Configuration model schema

@@ -20,7 +20,12 @@ Data exchange with the data platform of the N5GEH / FIWARE platform using the fo
 ## File
 Data exchange with via local file.
 - read Input Data from a file (Note: actual only .csv is supported)
-    - read Values for the actual (Simulation) time of configered Inputs from file    
+    - read Values for the actual (Simulation) time of configered Inputs from file
+    - csv charakteristics:
+        - name column of time = "Time"
+        - csv seperator = ";"
+        - decimal= ","
+    - column-name (specific Input) in .csv = Input.Attribute.id_interface inf config file
 - write Data to a results file (.json)
     - send results of the service to file (for each entity) and timestemp
  

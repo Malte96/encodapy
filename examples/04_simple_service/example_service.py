@@ -37,6 +37,7 @@ class ExampleService(ControllerBasicService):
         for component in self.config.controller_components:
             if component.type == "heat_controller":
                 return component
+        raise ValueError("No heat controller configuration found")
 
     def check_heater_command(self,
                              temperature_setpoint:float,
@@ -87,6 +88,7 @@ class ExampleService(ControllerBasicService):
                 for attribute in input_data.attributes:
                     if attribute.id == input_config["attribute"]:
                         return attribute.data
+        raise ValueError(f"Input data {input_config['entity']} not found")
 
     async def calculation(self,
                           data: InputDataModel

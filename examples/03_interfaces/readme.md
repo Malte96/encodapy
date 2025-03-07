@@ -19,17 +19,20 @@ Data exchange with the data platform of the N5GEH / FIWARE platform using the fo
 #TODO
 ## File
 Data exchange with via local file.
-- read Input Data from a file (Note: actual only .csv is supported)
-    - read Values for the actual (Simulation) time of configered Inputs from file
-    - csv charakteristics:
-        - name column of time = "Time"
-        - csv seperator = ";"
+- Read input data from a file (Note: only `.csv` is supported currently)
+    - Read values for the actual (simulation) time of configured input from file
+    - csv characteristics:
+        - Name column of time = "Time"
+        - csv separator = ";"
         - decimal= ","
-    - column-name (specific Input) in .csv = Input.Attribute.id_interface inf config file
-- write Data to a results file (.json)
+    - Column name (specific input) in `.csv` must be the like `${Attribute-id_interface}` from the config (Important: the IDs of the attributes `id_interface` over the the interface "file" must therefore be unique)
+    - An example of this input is attached as [csv_interface_example.csv](./csv_interface_example.csv), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
+- Write data to a results file (`.json`)
     - send results of the service to file (for each entity) and timestemp
  
 nessesary ENV's with example:
-- PATH_OF_INPUT_FILE = "../validation_data.csv"
-- START_TIME_FILE = "01.01.2023 06:00"
-- TIME_FORMAT_FILE = "%d.%m.%Y %H:%M"
+```
+PATH_OF_INPUT_FILE = "../validation_data.csv"
+START_TIME_FILE = "01.01.2023 06:00"
+TIME_FORMAT_FILE = "%d.%m.%Y %H:%M"
+```

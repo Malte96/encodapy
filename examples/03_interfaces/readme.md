@@ -18,4 +18,13 @@ Data exchange with the data platform of the N5GEH / FIWARE platform using the fo
 ## MQTT
 #TODO
 ## File
-#TODO
+Data exchange with via local file.
+- read Input Data from a file (Note: actual only .csv is supported)
+    - read Values for the actual (Simulation) time of configered Inputs from file    
+- write Data to a results file (.json)
+    - send results of the service to file (for each entity) and timestemp
+ 
+nessesary ENV's with example:
+- PATH_OF_INPUT_FILE = "../validation_data.csv"
+- START_TIME_FILE = "01.01.2023 06:00"
+- TIME_FORMAT_FILE = "%d.%m.%Y %H:%M"

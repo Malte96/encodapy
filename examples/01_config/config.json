@@ -8,7 +8,7 @@
     "inputs": [
         {
             "id": "input_fiware_01",
-            "interface": "fiware" or "file" or "mqtt",
+            "interface": "fiware",
             "id_interface": "urn:input_fiware:01",
             "attributes": [
                 {"id": "temperature", 
@@ -25,7 +25,7 @@
     "outputs": [
         {
             "id": "xyz_calculation",
-            "interface": ""fiware" or "file" or "mqtt"",
+            "interface": "fiware",
             "id_interface": "urn:xyz_calculation",
             "attributes": [
                 {"id": "temperature", 

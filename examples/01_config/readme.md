@@ -13,3 +13,8 @@ The service requires a configuration via `config.json`, which needs to be create
     - [encodapy/config/models](./../../encodapy/config/models.py) for the code
 
     ![ConfigModel](config_schema.drawio.png)
+
+- Interfaces for input/output and static data could be:
+    - `fiware`
+    - `file`
+    - `mqtt`

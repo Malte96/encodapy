@@ -29,6 +29,7 @@ Data exchange with via local file.
     - An example of this input is attached as [csv_interface_example.csv](./csv_interface_example.csv), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
 - Write data to a results file (`.json`)
     - send results of the service to file (for each entity) and timestemp
+    - An example of this outputs is attached as [outputs_dhw_calculation_example.json](./outputs_dhw_calculation_example.json), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
  
 nessesary ENV's with example:
 ```

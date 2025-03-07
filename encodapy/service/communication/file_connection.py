@@ -234,7 +234,7 @@ class FileConnection:
 
         if not os.path.exists("./results"):
             os.makedirs("./results")
-        
+
         for output in output_attributes:
             outputs.append(
                 {
@@ -244,7 +244,8 @@ class FileConnection:
                 }
             )
 
-        with open(f"./results/outputs_" + str(output_entity.id) + ".json", "w", encoding="utf-8") as outputfile:
+        with open(f"./results/outputs_{str(output_entity.id)}.json",
+                  "w", encoding="utf-8") as outputfile:
             json.dump(outputs, outputfile)
 
         for command in output_commands:

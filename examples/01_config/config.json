@@ -7,33 +7,33 @@
     },
     "inputs": [
         {
-            "id": "dhw_calculation",
+            "id": "input_fiware_01",
             "interface": "fiware",
-            "id_interface": "urn:dhw_calculation:10",
+            "id_interface": "urn:input_fiware:01",
             "attributes": [
                 {"id": "temperature", 
-                "id_interface":"dhw:temperature",
+                "id_interface":"temperature",
                 "type": "timeseries"
                 },
-                {"id": "tapping", 
-                "id_interface":"dhw:tapping",
-                "type": "timeseries"
+                {"id": "power", 
+                "id_interface":"power",
+                "type": "value"
                 }
             ]
         }
     ],
     "outputs": [
         {
-            "id": "dhw_calculation",
+            "id": "xyz_calculation",
             "interface": "fiware",
-            "id_interface": "urn:dhw_calculation:10",
+            "id_interface": "urn:xyz_calculation",
             "attributes": [
-                {"id": "hygienic_status", 
-                "id_interface":"dhw:tapping",
+                {"id": "temperature", 
+                "id_interface":"temperature_1",
                 "type": "value"
                 },
-                {"id": "hygienic_df", 
-                "id_interface":"dhw:tapping",
+                {"id": "heat", 
+                "id_interface":"heat_1",
                 "type": "timeseries"
                 }
             ],
@@ -61,12 +61,12 @@
             },
             "outputs":{
                 "hygienic_status": {
-                    "entity" : "dhw_calculation",
-                    "attribute": "hygienic_status"
+                    "entity" : "xyz_calculation",
+                    "attribute": "temperature"
                 },
                 "hygienic_data": {
-                    "entity" : "dhw_calculation",
-                    "attribute": "hygienic_df"
+                    "entity" : "xyz_calculation",
+                    "attribute": "heat"
                 }
             },
             "config": {

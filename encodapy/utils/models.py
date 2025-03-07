@@ -21,6 +21,7 @@ class InputDataAttributeModel(BaseModel):
     - id: The id of the input data attribute
     - data: The input data as a DataFrame or a single value
     - unit: The unit of the input data
+    - data_type: The type of the input data (AttributeTypes)
     - data_available: If the data is available
     - latest_timestamp_input: The latest timestamp of the input data from the query or None,\
         if the data is not available

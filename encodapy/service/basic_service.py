@@ -208,7 +208,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 raise NotSupportedError
 
             await sleep(0.1)
-        
+
         if None in output_latest_timestamps:
             output_latest_timestamp = None
         else:
@@ -435,15 +435,19 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         Returns:
             - Union[DataTransferModel, None]: Output data from the calculation
         """
-
+        logger.debug("No calculation function implemented, "
+                     f"get the data only: {data.model_dump_json()}")
         return None
 
-    async def calibration(self, data: InputDataModel):
+    async def calibration(self,
+                          data: InputDataModel):
         """
         Function to start the calibration, do something with data - used in the services
         Only a dummy function, has to be implemented in the services
         """
 
+        logger.debug("No calibration function implemented, "
+                     f"get the data only: {data.model_dump_json()}")
         return None
 
     def prepare_output(self, data_output: DataTransferModel) -> OutputDataModel:
@@ -460,9 +464,13 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             OutputDataModel: OutputDataModel with the output data as formatted data
         """
         output_data = OutputDataModel(entities=[])
+
+        if data_output is None:
+            logger.debug("No data for preparing the output.")
+            return output_data
         output_attrs = {}
         output_cmds = {}
-        
+
         for component in data_output.components:
             for output in self.config.outputs:
                 if output.id == component.entity_id:
@@ -532,8 +540,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
             if data_input is not None:
 
-                data_output = await self.calculation(data=data_input, timestamp = start_time)
-                
+                data_output = await self.calculation(data=data_input)
+
                 data_output = self.prepare_output(data_output=data_output)
 
                 await self.send_outputs(data_output=data_output)

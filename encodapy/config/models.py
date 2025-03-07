@@ -18,7 +18,7 @@ from encodapy.config.types import (
     Interfaces,
     TimerangeTypes,
 )
-from encodapy.utils.error_handling import ConfigError
+from encodapy.utils.error_handling import ConfigError, InterfaceNotActive
 from encodapy.utils.units import DataUnits, TimeUnits
 
 
@@ -344,3 +344,70 @@ class ConfigModel(BaseModel):
             logger.error(e)
 
         raise ConfigError("Coudn't load configuration from json file")
+
+    @model_validator(mode="after")
+    def check_interfaces(self) -> "ConfigModel":
+        """Check the interfaces of the input / output.
+
+        Raises:
+            ValueError: If no interface is set or the interface is not active \
+                and in use for input or output
+
+        Returns:
+            ConfigModel: The model with the validated interfaces
+        """
+
+        if not any(
+            [self.interfaces.mqtt, self.interfaces.fiware, self.interfaces.file]
+        ):
+            raise InterfaceNotActive("At least one interface must be set.")
+
+        def check_interface_active(datapoints:Union[List[InputModel],
+                                                    List[StaticDataModel],
+                                                    List[OutputModel]],
+                                   ) -> None:
+            """
+            Check if the interface is active for the datapoints.
+
+            Args:
+                datapoints (Union[InputModel, StaticDataModel, OutputModel]): \
+                    The datapoints to check
+
+            Raises:
+                ValueError: If the datapoints are not valid
+                InterfaceNotActive: If the interface is not active \
+                    but used for the datapoints
+            """
+            if len(datapoints) == 0:
+                return
+            if isinstance(datapoints[0], InputModel):
+                config_part = "input"
+            elif isinstance(datapoints[0], StaticDataModel):
+                config_part = "static data"
+            elif isinstance(datapoints[0], OutputModel):
+                config_part = "output"
+            else:
+                raise ValueError("The input data is not valid")
+
+            for datapoint in datapoints:
+                if datapoint.interface == Interfaces.MQTT and not self.interfaces.mqtt:
+                    raise InterfaceNotActive(
+                        f"The MQTT interface is used for the {config_part} '{datapoint.id}', "
+                        "but not set in the configuration."
+                    )
+                if datapoint.interface == Interfaces.FIWARE and not self.interfaces.fiware:
+                    raise InterfaceNotActive(
+                        f"The FIWARE interface is used for the {config_part} '{datapoint.id}', "
+                        "but not set in the configuration."
+                    )
+                if datapoint.interface == Interfaces.FILE and not self.interfaces.file:
+                    raise InterfaceNotActive(
+                        f"The FILE interface is used for the {config_part} '{datapoint.id}', "
+                        "but not set in the configuration."
+                    )
+
+        check_interface_active(self.inputs)
+        check_interface_active(self.staticdata)
+        check_interface_active(self.outputs)
+
+        return self

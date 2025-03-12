@@ -244,7 +244,8 @@ class FileConnection:
                 }
             )
 
-        with open("./results/outputs.json", "w", encoding="utf-8") as outputfile:
+        with open(f"./results/outputs_{str(output_entity.id)}.json",
+                  "w", encoding="utf-8") as outputfile:
             json.dump(outputs, outputfile)
 
         for command in output_commands:

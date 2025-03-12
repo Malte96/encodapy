@@ -209,10 +209,13 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
             await sleep(0.1)
 
-        if len(output_latest_timestamps) > 0:
-            output_latest_timestamp = min(output_latest_timestamps)
-        else:
+        if None in output_latest_timestamps:
             output_latest_timestamp = None
+        else:
+            if len(output_latest_timestamps) > 0:
+                output_latest_timestamp = min(output_latest_timestamps)
+            else:
+                output_latest_timestamp = None
 
         for input_entity in self.config.inputs:
 
@@ -432,15 +435,19 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         Returns:
             - Union[DataTransferModel, None]: Output data from the calculation
         """
-
+        logger.debug("No calculation function implemented, "
+                     f"get the data only: {data.model_dump_json()}")
         return None
 
-    async def calibration(self, data: InputDataModel):
+    async def calibration(self,
+                          data: InputDataModel):
         """
         Function to start the calibration, do something with data - used in the services
         Only a dummy function, has to be implemented in the services
         """
 
+        logger.debug("No calibration function implemented, "
+                     f"get the data only: {data.model_dump_json()}")
         return None
 
     def prepare_output(self, data_output: DataTransferModel) -> OutputDataModel:
@@ -457,6 +464,10 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             OutputDataModel: OutputDataModel with the output data as formatted data
         """
         output_data = OutputDataModel(entities=[])
+
+        if data_output is None:
+            logger.debug("No data for preparing the output.")
+            return output_data
         output_attrs = {}
         output_cmds = {}
 

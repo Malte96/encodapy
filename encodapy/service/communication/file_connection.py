@@ -54,24 +54,7 @@ class FileConnection:
         self.file_params["TIME_FORMAT_FILE"] = os.environ.get(
             "TIME_FORMAT_FILE", DefaultEnvVariables.TIME_FORMAT_FILE.value
         )
-
-    def prepare_file_connection(self):
-        """
-        Function to prepare the file connection
-        """
-        # maybe it is nessesary to check which tiype of data file exits csv or json
-        # function to return the file extension
-        file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix
-
-        if file_extension == FileExtensionTypes.CSV.value:
-            logger.info(f"load config for {file_extension} -file")
-        elif file_extension == FileExtensionTypes.JSON.value:
-            logger.info(f"load config for {file_extension} -file")
-        else:
-            logger.info(f"File extension {file_extension} is not supported")
-            raise NotSupportedError
-        return file_extension
-        
+      
 
     def _get_last_timestamp_for_file_output(
         self, output_entity: OutputModel
@@ -108,12 +91,18 @@ class FileConnection:
         entity: InputModel,
     ) -> Union[InputDataEntityModel, None]:
 
-        file_type = self.prepare_file_connection()
-        if file_type == FileExtensionTypes.CSV.value:
-            data = self.get_data_from_csv_file(method=method, entity=entity)         
-        elif file_type == FileExtensionTypes.JSON.value:
+        # function to check input data-file and load data
+        # check of the file extension (compare in lower cases)
+        file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix.lower()
+
+        if file_extension == FileExtensionTypes.CSV.value:
+            logger.info(f"load config for {file_extension} -file")
+            data = self.get_data_from_csv_file(method=method, entity=entity)
+        elif file_extension == FileExtensionTypes.JSON.value:
+            logger.info(f"load config for {file_extension} -file")
             data = self.get_data_from_json_file(method=method, entity=entity)
         else:
+            logger.info(f"File extension {file_extension} is not supported")
             raise NotSupportedError
 
         return data

@@ -151,8 +151,8 @@ class FileConnection:
             if attribute.type == AttributeTypes.TIMESERIES:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id}",
-                    "of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id}"
+                    f"of entity {entity.id} not supported."
                 )
             elif attribute.type == AttributeTypes.VALUE:
 

@@ -13,6 +13,7 @@ from encodapy.config import (
     CommandModel,
     ConfigModel,
     DataQueryTypes,
+    FileExtensionTypes,
     DefaultEnvVariables,
     Interfaces,
     OutputModel,
@@ -231,9 +232,19 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
             elif input_entity.interface == Interfaces.FILE:
 
-                input_data.append(
-                    self.get_data_from_file(method=method, entity=input_entity)
-                )
+                #check type of file (csv or json)
+                file_type = self.prepare_file_connection()
+                print(file_type)
+                if file_type == FileExtensionTypes.CSV.value:
+                    input_data.append(
+                        self.get_data_from_csv_file(method=method, entity=input_entity)
+                    )
+                if file_type == FileExtensionTypes.JSON.value:
+                    input_data.append(
+                        self.get_data_from_json_file(method=method, entity=input_entity)
+                    )
+                else:
+                   raise NotSupportedError
 
             elif input_entity.interface == Interfaces.MQTT:
                 logger.warning(

@@ -39,6 +39,7 @@ class FileConnection:
 
     def __init__(self):
         self.file_params = {}
+        self.file_extension = None
 
     def load_file_params(self):
         """
@@ -70,6 +71,8 @@ class FileConnection:
         else:
             logger.info(f"File extension {file_extension} is not supported")
             raise NotSupportedError
+        return file_extension
+        
 
     def _get_last_timestamp_for_file_output(
         self, output_entity: OutputModel
@@ -99,8 +102,15 @@ class FileConnection:
             OutputDataEntityModel(id=output_id, attributes_status=timestamps),
             timestamp_latest_output,
         )
+    
+    def get_data_file_extension(
+            self
+    ):
+        path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
 
-    def get_data_from_file(
+        return
+
+    def get_data_from_csv_file(
         self,
         method: DataQueryTypes,
         entity: InputModel,
@@ -138,6 +148,7 @@ class FileConnection:
             logger.error(f"Error: File not found ({path_of_file})")
             # TODO: What to do if the file is not found?
             return None
+        
         for attribute in entity.attributes:
 
             if attribute.type == AttributeTypes.TIMESERIES:
@@ -145,6 +156,70 @@ class FileConnection:
                 logger.warning(
                     f"Attribute type {attribute.type} for attribute {attribute.id} \
                     of entity {entity.id} not supported."
+                )
+            elif attribute.type == AttributeTypes.VALUE:
+
+                attributes_values.append(
+                    InputDataAttributeModel(
+                        id=attribute.id,
+                        data=data[attribute.id_interface].iloc[0],
+                        data_type=AttributeTypes.VALUE,
+                        data_available=True,
+                        latest_timestamp_input=data.index[0],
+                    )
+                )
+            else:
+                logger.warning(
+                    f"Attribute type {attribute.type} for attribute {attribute.id} \
+                    of entity {entity.id} not supported."
+                )
+
+        return InputDataEntityModel(id=entity.id, attributes=attributes_values)
+    
+    def get_data_from_json_file(
+        self,
+        method: DataQueryTypes,
+        entity: InputModel,
+    ) -> Union[InputDataEntityModel, None]:
+        """
+            Function to read input data for calculations from a input file.
+            first step: read the keys and values in the file / id_inputs.
+            Then get the data from the entity since the last timestamp
+            of the output entity from cratedb.
+        Args:
+            - method (DataQueryTypes): Keyword for type of query
+            - entity (InputModel): Input entity
+        TODO:
+             - timestamp_latest_output (datetime): Timestamp of the input value
+             -  -> seperating Data in Calculation or here ??
+             - handle the methods for the file interface
+
+        Returns:
+            - InputDataEntityModel: Model with the input data or None if the connection
+            to the platform is not available
+
+        """
+
+        # attributes_timeseries = {}
+        attributes_values = []
+        path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
+        time_format = self.file_params["TIME_FORMAT_FILE"]
+        try:
+            #read data from json file and timestamp
+            with open(path_of_file) as f:
+                data = json.load(f)
+            print(data)
+        except FileNotFoundError:
+            logger.error(f"Error: File not found ({path_of_file})")
+            # TODO: What to do if the file is not found?
+            return None
+        
+        for attribute in entity.attributes:
+            print(attribute)
+            if attribute.type == AttributeTypes.TIMESERIES:
+                # attributes_timeseries[attribute.id] = attribute.id_interface
+                logger.warning(
+                    f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
                 )
             elif attribute.type == AttributeTypes.VALUE:
 

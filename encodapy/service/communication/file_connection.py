@@ -55,7 +55,6 @@ class FileConnection:
             "TIME_FORMAT_FILE", DefaultEnvVariables.TIME_FORMAT_FILE.value
         )
       
-
     def _get_last_timestamp_for_file_output(
         self, output_entity: OutputModel
     ) -> tuple[OutputDataEntityModel, Union[datetime, None]]:
@@ -82,7 +81,7 @@ class FileConnection:
 
         return (
             OutputDataEntityModel(id=output_id, attributes_status=timestamps),
-            timestamp_latest_output,
+            timestamp_latest_output
         )
     
     def get_data_from_file(
@@ -130,7 +129,6 @@ class FileConnection:
             to the platform is not available
 
         """
-
         # attributes_timeseries = {}
         attributes_values = []
         path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
@@ -144,8 +142,7 @@ class FileConnection:
         except FileNotFoundError:
             logger.error(f"Error: File not found ({path_of_file})")
             # TODO: What to do if the file is not found?
-            return None
-        
+            return None       
         for attribute in entity.attributes:
 
             if attribute.type == AttributeTypes.TIMESERIES:
@@ -208,8 +205,7 @@ class FileConnection:
         except FileNotFoundError:
             logger.error(f"Error: File not found ({path_of_file})")
             # TODO: What to do if the file is not found?
-            return None
-        
+            return None      
         for attribute in entity.attributes:
             if attribute.type == AttributeTypes.TIMESERIES:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
@@ -224,8 +220,7 @@ class FileConnection:
                             data_available=True,
                             latest_timestamp_input=time,
                         )
-                    )
-                
+                    )              
             elif attribute.type == AttributeTypes.VALUE:
 
                 attributes_values.append(
@@ -239,7 +234,8 @@ class FileConnection:
                 )
             else:
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id}"
+                    f"of entity {entity.id} not supported."
                 )
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)

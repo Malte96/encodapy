@@ -101,9 +101,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         if self.config.interfaces.fiware:
             self.prepare_fiware_connection()
 
-        if self.config.interfaces.file:
-
-            self.prepare_file_connection()
+        # this is not nessesary here, because it will be check every time a inputfile is loaded
+        #if self.config.interfaces.file:
+            #self.prepare_file_connection()
 
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
@@ -232,19 +232,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
             elif input_entity.interface == Interfaces.FILE:
 
-                #check type of file (csv or json)
-                file_type = self.prepare_file_connection()
-                print(file_type)
-                if file_type == FileExtensionTypes.CSV.value:
-                    input_data.append(
-                        self.get_data_from_csv_file(method=method, entity=input_entity)
+                input_data.append(
+                        self.get_data_from_file(method=method, entity=input_entity)
                     )
-                if file_type == FileExtensionTypes.JSON.value:
-                    input_data.append(
-                        self.get_data_from_json_file(method=method, entity=input_entity)
-                    )
-                else:
-                   raise NotSupportedError
 
             elif input_entity.interface == Interfaces.MQTT:
                 logger.warning(
@@ -428,8 +418,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         if ((datetime.now() - start_time).total_seconds()) > hold_time:
             logger.warning(
-                "The processing time is longer than the sampling time. \
-                The sampling time must be increased!"
+                "The processing time is longer than the sampling time."
+                "The sampling time must be increased!"
             )
         while ((datetime.now() - start_time).total_seconds()) < hold_time:
             await sleep(0.1)

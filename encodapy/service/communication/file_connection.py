@@ -39,7 +39,6 @@ class FileConnection:
 
     def __init__(self):
         self.file_params = {}
-        self.file_extension = None
 
     def load_file_params(self):
         """
@@ -103,12 +102,21 @@ class FileConnection:
             timestamp_latest_output,
         )
     
-    def get_data_file_extension(
-            self
-    ):
-        path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
+    def get_data_from_file(
+        self,
+        method: DataQueryTypes,
+        entity: InputModel,
+    ) -> Union[InputDataEntityModel, None]:
 
-        return
+        file_type = self.prepare_file_connection()
+        if file_type == FileExtensionTypes.CSV.value:
+            data = self.get_data_from_csv_file(method=method, entity=entity)         
+        elif file_type == FileExtensionTypes.JSON.value:
+            data = self.get_data_from_json_file(method=method, entity=entity)
+        else:
+            raise NotSupportedError
+
+        return data
 
     def get_data_from_csv_file(
         self,
@@ -154,8 +162,8 @@ class FileConnection:
             if attribute.type == AttributeTypes.TIMESERIES:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id}",
+                    "of entity {entity.id} not supported."
                 )
             elif attribute.type == AttributeTypes.VALUE:
 
@@ -170,8 +178,8 @@ class FileConnection:
                 )
             else:
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id}"
+                    f"of entity {entity.id} not supported."
                 )
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
@@ -216,12 +224,8 @@ class FileConnection:
         for attribute in entity.attributes:
             if attribute.type == AttributeTypes.TIMESERIES:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
-                logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} is actually in developing status."
-                )
 
                 for input in data:
-                    print(input['time'])
                     time = datetime.strptime(input['time'], time_format)
                     attributes_values.append(
                         InputDataAttributeModel(
@@ -232,8 +236,7 @@ class FileConnection:
                             latest_timestamp_input=time,
                         )
                     )
-                print(attributes_values)
-
+                
             elif attribute.type == AttributeTypes.VALUE:
 
                 attributes_values.append(
@@ -291,8 +294,8 @@ class FileConnection:
             else:
                 # Not supported attribute type - should not happen
                 raise NotSupportedError(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported"
+                    f"Attribute type {attribute.type} for attribute {attribute.id}"
+                    f"of entity {entity.id} not supported"
                 )
 
         return StaticDataEntityModel(id=entity.id, attributes=attributes_values)

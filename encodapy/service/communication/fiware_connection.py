@@ -419,8 +419,8 @@ class FiwareConnection:
                 )
             else:
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id}"
+                    f"of entity {entity.id} not supported."
                 )
                 raise NotImplementedError
 

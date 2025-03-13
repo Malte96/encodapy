@@ -54,7 +54,7 @@ class FileConnection:
         self.file_params["TIME_FORMAT_FILE"] = os.environ.get(
             "TIME_FORMAT_FILE", DefaultEnvVariables.TIME_FORMAT_FILE.value
         )
-      
+
     def _get_last_timestamp_for_file_output(
         self, output_entity: OutputModel
     ) -> tuple[OutputDataEntityModel, Union[datetime, None]]:
@@ -83,7 +83,7 @@ class FileConnection:
             OutputDataEntityModel(id=output_id, attributes_status=timestamps),
             timestamp_latest_output
         )
-    
+
     def get_data_from_file(
         self,
         method: DataQueryTypes,
@@ -142,7 +142,7 @@ class FileConnection:
         except FileNotFoundError:
             logger.error(f"Error: File not found ({path_of_file})")
             # TODO: What to do if the file is not found?
-            return None       
+            return None
         for attribute in entity.attributes:
 
             if attribute.type == AttributeTypes.TIMESERIES:
@@ -169,7 +169,7 @@ class FileConnection:
                 )
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
-    
+
     def get_data_from_json_file(
         self,
         method: DataQueryTypes,
@@ -205,7 +205,7 @@ class FileConnection:
         except FileNotFoundError:
             logger.error(f"Error: File not found ({path_of_file})")
             # TODO: What to do if the file is not found?
-            return None      
+            return None
         for attribute in entity.attributes:
             if attribute.type == AttributeTypes.TIMESERIES:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
@@ -220,7 +220,7 @@ class FileConnection:
                             data_available=True,
                             latest_timestamp_input=time,
                         )
-                    )              
+                    )
             elif attribute.type == AttributeTypes.VALUE:
 
                 attributes_values.append(

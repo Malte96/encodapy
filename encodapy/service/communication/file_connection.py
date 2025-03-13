@@ -208,19 +208,32 @@ class FileConnection:
             #read data from json file and timestamp
             with open(path_of_file) as f:
                 data = json.load(f)
-            print(data)
         except FileNotFoundError:
             logger.error(f"Error: File not found ({path_of_file})")
             # TODO: What to do if the file is not found?
             return None
         
         for attribute in entity.attributes:
-            print(attribute)
             if attribute.type == AttributeTypes.TIMESERIES:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} is actually in developing status."
                 )
+
+                for input in data:
+                    print(input['time'])
+                    time = datetime.strptime(input['time'], time_format)
+                    attributes_values.append(
+                        InputDataAttributeModel(
+                            id=attribute.id,
+                            data=input['value'],
+                            data_type=AttributeTypes.TIMESERIES,
+                            data_available=True,
+                            latest_timestamp_input=time,
+                        )
+                    )
+                print(attributes_values)
+
             elif attribute.type == AttributeTypes.VALUE:
 
                 attributes_values.append(
@@ -234,8 +247,7 @@ class FileConnection:
                 )
             else:
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id} of entity {entity.id} not supported."
                 )
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)

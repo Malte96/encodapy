@@ -92,17 +92,13 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         Function to create important objects with the configuration from the configuration
         file (.env) and prepare the start basics of the service.
-        TODO:- Implement the other interfaces(MQTT, ...)
+        TODO: Implement the other interfaces(MQTT, ...)
         """
 
         self._load_config()
 
         if self.config.interfaces.fiware:
             self.prepare_fiware_connection()
-
-        if self.config.interfaces.file:
-
-            self.prepare_file_connection()
 
         if self.config.interfaces.mqtt:
             logger.warning("MQTT interface not implemented yet.")
@@ -232,8 +228,10 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             elif input_entity.interface == Interfaces.FILE:
 
                 input_data.append(
-                    self.get_data_from_file(method=method, entity=input_entity)
-                )
+                        self.get_data_from_file(
+                            method=method,
+                            entity=input_entity)
+                    )
 
             elif input_entity.interface == Interfaces.MQTT:
                 logger.warning(
@@ -417,8 +415,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         if ((datetime.now() - start_time).total_seconds()) > hold_time:
             logger.warning(
-                "The processing time is longer than the sampling time. \
-                The sampling time must be increased!"
+                "The processing time is longer than the sampling time."
+                "The sampling time must be increased!"
             )
         while ((datetime.now() - start_time).total_seconds()) < hold_time:
             await sleep(0.1)

@@ -55,22 +55,6 @@ class FileConnection:
             "TIME_FORMAT_FILE", DefaultEnvVariables.TIME_FORMAT_FILE.value
         )
 
-    def prepare_file_connection(self):
-        """
-        Function to prepare the file connection
-        """
-        # maybe it is nessesary to check which tiype of data file exits csv or json
-        # function to return the file extension
-        file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix
-
-        if file_extension == FileExtensionTypes.CSV.value:
-            logger.info(f"load config for {file_extension} -file")
-        elif file_extension == FileExtensionTypes.JSON.value:
-            logger.info(f"load config for {file_extension} -file")
-        else:
-            logger.info(f"File extension {file_extension} is not supported")
-            raise NotSupportedError
-
     def _get_last_timestamp_for_file_output(
         self, output_entity: OutputModel
     ) -> tuple[OutputDataEntityModel, Union[datetime, None]]:
@@ -97,10 +81,45 @@ class FileConnection:
 
         return (
             OutputDataEntityModel(id=output_id, attributes_status=timestamps),
-            timestamp_latest_output,
+            timestamp_latest_output
         )
 
     def get_data_from_file(
+        self,
+        method: DataQueryTypes,
+        entity: InputModel,
+    ) -> Union[InputDataEntityModel, None]:
+        """f
+        Function to check input data-file and load data, \
+        check of the file extension (compare in lower cases)
+
+        Args:
+            method (DataQueryTypes): Keyword for type of query
+            entity (InputModel): Input entity
+
+        Raises:
+            NotSupportedError: If the file extension is not supported
+
+        Returns:
+            Union[InputDataEntityModel, None]: Model with the input data or \
+                None if no data is available
+        """
+
+        file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix.lower()
+
+        if file_extension == FileExtensionTypes.CSV.value:
+            logger.info(f"load config for {file_extension} -file")
+            data = self.get_data_from_csv_file(method=method, entity=entity)
+        elif file_extension == FileExtensionTypes.JSON.value:
+            logger.info(f"load config for {file_extension} -file")
+            data = self.get_data_from_json_file(method=method, entity=entity)
+        else:
+            logger.info(f"File extension {file_extension} is not supported")
+            raise NotSupportedError
+
+        return data
+
+    def get_data_from_csv_file(
         self,
         method: DataQueryTypes,
         entity: InputModel,
@@ -123,7 +142,6 @@ class FileConnection:
             to the platform is not available
 
         """
-
         # attributes_timeseries = {}
         attributes_values = []
         path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
@@ -143,8 +161,8 @@ class FileConnection:
             if attribute.type == AttributeTypes.TIMESERIES:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id}"
+                    f"of entity {entity.id} not supported."
                 )
             elif attribute.type == AttributeTypes.VALUE:
 
@@ -159,8 +177,78 @@ class FileConnection:
                 )
             else:
                 logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported."
+                    f"Attribute type {attribute.type} for attribute {attribute.id}"
+                    f"of entity {entity.id} not supported."
+                )
+
+        return InputDataEntityModel(id=entity.id, attributes=attributes_values)
+
+    def get_data_from_json_file(
+        self,
+        method: DataQueryTypes,
+        entity: InputModel,
+    ) -> Union[InputDataEntityModel, None]:
+        """
+            Function to read input data for calculations from a input file.
+            first step: read the keys and values in the file / id_inputs.
+            Then get the data from the entity since the last timestamp
+            of the output entity from cratedb.
+        Args:
+            - method (DataQueryTypes): Keyword for type of query
+            - entity (InputModel): Input entity
+        TODO:
+             - timestamp_latest_output (datetime): Timestamp of the input value
+             -  -> seperating Data in Calculation or here ??
+             - handle the methods for the file interface
+
+        Returns:
+            - InputDataEntityModel: Model with the input data or None if the connection
+            to the platform is not available
+
+        """
+
+        # attributes_timeseries = {}
+        attributes_values = []
+        path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
+        time_format = self.file_params["TIME_FORMAT_FILE"]
+        try:
+            #read data from json file and timestamp
+            with open(path_of_file, encoding="utf-8") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            logger.error(f"Error: File not found ({path_of_file})")
+            # TODO: What to do if the file is not found?
+            return None
+        for attribute in entity.attributes:
+            if attribute.type == AttributeTypes.TIMESERIES:
+                # attributes_timeseries[attribute.id] = attribute.id_interface
+
+                for input_data in data:
+                    time = datetime.strptime(input_data['time'], time_format)
+                    attributes_values.append(
+                        InputDataAttributeModel(
+                            id=attribute.id,
+                            data=input_data['value'],
+                            data_type=AttributeTypes.TIMESERIES,
+                            data_available=True,
+                            latest_timestamp_input=time,
+                        )
+                    )
+            elif attribute.type == AttributeTypes.VALUE:
+
+                attributes_values.append(
+                    InputDataAttributeModel(
+                        id=attribute.id,
+                        data=data[attribute.id_interface].iloc[0],
+                        data_type=AttributeTypes.VALUE,
+                        data_available=True,
+                        latest_timestamp_input=data.index[0],
+                    )
+                )
+            else:
+                logger.warning(
+                    f"Attribute type {attribute.type} for attribute {attribute.id}"
+                    f"of entity {entity.id} not supported."
                 )
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
@@ -187,7 +275,7 @@ class FileConnection:
 
             if attribute.type == AttributeTypes.TIMESERIES:
                 raise NotSupportedError("Timeseries not supported for static data")
-                # TODO: Implement the timeseries
+                #TODO: Implement the timeseries
 
             if attribute.type == AttributeTypes.VALUE:
 
@@ -204,8 +292,8 @@ class FileConnection:
             else:
                 # Not supported attribute type - should not happen
                 raise NotSupportedError(
-                    f"Attribute type {attribute.type} for attribute {attribute.id} \
-                    of entity {entity.id} not supported"
+                    f"Attribute type {attribute.type} for attribute {attribute.id}"
+                    f"of entity {entity.id} not supported"
                 )
 
         return StaticDataEntityModel(id=entity.id, attributes=attributes_values)

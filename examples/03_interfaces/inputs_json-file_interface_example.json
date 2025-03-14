@@ -1,0 +1,1 @@
+[{"id_interface": "urn:input_fiware:01.temperature", "value": 20.0, "time": "2025-01-01T00:00:00Z"}, {"id_interface": "urn:input_fiware:01.power", "value": 12658.9, "time": "2025-01-01T00:00:00Z"}]

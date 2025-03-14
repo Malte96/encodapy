@@ -19,14 +19,18 @@ Data exchange with the data platform of the N5GEH / FIWARE platform using the fo
 #TODO
 ## File
 Data exchange with via local file.
-- Read input data from a file (Note: only `.csv` is supported currently)
+- Read input data from a file (Note: only `.csv` and `.json` is supported currently)
     - Read values for the actual (simulation) time of configured input from file
     - csv characteristics:
         - Name column of time = "Time"
         - csv separator = ";"
         - decimal= ","
-    - Column name (specific input) in `.csv` must be the like `${Attribute-id_interface}` from the config (Important: the IDs of the attributes `id_interface` over the the interface "file" must therefore be unique)
-    - An example of this input is attached as [csv_interface_example.csv](./csv_interface_example.csv), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
+        - Column name (specific input) in `.csv` must be the like `${Attribute-id_interface}` from the config (Important: the IDs of the attributes `id_interface` over the the interface "file" must therefore be unique)
+        - An example of this input is attached as [inputs_csv-file_interface_example.csv](./inputs_csv-file_interface_example.csv), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
+    - json characteristics:
+        - key of timestamp = "time"
+        - key name (specific input) in `.json` must be the like `${Attribute-id_interface}` from the config (Important: the IDs of the attributes `id_interface` over the the interface "file" must therefore be unique)
+        - An example of this input is attached as [inputs_json-file_interface_example.json](./inputs_json-file_interface_example.json), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
 - Write data to a results file (`.json`)
     - send results of the service to file (for each entity) and timestemp
     - An example of this outputs is attached as [outputs_dhw_calculation_example.json](./outputs_dhw_calculation_example.json), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)

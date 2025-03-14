@@ -89,9 +89,22 @@ class FileConnection:
         method: DataQueryTypes,
         entity: InputModel,
     ) -> Union[InputDataEntityModel, None]:
+        """f
+        Function to check input data-file and load data, \
+        check of the file extension (compare in lower cases)
 
-        # function to check input data-file and load data
-        # check of the file extension (compare in lower cases)
+        Args:
+            method (DataQueryTypes): Keyword for type of query
+            entity (InputModel): Input entity
+
+        Raises:
+            NotSupportedError: If the file extension is not supported
+
+        Returns:
+            Union[InputDataEntityModel, None]: Model with the input data or \
+                None if no data is available
+        """
+
         file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix.lower()
 
         if file_extension == FileExtensionTypes.CSV.value:
@@ -200,7 +213,7 @@ class FileConnection:
         time_format = self.file_params["TIME_FORMAT_FILE"]
         try:
             #read data from json file and timestamp
-            with open(path_of_file) as f:
+            with open(path_of_file, encoding="utf-8") as f:
                 data = json.load(f)
         except FileNotFoundError:
             logger.error(f"Error: File not found ({path_of_file})")
@@ -210,12 +223,12 @@ class FileConnection:
             if attribute.type == AttributeTypes.TIMESERIES:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
 
-                for input in data:
-                    time = datetime.strptime(input['time'], time_format)
+                for input_data in data:
+                    time = datetime.strptime(input_data['time'], time_format)
                     attributes_values.append(
                         InputDataAttributeModel(
                             id=attribute.id,
-                            data=input['value'],
+                            data=input_data['value'],
                             data_type=AttributeTypes.TIMESERIES,
                             data_available=True,
                             latest_timestamp_input=time,
@@ -262,7 +275,7 @@ class FileConnection:
 
             if attribute.type == AttributeTypes.TIMESERIES:
                 raise NotSupportedError("Timeseries not supported for static data")
-                # TODO: Implement the timeseries
+                #TODO: Implement the timeseries
 
             if attribute.type == AttributeTypes.VALUE:
 

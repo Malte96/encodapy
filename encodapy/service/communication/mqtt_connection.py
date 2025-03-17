@@ -6,6 +6,7 @@ Author: Maximilian Beyer
 
 import os
 import paho.mqtt.client as mqtt
+from paho.mqtt.enums import CallbackAPIVersion
 from encodapy.utils.error_handling import NotSupportedError, ConfigError
 from encodapy.config import DefaultEnvVariables
 
@@ -17,7 +18,8 @@ class MqttConnection:
 
     def __init__(self):
         self.mqtt_params = {}
-        self.client = None
+        self.load_mqtt_params()
+        self.prepare_mqtt_connection()
 
     def load_mqtt_params(self):
         """
@@ -36,7 +38,7 @@ class MqttConnection:
         """
         Function to prepare the mqtt connection
         """
-        self.client = mqtt.Client()
+        self.client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
         self.client.username_pw_set(self.mqtt_params["username"], self.mqtt_params["password"])
         self.client.connect(self.mqtt_params["broker"], self.mqtt_params["port"])
 

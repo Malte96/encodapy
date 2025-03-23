@@ -13,7 +13,7 @@
 - The controller has the functionality to read a configuration from JSON and ENV, validate it and return it as a model.
 
 ## Configuration
-- The configuration of the service must be provided via `config.json` and has several sections (see the [examples](###Examples)):
+- The configuration of the service must be provided via `config.json` and has several sections (see the [examples](#examples)):
     - `name`: Controller name - for documentation purposes only
     - `interfaces`: Indicates which interfaces are active
     - `inputs`: Configuration of the inputs to the controller
@@ -61,10 +61,14 @@ To start the service, you need to call
 - `start_calibration()`: To start the calibration if required
 - `start_service()`: To start the service
 
-A easy posibility to start the service is to run the base [main.py](./service_main/main.py). For more details, see the [examples](###Examples)
+A easy posibility to start the service is to run the base [main.py](./service_main/main.py). For more details, see the [examples](#examples)
 
 ### Examples
-For different examples and documentation, how to use the tool - see [examples](./examples/)
+For different examples and documentation, how to use the tool - see [examples](./examples/).
+
+The examples are intended to help you use the tool and understand how it works:
+- the configuration
+- the use
 
 ### Units
 - Inputs and outputs get information about the unit. The class [`DataUnits`](./controller_software/utils/units.py) is used for this.

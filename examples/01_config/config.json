@@ -11,74 +11,81 @@
             "interface": "fiware",
             "id_interface": "urn:input_fiware:01",
             "attributes": [
-                {"id": "temperature", 
-                "id_interface":"temperature",
+                {"id": "temperature_1", 
+                "id_interface":"temperature:01",
                 "type": "timeseries"
                 },
-                {"id": "power", 
-                "id_interface":"power",
-                "type": "value"
+                {"id": "temperature_2", 
+                "id_interface":"temperature:01",
+                "type": "timeseries"
                 }
             ]
         }
     ],
     "outputs": [
         {
-            "id": "xyz_calculation",
+            "id": "storage_calculation",
             "interface": "fiware",
-            "id_interface": "urn:xyz_calculation",
+            "id_interface": "urn:storage_calculation:01",
             "attributes": [
-                {"id": "temperature", 
-                "id_interface":"temperature_1",
+                {"id": "state_of_charge", 
+                "id_interface":"state_of_charge",
                 "type": "value"
                 },
-                {"id": "heat", 
-                "id_interface":"heat_1",
+                {"id": "temperature_mean", 
+                "id_interface":"temperature_mean",
                 "type": "timeseries"
                 }
             ],
             "commands":[
-                {"id": "hygienic_status", 
-                "id_interface":"dhw:hygienic_status"
+                {"id": "charge_cmd", 
+                "id_interface":"cmd:charge"
                 }
             ]
         }
     ],
-    "staticdata": [],
+    "staticdata": [
+        {
+            "id": "input_fiware_01",
+            "interface": "fiware",
+            "id_interface": "urn:input_fiware:01",
+            "attributes": [
+                {"id": "storage_volume", 
+                "id_interface":"storage_volume",
+                "type": "value"
+                }
+            ]
+        }
+    ],
     "controller_components": [
         {
-            "id": "hygienic_controller",
-            "type": "hygienic_controller",
+            "id": "storage_controller",
+            "type": "storage_controller",
             "inputs": {
-                "temperature": {
-                    "entity" : "dhw_calculation",
-                    "attribute": "temperature"
+                "temperature_01": {
+                    "entity" : "input_fiware_01",
+                    "attribute": "temperature_1"
                 }, 
-                "tappings": {
-                    "entity" : "dhw_calculation",
-                    "attribute": "tapping"
+                "temperature_02": {
+                    "entity" : "input_fiware_01",
+                    "attribute": "temperature_2"
+                },
+                "storage_volume": {
+                    "entity" : "input_fiware_01",
+                    "attribute": "storage_volume"
                 }
             },
             "outputs":{
-                "hygienic_status": {
-                    "entity" : "xyz_calculation",
-                    "attribute": "temperature"
+                "state_of_charge": {
+                    "entity" : "storage_calculation",
+                    "attribute": "state_of_charge"
                 },
-                "hygienic_data": {
-                    "entity" : "xyz_calculation",
-                    "attribute": "heat"
+                "charge_cmd": {
+                    "entity" : "storage_calculation",
+                    "attribute": "charge_cmd"
                 }
             },
-            "config": {
-                "temperatures": {
-                                    "warning_limit": 45,
-                                    "optimal_limit": 55
-                                },
-                "time_of_stay":{
-                                    "stay_limit": 24,
-                                    "tapping_limit": 5
-                                }
-                }
+            "config": {}
         }
     ],
     "controller_settings": {
@@ -91,7 +98,8 @@
             },
             "results":
             {
-                "timestep":10
+                "timestep":10,
+                "timerange_unit":"minute"
             }
         }
     }

@@ -29,7 +29,7 @@ class MqttConnection:
         self.mqtt_params["port"] = int(os.environ.get("MQTT_PORT", DefaultEnvVariables.MQTT_PORT.value))
         self.mqtt_params["username"] = os.environ.get("MQTT_USERNAME", DefaultEnvVariables.MQTT_USERNAME.value)
         self.mqtt_params["password"] = os.environ.get("MQTT_PASSWORD", DefaultEnvVariables.MQTT_PASSWORD.value)
-        self.mqtt_params["topic"] = os.environ.get("MQTT_TOPIC", DefaultEnvVariables.MQTT_TOPIC.value)
+        self.mqtt_params["topic"] = os.environ.get("MQTT_TOPIC_PREFIX", DefaultEnvVariables.MQTT_TOPIC_PREFIX.value)
 
         if not self.mqtt_params["broker"] or not self.mqtt_params["port"]:
             raise ConfigError("MQTT broker and port must be set")

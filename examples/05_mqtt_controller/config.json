@@ -28,6 +28,12 @@
                     "id_interface":"IP_t_sen_o",
                     "type": "value",
                     "value": 60
+                },
+                {
+                    "id": "t_hs_set",
+                    "id_interface":"IP_t_soll_HK",
+                    "type": "value",
+                    "value": 45
                 }
             ]
         },

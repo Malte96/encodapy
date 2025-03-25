@@ -52,6 +52,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         self.logger = LoggerControl()
 
         self.file_params = {}
+        self.mqtt_params = {}
         self.reload_staticdata = False
         self.staticdata = None
 
@@ -200,7 +201,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
             elif output_entity.interface == Interfaces.MQTT:
                 logger.warning("MQTT interface for output_entity not implemented yet.")
-                raise NotSupportedError
+                raise NotSupportedError  # TODO: Implement the MQTT interface
 
             await sleep(0.1)
 

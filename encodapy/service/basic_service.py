@@ -101,8 +101,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             self.prepare_fiware_connection()
 
         if self.config.interfaces.mqtt:
-            logger.warning("MQTT interface not implemented yet.")
-            raise NotSupportedError
+            self.prepare_mqtt_connection()
 
         return
 

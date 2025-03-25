@@ -1,0 +1,107 @@
+{
+    "name": "mqtt_controller",
+    "interfaces":{
+        "mqtt": true,
+        "fiware": false,
+        "file": false
+    },
+    "inputs": [
+        {
+            "id": "TRNSYS-Outputs",
+            "interface": "mqtt",
+            "id_interface": "MQTT/T207/RBV01/SENDEN",
+            "attributes": [
+                {
+                    "id": "t_out", 
+                    "id_interface":"IP_t_a",
+                    "type": "value",
+                    "value": 0
+                },
+                {
+                    "id": "t_hs_bot", 
+                    "id_interface":"IP_t_sen_u",
+                    "type": "value",
+                    "value": 20
+                },
+                {
+                    "id": "t_hs_top", 
+                    "id_interface":"IP_t_sen_o",
+                    "type": "value",
+                    "value": 60
+                }
+            ]
+        },
+        {
+            "id": "PB-Outputs",
+            "interface": "mqtt",
+            "id_interface": "MQTT/T207/RBV01/PB",
+            "attributes": [
+                {
+                    "id": "pb_flow_temp_from_model", 
+                    "id_interface":"flow_temp",
+                    "type": "value",
+                    "value": 40
+                }
+            ]
+        }
+    ],
+    "outputs": [
+        {
+            "id": "system-controller",
+            "interface": "mqtt",
+            "id_interface": "MQTT/T207/RBV01/",
+            "attributes": [],
+            "commands":[
+                {
+                    "id": "pb_heat_on", 
+                    "id_interface":"OP_S_Ke"
+                }
+            ]
+        }
+    ],
+    "staticdata": [],
+    "controller_components": [
+        {
+            "id": "heat_controller",
+            "type": "heat_controller",
+            "inputs": {
+                "temperature_measured": {
+                    "entity" : "thermal_storage",
+                    "attribute": "temperature_measured"
+                }, 
+                "temperature_setpoint": {
+                    "entity" : "thermal_storage",
+                    "attribute": "temperature_setpoint"
+                }, 
+                "heater_status": {
+                    "entity" : "heater",
+                    "attribute": "operation__setpoint"
+                }
+            },
+            "outputs":{
+                "heater_status": {
+                    "entity" : "heater",
+                    "attribute": "operation__setpoint"
+                }
+            },
+            "config": {
+                "temperature_hysteresis": 5
+                }
+        }
+    ],
+    "controller_settings": {
+        "time_settings":
+        {
+            "calculation":
+            {
+                "timerange":1,
+                "timerange_unit":"hour"
+            },
+            "calibration":
+            {
+                "timerange":24,
+                "timerange_unit":"hour"
+            }
+        }
+    }
+}

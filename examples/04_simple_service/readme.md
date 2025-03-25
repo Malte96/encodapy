@@ -1,6 +1,6 @@
 # Example for usage with a simple service
 ## Overview
-As an example of a simple service using Encodapy, a heating regulator based on a two-position regulator is created. The following parts show different aspects of the application:
+As an example of a simple service using Encodapy, a heating regulator based on a two-position regulator is created. The example shows a connection to a FIWARE platform. The following parts show different aspects of the application:
 - [configure_fiware_platform.ipynb](./configure_fiware_platform.ipynb): Notebook to add the needed configuration and values to the fiware platform
 - [config.json](./config.json): Configuration for the service - see [01_config](./../01_config/)
 - [example_service.py](./example_service.py): Code of the service example
@@ -14,7 +14,7 @@ FIWARE_CB= ["http://localhost:1026"]        # URL of the Context Broker
 FIWARE_SERVICE= ["example_service"]         # Name of the FIWARE Service
 FIWARE_SERVICE_PATH= ["/"]                  # FIWARE Service Path, usually "/"
 ```
-It is also necessary to have a running software platform.
+Furthermore, a running FIWARE platform ([n5geh.platform](https://github.com/N5GEH/n5geh.platform) - "NGSI-v2" version) is required to which a connection can be established with the above specified data. The configuration of the data points in the platform can be created with the following notebook [run_simple_service.ipynb](./run_simple_service.ipynb).
 
 ## Basics
 To create your own custom service, you have to overwrite two functions of the [ControllerBasicService](./../../encodapy/service/basic_service.py):

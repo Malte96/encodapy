@@ -18,8 +18,6 @@ class MqttConnection:
 
     def __init__(self):
         self.mqtt_params = {}
-        self.load_mqtt_params()
-        self.prepare_mqtt_connection()
 
     def load_mqtt_params(self):
         """

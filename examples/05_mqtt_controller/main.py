@@ -2,6 +2,7 @@
 Main file so start the example service
 """
 import asyncio
+from dotenv import load_dotenv
 from asyncio.tasks import sleep
 
 from mqtt_controller import MQTTController
@@ -28,4 +29,6 @@ async def main():
         await sleep(1)
 
 if __name__ == "__main__":
+    loaded_env = load_dotenv(".env")
+    print(f"Loaded env: {loaded_env}")
     asyncio.run(main())

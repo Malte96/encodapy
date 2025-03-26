@@ -6,7 +6,7 @@
     - receive data
     - start a calculation
     - return the results
-- This interaction is possible with several interfaces, see [n5geh.encodapy/examples/03_interfaces](./examples/03_interfaces/):
+- This interaction is possible with several interfaces, see [examples/03_interfaces](./examples/03_interfaces/):
     - FIWARE-API
     - MQTT
     - File

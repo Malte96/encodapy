@@ -22,11 +22,6 @@ from encodapy.utils.error_handling import ConfigError, InterfaceNotActive
 from encodapy.utils.units import DataUnits, TimeUnits
 
 
-# TODO: Add the configuration parameters and the import from a json-file
-# TODO: Add a documentation for the models
-# TODO: Is this validation implementation useful and correct?
-
-
 class InterfaceModel(BaseModel):
     """Base class for the interfaces
     TODO: - How to use this model?
@@ -88,7 +83,7 @@ class InputModel(BaseModel):
     - id: The id of the input
     - interface: The interface of the input
     - id_interface: The id of the input on the interface
-    - attributes: The attributes of the
+    - attributes: A list of attributes for the input as AttributeModel
 
     """
 
@@ -106,7 +101,7 @@ class StaticDataModel(InputModel):
     - id: The id of the input
     - interface: The interface of the input
     - id_interface: The id of the input on the interface
-    - attributes: The attributes of the
+    - attributes: A list of attributes for the static data as AttributeModel
 
     """
 
@@ -139,8 +134,10 @@ class ControllerComponentModel(BaseModel):
     id: str
     type: Union[
         ControllerComponents, str
-    ]  # TODO: How to reference the component types?
-    inputs: dict  # TODO: How to reference the input/output models?
+    ]
+    #TODO: How to reference the component types?
+    #TODO: How to reference the input/output models?
+    inputs: dict  
     outputs: dict
     config: dict
 

@@ -46,13 +46,13 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
     def __init__(
         self,
     ) -> None:
-        super().__init__()
+        FiwareConnection.__init__(self)
+        FileConnection.__init__(self)
+        MqttConnection.__init__(self)
 
         self.config = None
         self.logger = LoggerControl()
 
-        self.file_params = {}
-        self.mqtt_params = {}
         self.reload_staticdata = False
         self.staticdata = None
 

@@ -4,6 +4,7 @@ which is used to store the connection parameters for the MQTT broker.
 Author: Maximilian Beyer
 """
 
+import json
 import os
 from datetime import datetime
 from typing import Union
@@ -11,9 +12,13 @@ from typing import Union
 import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
 
-from encodapy.config import DefaultEnvVariables, OutputModel, InputModel, DataQueryTypes
+from encodapy.config import DataQueryTypes, DefaultEnvVariables, InputModel, OutputModel
 from encodapy.utils.error_handling import ConfigError, NotSupportedError
-from encodapy.utils.models import OutputDataEntityModel, InputDataEntityModel
+from encodapy.utils.models import (
+    InputDataAttributeModel,
+    InputDataEntityModel,
+    OutputDataEntityModel,
+)
 
 
 class MqttConnection:
@@ -24,6 +29,7 @@ class MqttConnection:
 
     def __init__(self):
         self.mqtt_params = {}
+        # TODO: Where to put together the topic-parts?
 
     def load_mqtt_params(self):
         """
@@ -112,8 +118,67 @@ class MqttConnection:
         Returns:
             Union[InputDataEntityModel, None]: Model with the input data or None if no data is available
         """
+        if not hasattr(self, "mqtt_message_store"):
+            raise NotSupportedError(
+                "MQTT message store is not initialized. Start the MQTT client first."
+            )
 
-        pass
+        attributes_values = []
+
+        for attribute in entity.attributes:
+            topic = (
+                attribute.id_interface
+            )  # Use the attribute's interface ID as the topic
+            if topic not in self.mqtt_message_store:
+                # If the topic is not in the message store, mark the data as unavailable
+                attributes_values.append(
+                    InputDataAttributeModel(
+                        id=attribute.id,
+                        data=None,
+                        data_type=attribute.type,
+                        data_available=False,
+                        latest_timestamp_input=None,
+                        unit=None,
+                    )
+                )
+                continue
+
+            # Decode the message payload and extract the data
+            message_payload = self.mqtt_message_store[topic]
+            try:
+                # Parse the payload (assuming JSON format for structured data)
+                payload_data = json.loads(message_payload)
+                data_value = payload_data.get("value", None)
+                timestamp = payload_data.get("timestamp", None)
+
+                # Convert timestamp to datetime if available
+                if timestamp:
+                    timestamp = datetime.fromisoformat(timestamp)
+
+                attributes_values.append(
+                    InputDataAttributeModel(
+                        id=attribute.id,
+                        data=data_value,
+                        data_type=attribute.type,
+                        data_available=True,
+                        latest_timestamp_input=timestamp,
+                        unit=None,  # Add unit handling if necessary
+                    )
+                )
+            except (json.JSONDecodeError, KeyError):
+                # Handle invalid or missing data in the payload
+                attributes_values.append(
+                    InputDataAttributeModel(
+                        id=attribute.id,
+                        data=None,
+                        data_type=attribute.type,
+                        data_available=False,
+                        latest_timestamp_input=None,
+                        unit=None,
+                    )
+                )
+
+        return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
     def _get_last_timestamp_for_mqtt_output(
         self, output_entity: OutputModel

@@ -1,10 +1,11 @@
 """
 Main file so start the example service
 """
+
 import asyncio
-from dotenv import load_dotenv
 from asyncio.tasks import sleep
 
+from dotenv import load_dotenv
 from mqtt_controller import MQTTController
 
 
@@ -22,11 +23,11 @@ async def main():
     task_for_calibration = asyncio.create_task(service.start_calibration())
     task_for_start_service = asyncio.create_task(service.start_service())
 
-    await asyncio.gather(task_for_calibration,
-                         task_for_start_service)
+    await asyncio.gather(task_for_calibration, task_for_start_service)
 
     while True:
         await sleep(1)
+
 
 if __name__ == "__main__":
     loaded_env = load_dotenv(".env")

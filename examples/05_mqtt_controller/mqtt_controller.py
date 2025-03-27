@@ -3,31 +3,34 @@ Description: This module contains the definition of a small example service \
     in the form of a heat controller based on a two point controller with hysteresis.
 Author: Martin Altenburger
 """
-from typing import Union
+
 from datetime import datetime, timezone
+from typing import Union
+
 from loguru import logger
+
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
-    InputDataModel,
-    InputDataEntityModel,
+    DataTransferComponentModel,
     DataTransferModel,
-    DataTransferComponentModel
-    )
+    InputDataEntityModel,
+    InputDataModel,
+)
 
 
 class MQTTController(ControllerBasicService):
     """
-        Class for a small example service
-        Service is used to show the basic structure of a service
-            - read the configuration
-            - prepare the start of the service
-            - start the service
-            - receive the data
-            - do the calculation
-            - send the data to the output
+    Class for a small example service
+    Service is used to show the basic structure of a service
+        - read the configuration
+        - prepare the start of the service
+        - start the service
+        - receive the data
+        - do the calculation
+        - send the data to the output
     """
 
-    def get_heat_controller_config(self)-> dict:
+    def get_heat_controller_config(self) -> dict:
         """
         Function to get the configuration of the heat controller
 
@@ -39,12 +42,13 @@ class MQTTController(ControllerBasicService):
                 return component
         raise ValueError("No heat controller configuration found")
 
-    def check_heater_command(self,
-                             temperature_setpoint:float,
-                             temperature_measured:float,
-                             hysteresis:float,
-                             heater_status_old:bool
-                             )-> bool:
+    def check_heater_command(
+        self,
+        temperature_setpoint: float,
+        temperature_measured: float,
+        hysteresis: float,
+        heater_status_old: bool,
+    ) -> bool:
         """
         Function to check if the heater should be on or off \
             based on a 2 point controller with hysteresis
@@ -64,15 +68,19 @@ class MQTTController(ControllerBasicService):
         if temperature_measured > temperature_setpoint:
             return False
 
-        if heater_status_old and temperature_measured > temperature_setpoint - hysteresis:
+        if (
+            heater_status_old
+            and temperature_measured > temperature_setpoint - hysteresis
+        ):
             return True
 
         return False
 
-    def get_input_values(self,
-                         input_entities:list[InputDataEntityModel],
-                         input_config:dict,
-                         )-> Union[float, int, str, bool]:
+    def get_input_values(
+        self,
+        input_entities: list[InputDataEntityModel],
+        input_config: dict,
+    ) -> Union[float, int, str, bool]:
         """
         Function to get the values of the input data
 
@@ -90,9 +98,7 @@ class MQTTController(ControllerBasicService):
                         return attribute.data
         raise ValueError(f"Input data {input_config['entity']} not found")
 
-    async def calculation(self,
-                          data: InputDataModel
-                          ):
+    async def calculation(self, data: InputDataModel):
         """
         Function to do the calculation
         Args:
@@ -103,25 +109,29 @@ class MQTTController(ControllerBasicService):
 
         inputs = {}
         for input_key, input_config in heater_config.inputs.items():
-            inputs[input_key] = self.get_input_values(input_entities=data.input_entities,
-                                                      input_config=input_config)
+            inputs[input_key] = self.get_input_values(
+                input_entities=data.input_entities, input_config=input_config
+            )
 
         heater_status = self.check_heater_command(
             temperature_setpoint=inputs["temperature_setpoint"],
             temperature_measured=inputs["temperature_measured"],
             hysteresis=heater_config.config["temperature_hysteresis"],
-            heater_status_old=bool(inputs["heater_status"]))
+            heater_status_old=bool(inputs["heater_status"]),
+        )
 
-        return DataTransferModel(components=[
-            DataTransferComponentModel(
-                entity_id=heater_config.outputs["heater_status"]["entity"],
-                attribute_id=heater_config.outputs["heater_status"]["attribute"],
-                value=heater_status,
-                timestamp=datetime.now(timezone.utc))
-                    ]
+        return DataTransferModel(
+            components=[
+                DataTransferComponentModel(
+                    entity_id=heater_config.outputs["heater_status"]["entity"],
+                    attribute_id=heater_config.outputs["heater_status"]["attribute"],
+                    value=heater_status,
+                    timestamp=datetime.now(timezone.utc),
                 )
-    async def calibration(self,
-                          data: InputDataModel):
+            ]
+        )
+
+    async def calibration(self, data: InputDataModel):
         """
         Function to calibrate the model - here it is possible to adjust parameters it is necessary
         Args:

@@ -241,6 +241,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                         method=method,
                         entity=input_entity,
                     )
+                )
 
             await sleep(0.1)
 

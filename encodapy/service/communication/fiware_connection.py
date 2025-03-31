@@ -125,7 +125,6 @@ class FiwareConnection:
     """
 
     def __init__(self):
-        self.config = None
 
         self.fiware_conn_params = None
         self.fiware_token_client = None

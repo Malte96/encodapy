@@ -86,3 +86,9 @@ The examples are intended to help you use the tool and understand how it works:
 The recommended way to run the service is:
 - Create a Python environment using Poetry (see [pyproject.toml](./pyproject.toml)).
 - Use a Docker container for production deployments (create a custom image using the [dockerfile](dockerfile)).
+
+
+
+## License
+
+This project is licensed under the BSD License - see the [LICENSE](LICENSE) file for details.

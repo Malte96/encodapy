@@ -1,10 +1,7 @@
-[build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
-
 [project]
 name = "encodapy"
 version = "0.1.0"
+license = { text = "BSD-3-Clause" }
 description = "EnCoDaPy – Energy Control and Data Preparation in Python."
 authors = [{name = "Martin Altenburger", email = "martin.altenburger@tu-dresden.de"},
            {name = "Paul Seidel", email = "paul.seidel@tu-dresden.de"},
@@ -24,6 +21,15 @@ dependencies = [
     "python-dotenv>=1.0.1"
 ]
 
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["encodapy"]
+exclude = ["service_main"]
 
 [tool.poetry]
 name = "encodapy"

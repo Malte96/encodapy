@@ -225,15 +225,16 @@ class FileConnection:
 
                 for input_data in data:
                     time = datetime.strptime(input_data['time'], time_format)
-                    attributes_values.append(
-                        InputDataAttributeModel(
-                            id=attribute.id,
-                            data=input_data['value'],
-                            data_type=AttributeTypes.TIMESERIES,
-                            data_available=True,
-                            latest_timestamp_input=time,
+                    if attribute.id_interface == input_data['id_interface']:
+                        attributes_values.append(
+                            InputDataAttributeModel(
+                                id=attribute.id,
+                                data=input_data['value'],
+                                data_type=AttributeTypes.TIMESERIES,
+                                data_available=True,
+                                latest_timestamp_input=time,
+                            )
                         )
-                    )
             elif attribute.type == AttributeTypes.VALUE:
 
                 attributes_values.append(

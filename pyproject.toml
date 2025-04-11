@@ -2,6 +2,8 @@
 name = "encodapy"
 version = "0.2.1"
 description = "EnCoDaPy – Energy Control and Data Preparation in Python."
+readme = "README.md"
+repository = "https://github.com/gewv-tu-dresden/encodapy"
 homepage = "https://github.com/gewv-tu-dresden/encodapy"
 license = "BSD-3-Clause"
 authors = [
@@ -23,7 +25,7 @@ statsmodels = "^0.14.4"
 loguru = ">=0.6.0"
 requests = "^2.31.0"
 requests-oauthlib = "^1.3.1"
-crate = "^0.31.1"
+crate = ">=0.31.1"
 pydantic = "^2.5.2,<2.7.0"
 python-dotenv = "^1.0.1"
 

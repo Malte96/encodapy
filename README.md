@@ -52,6 +52,10 @@
 
 ## Usage
 
+You could install the Package via PyPI:
+```
+pip install encodapy
+```
 To create your own custom service, you have to overwrite two functions of the [ControllerBasicService](./../../encodapy/service/basic_service.py):
 - `calculation()`: Asynchronous function to perform the main calculation in the service
 - `calibration()`: Asynchrone function to calibrate the service or coefficients in the service if required

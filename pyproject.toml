@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encodapy"
-version = "0.1.0"
+version = "0.2.0"
 description = "EnCoDaPy – Energy Control and Data Preparation in Python."
 homepage = "https://github.com/gewv-tu-dresden/encodapy"
 license = "BSD-3-Clause"

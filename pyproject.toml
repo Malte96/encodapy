@@ -2,8 +2,6 @@
 name = "encodapy"
 version = "0.1.0"
 description = "EnCoDaPy – Energy Control and Data Preparation in Python."
-long_description = { file = "readme.md" }
-long_description_content_type = "text/markdown"
 homepage = "https://github.com/gewv-tu-dresden/encodapy"
 license = "BSD-3-Clause"
 authors = [

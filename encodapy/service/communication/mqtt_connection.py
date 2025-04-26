@@ -58,27 +58,27 @@ class MqttConnection:
         """
         Function to prepare the mqtt connection
         """
-        self.client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
-        self.client.username_pw_set(
+        self.mqtt_client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
+        self.mqtt_client.username_pw_set(
             self.mqtt_params["username"], self.mqtt_params["password"]
         )
-        self.client.connect(self.mqtt_params["broker"], self.mqtt_params["port"])
+        self.mqtt_client.connect(self.mqtt_params["broker"], self.mqtt_params["port"])
 
     def publish(self, topic, payload):
         """
         Function to publish a message to a topic
         """
-        if not self.client:
+        if not self.mqtt_client:
             raise NotSupportedError("MQTT client is not connected")
-        self.client.publish(topic, payload)
+        self.mqtt_client.publish(topic, payload)
 
     def subscribe(self, topic):
         """
         Function to subscribe to a topic
         """
-        if not self.client:
+        if not self.mqtt_client:
             raise NotSupportedError("MQTT client is not connected")
-        self.client.subscribe(topic)
+        self.mqtt_client.subscribe(topic)
 
     def on_message(self, client, userdata, message):
         """
@@ -93,15 +93,15 @@ class MqttConnection:
         """
         Function to start the mqtt client loop
         """
-        self.client.on_message = self.on_message
-        self.client.loop_start()
+        self.mqtt_client.on_message = self.on_message
+        self.mqtt_client.loop_start()
 
     def stop(self):
         """
         Function to stop the mqtt client loop
         """
-        self.client.loop_stop()
-        self.client.disconnect()
+        self.mqtt_client.loop_stop()
+        self.mqtt_client.disconnect()
 
     def get_data_from_mqtt(
         self,

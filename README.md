@@ -52,6 +52,10 @@
 
 ## Usage
 
+You could install the Package via PyPI:
+```
+pip install encodapy
+```
 To create your own custom service, you have to overwrite two functions of the [ControllerBasicService](./../../encodapy/service/basic_service.py):
 - `calculation()`: Asynchronous function to perform the main calculation in the service
 - `calibration()`: Asynchrone function to calibrate the service or coefficients in the service if required
@@ -79,10 +83,39 @@ The examples are intended to help you use the tool and understand how it works:
         - '"minute"'
         - '"hour"'
         - '"day"'
-        - '"month"' --> 30 days
+        - '"month"' (30 days for simple use)
 - Today, there ist no adjustment for different units. Its a TODO for the future
 
 ### Deployment
 The recommended way to run the service is:
 - Create a Python environment using Poetry (see [pyproject.toml](./pyproject.toml)).
 - Use a Docker container for production deployments (create a custom image using the [dockerfile](dockerfile)).
+
+## License
+
+This project is licensed under the BSD License - see the [LICENSE](LICENSE) file for details.
+
+## Copyright
+
+<a href="https://tu-dresden.de/ing/maschinenwesen/iet/gewv"> <img alt="EBC" src="https://raw.githubusercontent.com/N5GEH/.github/main/logos/Logo-Banner-TUD-IET-GEWV.jpg" height="75"> </a>
+
+2024-2025, TUD Dresden University of Technology, Chair of Building Energy Systems and Heat Supply
+
+## Related projects
+
+- EnOB: N5GEH-Serv - National 5G Energy Hub <br>
+<a href="https://n5geh.de/"> <img alt="National 5G Energy Hub" 
+src="https://avatars.githubusercontent.com/u/43948851?s=200&v=4" height="150"></a>
+
+- EnOB: TWE-Flex - Optimisation and flexibilisation of domestic hot water heating systems <br>
+<a href="https://n5geh.de/twe-flex/"> Project Website </a>
+
+- EnEff: E³ - Low-emission and energy-efficient energy supply in urban areas using the latest intelligent ICT structures <br>
+<a href="https://n5geh.de/e3/"> Project Website </a>
+
+## Acknowledgments
+
+We gratefully acknowledge the financial support of the Federal Ministry for Economic Affairs and Climate Action (BMWK).
+
+<a href="https://www.bmwi.de/Navigation/EN/Home/home.html"> <img alt="BMWK" 
+src="https://raw.githubusercontent.com/RWTH-EBC/FiLiP/master/docs/logos/bmwi_logo_en.png" height="100"> </a>

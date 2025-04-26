@@ -35,6 +35,7 @@ from encodapy.config import (
     InputModel,
     OutputModel,
     TimerangeTypes,
+    ConfigModel
 )
 from encodapy.utils.error_handling import NoCredentials, InterfaceNotActive
 from encodapy.utils.cratedb import CrateDBConnection
@@ -125,13 +126,13 @@ class FiwareConnection:
     """
 
     def __init__(self):
-        self.config = None
 
-        self.fiware_conn_params = None
-        self.fiware_token_client = None
-        self.fiware_header = None
-        self.cb_client = None
-        self.crate_db_client = None
+        self.fiware_conn_params: FiwareConnectionParameter = None
+        self.fiware_token_client: BaererToken = None
+        self.fiware_header: FiwareHeaderSecure = None
+        self.cb_client: ContextBrokerClient = None
+        self.crate_db_client: CrateDBConnection = None
+        self.config: ConfigModel = None
 
     def load_fiware_params(self):
         """
@@ -990,8 +991,42 @@ class FiwareConnection:
             logger.debug("No output data available for sending to the FIWARE platform.")
             return
 
-        self.cb_client.update_or_append_entity_attributes(
-            entity_id=fiware_entity.id,
-            entity_type=fiware_entity.type,
-            attrs=output_points,
-        )
+        if len(attrs)>0:
+            i = 0
+            while i < 3:
+                try:
+                    self.cb_client.update_or_append_entity_attributes(
+                        entity_id=fiware_entity.id,
+                        entity_type=fiware_entity.type,
+                        attrs=attrs,
+                    )
+                    break
+                except requests.exceptions.HTTPError as err:
+                    if i < 3:
+                        await sleep(0.1)
+                    else:
+                        logger.error(
+                            f"HTTPError while sending attributes to FIWARE platform: {err}"
+                        )
+
+                i += 1
+
+        if len(cmds)>0:
+            i = 0
+            while i < 3:
+                try:
+                    self.cb_client.update_existing_entity_attributes(
+                        entity_id=fiware_entity.id,
+                        entity_type=fiware_entity.type,
+                        attrs= cmds,
+                    )
+                    break
+                except requests.exceptions.HTTPError as err:
+                    if i < 3:
+                        await sleep(0.1)
+                    else:
+                        logger.error(
+                            f"HTTPError while sending commands to FIWARE platform: {err}"
+                        )
+
+                i += 1

@@ -1,49 +1,39 @@
-[build-system]
-requires = ["setuptools>=42", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "encodapy"
-version = "0.1.0"
-description = "EnCoDaPy – Energy Control and Data Preparation in Python."
-authors = [{name = "Martin Altenburger", email = "martin.altenburger@tu-dresden.de"},
-           {name = "Paul Seidel", email = "paul.seidel@tu-dresden.de"},
-           {name = "Maximilian Beyer", email = "maximilian.beyer@​tu-dresden.de"}]
-dependencies = [
-    "python>=3.9,<3.12",
-    "pandas>=1.3.5",
-    "nbformat>=5.7.1",
-    "filip>=0.5.0",
-    "numpy>=1.23.5",
-    "statsmodels>=0.13.5",
-    "loguru>=0.6.0",
-    "requests>=2.31.0",
-    "requests-oauthlib>=1.3.1",
-    "crate>=0.31.1",
-    "pydantic>=2.5.2,<2.7.0",
-    "python-dotenv>=1.0.1"
-]
-
-
 [tool.poetry]
 name = "encodapy"
-version = "0.1.0"
+version = "0.2.2"
 description = "EnCoDaPy – Energy Control and Data Preparation in Python."
-authors = ["Martin Altenburger <martin.altenburger@tu-dresden.de>"]
+readme = "README.md"
+repository = "https://github.com/gewv-tu-dresden/encodapy"
+homepage = "https://github.com/gewv-tu-dresden/encodapy"
+license = "BSD-3-Clause"
+authors = [
+    "Martin Altenburger <martin.altenburger@tu-dresden.de>",
+    "Paul Seidel <paul.seidel@tu-dresden.de>",
+    "Maximilian Beyer <maximilian.beyer@tu-dresden.de>"
+]
+packages = [
+    { include = "encodapy" }
+]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.12"
+python = ">=3.9,<3.13"
 pandas = ">=2.1.4,<2.2.0"
-nbformat = "^5.7.1"
+nbformat = ">=5.7.1"
 filip = ">=0.5.0"
-numpy = "^1.23.5"
-statsmodels = "^0.13.5"
+numpy = ">=1.23.5"
+statsmodels = ">=0.14.4"
 loguru = ">=0.6.0"
-requests = "^2.31.0"
-requests-oauthlib = "^1.3.1"
-crate = "^0.31.1"
-pydantic = "^2.5.2,<2.7.0"
-python-dotenv = "^1.0.1"
+requests = ">=2.31.0"
+requests-oauthlib = ">=1.3.1"
+crate = ">=0.31.1"
+pydantic = ">=2.5.2,<2.7.0"
+python-dotenv = ">=1.0.1"
 
-[tool.poetry.dev-dependencies]
-pylint = "^3.2.6"
+[tool.poetry.group.dev.dependencies]
+pylint = ">=3.2.6"
+build = ">=1.2.2.post1"
+ipykernel = ">=6.29.5"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

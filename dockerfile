@@ -49,7 +49,7 @@ RUN curl -sSL https://install.python-poetry.org | POETRY_HOME=$POETRY_HOME POETR
 # copy project requirement files here to ensure they will be cached. 
 WORKDIR $PYSETUP_PATH
 COPY pyproject.toml ./
-COPY n5geh.encodapy ./n5geh.encodapy
+COPY encodapy ./encodapy
 # install runtime deps - uses $POETRY_VIRTUALENVS_IN_PROJECT internally
 RUN poetry install --only main
 
@@ -61,7 +61,7 @@ FROM python-base AS production
 ENV FASTAPI_ENV=production
 COPY --from=builder-base $PYSETUP_PATH $PYSETUP_PATH
 
-COPY service_main/main.py /app
+COPY service_main/main.py /app/main.py
 
 WORKDIR /app
 HEALTHCHECK --interval=30s --timeout=30s --start-period=120s --retries=3 CMD if [ $(( `date +%s` - `date -r health "+%s"` )) -lt 180 ]; then exit 0; else exit 1; fi

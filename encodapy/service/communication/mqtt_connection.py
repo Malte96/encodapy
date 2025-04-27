@@ -79,6 +79,11 @@ class MqttConnection:
             raise ConfigError(
                 f"Could not connect to MQTT broker {self.mqtt_params['broker']}:{self.mqtt_params['port']} with given login information - {e}"
             ) from e
+        
+        # initialize the MQTT message store
+        # this dict should be filled by on_messages (received messages are stored with topic as key and payload as value) 
+        # and used to get the data in the get_data_from_mqtt function
+        self.mqtt_message_store = {}
 
     def publish(self, topic, payload):
         """
@@ -102,12 +107,12 @@ class MqttConnection:
 
     def on_message(self, client, userdata, message):
         """
-        Callback function for received messages
+        Callback function for received messages, stores the message in the message store
         """
-        # whenever a message is received, the data are stored in a dict with topic as key and payload as value,
-        # this dict should be used to get the data in the get_data_from_mqtt function
         if not hasattr(self, "mqtt_message_store"):
-            self.mqtt_message_store = {}
+            raise NotSupportedError(
+                "MQTT message store is not initialized. Call prepare_mqtt_connection first."
+            )
         self.mqtt_message_store[message.topic] = message.payload.decode()
 
     def start(self):
@@ -148,7 +153,7 @@ class MqttConnection:
         Returns:
             Union[InputDataEntityModel, None]: Model with the input data or None if no data is available
         """
-        if not hasattr(self, "message_store"):
+        if not hasattr(self, "mqtt_message_store"):
             raise NotSupportedError(
                 "MQTT message store is not initialized. Start the MQTT client first."
             )

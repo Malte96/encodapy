@@ -75,10 +75,12 @@ class MqttConnection:
         """
         # initialize the MQTT client
         self.mqtt_client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
+
         # set username and password for the MQTT client
         self.mqtt_client.username_pw_set(
             self.mqtt_params["username"], self.mqtt_params["password"]
         )
+
         # try to connect to the MQTT broker
         try:
             self.mqtt_client.connect(
@@ -89,12 +91,15 @@ class MqttConnection:
                 f"Could not connect to MQTT broker {self.mqtt_params['broker']}:{self.mqtt_params['port']} with given login information - {e}"
             ) from e
 
+        # prepare the message store
+        self.prepare_mqtt_message_store()
+
     def prepare_mqtt_message_store(self) -> None:
         """
-        Function to prepare the MQTT message store
+        Function to prepare the MQTT message store, subscribe to all topics from in- and outputs
+        (means subscribes to controller itself) and set the default values
         """
-        # this dict should be filled by on_messages und publishs
-        # (messages are stored with topic as key and payload as value)
+        # this dict should be filled by on_messages (messages are stored with topic as key and payload as value)
         # and used to get the data in the get_data_from_mqtt function
         # TODO MB: one "mqtt_message_store" for all connections? or one for inputs/outputs?
         self.mqtt_message_store = {}
@@ -117,14 +122,14 @@ class MqttConnection:
                             f"prepare_mqtt_message_store: Topic {topic} from {entity.id} already exists in the message store. Overwriting value."
                         )
 
-                    #set the default value for the attribute
+                    # set the default value for the attribute
                     if hasattr(attribute, "value"):
                         value = attribute.value
                     else:
                         value = None
 
                     self.mqtt_message_store[topic] = value
-                    # TODO MB: check if timestamp is needed for the attribute
+                    # TODO MB: check if e.g. timestamp is needed for the attribute
                     # TODO MB: check if the attribute is a timeseries or a value
 
     def assemble_topic_parts(self, parts: list[str]) -> str:

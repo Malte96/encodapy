@@ -77,7 +77,7 @@ class MqttConnection:
             )
         except Exception as e:
             raise ConfigError(
-                f"Could not connect to MQTT broker {self.mqtt_params['broker']}:{self.mqtt_params['port']} - {e}"
+                f"Could not connect to MQTT broker {self.mqtt_params['broker']}:{self.mqtt_params['port']} with given login information - {e}"
             ) from e
 
     def publish(self, topic, payload):
@@ -85,7 +85,9 @@ class MqttConnection:
         Function to publish a message to a topic
         """
         if not self.mqtt_client:
-            raise NotSupportedError("MQTT client is not prepared")
+            raise NotSupportedError(
+                "MQTT client is not prepared. Call prepare_mqtt_connection first."
+            )
         self.mqtt_client.publish(topic, payload)
 
     def subscribe(self, topic):
@@ -93,7 +95,9 @@ class MqttConnection:
         Function to subscribe to a topic
         """
         if not self.mqtt_client:
-            raise NotSupportedError("MQTT client is not prepared")
+            raise NotSupportedError(
+                "MQTT client is not prepared. Call prepare_mqtt_connection first."
+            )
         self.mqtt_client.subscribe(topic)
 
     def on_message(self, client, userdata, message):
@@ -115,12 +119,12 @@ class MqttConnection:
                 "MQTT client is not prepared. Call prepare_mqtt_connection first."
             )
 
-        if hasattr(self, "_loop_running") and self._loop_running:
+        if hasattr(self, "_mqtt_loop_running") and self._mqtt_loop_running:
             raise NotSupportedError("MQTT client loop is already running.")
 
         self.mqtt_client.on_message = self.on_message
         self.mqtt_client.loop_start()
-        self._loop_running = True  # Statusvariable, um den Loop-Status zu verfolgen
+        self._mqtt_loop_running = True  # state variable to check if the loop is running
 
     def stop(self):
         """

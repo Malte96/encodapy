@@ -31,4 +31,4 @@ class DefaultEnvVariables(Enum):
     MQTT_PORT = 1883
     MQTT_USERNAME = ""
     MQTT_PASSWORD = ""
-    MQTT_TOPIC_PREFIX = "default/topic"  # TODO MB: Use as prefix for all topics?
+    MQTT_TOPIC_PREFIX = "prefix"  # TODO MB: Use as prefix for all topics?

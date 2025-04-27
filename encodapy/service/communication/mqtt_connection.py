@@ -10,9 +10,17 @@ from datetime import datetime
 from typing import Union
 
 import paho.mqtt.client as mqtt
+from loguru import logger
 from paho.mqtt.enums import CallbackAPIVersion
 
-from encodapy.config import ConfigModel, DataQueryTypes, DefaultEnvVariables, InputModel, OutputModel
+from encodapy.config import (
+    ConfigModel,
+    DataQueryTypes,
+    DefaultEnvVariables,
+    InputModel,
+    Interfaces,
+    OutputModel,
+)
 from encodapy.utils.error_handling import ConfigError, NotSupportedError
 from encodapy.utils.models import (
     InputDataAttributeModel,
@@ -27,14 +35,12 @@ class MqttConnection:
     Only a helper class.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.mqtt_params = {}
-        # make ConfigModel-Class available in the MqttConnection class 
+        # make ConfigModel-Class available in the MqttConnection-Class
         self.config: ConfigModel
 
-        # TODO MB: Where to put together the topic-parts?
-
-    def load_mqtt_params(self):
+    def load_mqtt_params(self) -> None:
         """
         Function to load the MQTT parameters from the environment variables
         or use the default values from the DefaultEnvVariables class.
@@ -63,7 +69,7 @@ class MqttConnection:
         if not self.mqtt_params["broker"] or not self.mqtt_params["port"]:
             raise ConfigError("MQTT broker and port must be set")
 
-    def prepare_mqtt_connection(self):
+    def prepare_mqtt_connection(self) -> None:
         """
         Function to prepare the MQTT connection
         """
@@ -82,13 +88,68 @@ class MqttConnection:
             raise ConfigError(
                 f"Could not connect to MQTT broker {self.mqtt_params['broker']}:{self.mqtt_params['port']} with given login information - {e}"
             ) from e
-        
-        # initialize the MQTT message store TODO MB: one "mqtt_message_store" for all connections? or one for inputs/outputs?
-        # this dict should be filled by on_messages (received messages are stored with topic as key and payload as value) 
+
+    def prepare_mqtt_message_store(self) -> None:
+        """
+        Function to prepare the MQTT message store
+        """
+        # this dict should be filled by on_messages und publishs
+        # (messages are stored with topic as key and payload as value)
         # and used to get the data in the get_data_from_mqtt function
+        # TODO MB: one "mqtt_message_store" for all connections? or one for inputs/outputs?
         self.mqtt_message_store = {}
 
-    def publish(self, topic, payload):
+        # set the message store with default values for all mqtt attributes in config
+        for entity in self.config.inputs + self.config.outputs:
+            if entity.interface == Interfaces.MQTT:
+                for attribute in entity.attributes:
+                    # set the topic for the attribute
+                    topic = self.assemble_topic_parts(
+                        [
+                            self.mqtt_params["topic_prefix"],
+                            entity.id_interface,
+                            attribute.id_interface,
+                        ]
+                    )
+
+                    if topic in self.mqtt_message_store:
+                        logger.warning(
+                            f"prepare_mqtt_message_store: Topic {topic} from {entity.id} already exists in the message store. Overwriting value."
+                        )
+
+                    #set the default value for the attribute
+                    if hasattr(attribute, "value"):
+                        value = attribute.value
+                    else:
+                        value = None
+
+                    self.mqtt_message_store[topic] = value
+                    # TODO MB: check if timestamp is needed for the attribute
+                    # TODO MB: check if the attribute is a timeseries or a value
+
+    def assemble_topic_parts(self, parts: list[str]) -> str:
+        """
+        Function to build a topic path from a list of strings.
+        Ensures that the resulting topic path is correctly formatted with exactly one '/' between parts.
+
+        Args:
+            parts (list[str]): List of strings to be joined into a topic path.
+
+        Returns:
+            str: The correctly formatted topic path.
+
+        Raises:
+            ValueError: If the resulting topic path is not correctly formatted.
+        """
+        if not parts:
+            raise ValueError("The list of parts cannot be empty.")
+
+        # Join the parts with a single '/', stripping leading/trailing slashes from each part to avoid double slashes in the topic path
+        topic_path = "/".join(part.strip("/") for part in parts)
+
+        return topic_path
+
+    def publish(self, topic, payload) -> None:
         """
         Function to publish a message to a topic
         """
@@ -167,7 +228,7 @@ class MqttConnection:
             topic = (
                 attribute.id_interface  # TODO MB: build the full topic
             )  # Use the attribute's interface ID as the topic
-            if topic not in self.mqtt_message_store:
+            if topic not in self.mqtt_message_store:  # init each topic with None
                 # If the topic is not in the message store, mark the data as unavailable
                 attributes_values.append(
                     InputDataAttributeModel(

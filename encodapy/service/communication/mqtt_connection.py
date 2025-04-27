@@ -12,7 +12,7 @@ from typing import Union
 import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
 
-from encodapy.config import DataQueryTypes, DefaultEnvVariables, InputModel, OutputModel
+from encodapy.config import ConfigModel, DataQueryTypes, DefaultEnvVariables, InputModel, OutputModel
 from encodapy.utils.error_handling import ConfigError, NotSupportedError
 from encodapy.utils.models import (
     InputDataAttributeModel,
@@ -29,6 +29,9 @@ class MqttConnection:
 
     def __init__(self):
         self.mqtt_params = {}
+        # make ConfigModel-Class available in the MqttConnection class 
+        self.config: ConfigModel
+
         # TODO MB: Where to put together the topic-parts?
 
     def load_mqtt_params(self):
@@ -80,7 +83,7 @@ class MqttConnection:
                 f"Could not connect to MQTT broker {self.mqtt_params['broker']}:{self.mqtt_params['port']} with given login information - {e}"
             ) from e
         
-        # initialize the MQTT message store
+        # initialize the MQTT message store TODO MB: one "mqtt_message_store" for all connections? or one for inputs/outputs?
         # this dict should be filled by on_messages (received messages are stored with topic as key and payload as value) 
         # and used to get the data in the get_data_from_mqtt function
         self.mqtt_message_store = {}
@@ -155,14 +158,14 @@ class MqttConnection:
         """
         if not hasattr(self, "mqtt_message_store"):
             raise NotSupportedError(
-                "MQTT message store is not initialized. Start the MQTT client first."
+                "MQTT message store is not initialized. Call prepare_mqtt_connection first."
             )
 
         attributes_values = []
 
         for attribute in entity.attributes:
             topic = (
-                attribute.id_interface
+                attribute.id_interface  # TODO MB: build the full topic
             )  # Use the attribute's interface ID as the topic
             if topic not in self.mqtt_message_store:
                 # If the topic is not in the message store, mark the data as unavailable

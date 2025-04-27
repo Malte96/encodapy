@@ -9,7 +9,7 @@
         {
             "id": "TRNSYS-Outputs",
             "interface": "mqtt",
-            "id_interface": "MQTT/T207/RBV01/SENDEN",
+            "id_interface": "MQTT/T207/SENDEN",
             "attributes": [
                 {
                     "id": "t_out", 
@@ -40,13 +40,19 @@
         {
             "id": "PB-Outputs",
             "interface": "mqtt",
-            "id_interface": "MQTT/T207/RBV01/PB",
+            "id_interface": "PB",
             "attributes": [
                 {
                     "id": "pb_flow_temp_from_model", 
                     "id_interface":"flow_temp",
                     "type": "value",
                     "value": 40
+                },
+                {
+                    "id": "status",
+                    "id_interface":"status",
+                    "type": "value",
+                    "value": 0
                 }
             ]
         }
@@ -55,7 +61,7 @@
         {
             "id": "system-controller",
             "interface": "mqtt",
-            "id_interface": "MQTT/T207/RBV01/",
+            "id_interface": "MQTT/T207/",
             "attributes": [],
             "commands":[
                 {
@@ -72,22 +78,22 @@
             "type": "heat_controller",
             "inputs": {
                 "temperature_measured": {
-                    "entity" : "thermal_storage",
-                    "attribute": "temperature_measured"
+                    "entity" : "TRNSYS-Outputs",
+                    "attribute": "t_hs_bot"
                 }, 
                 "temperature_setpoint": {
-                    "entity" : "thermal_storage",
-                    "attribute": "temperature_setpoint"
+                    "entity" : "TRNSYS-Outputs",
+                    "attribute": "t_hs_set"
                 }, 
                 "heater_status": {
-                    "entity" : "heater",
-                    "attribute": "operation__setpoint"
+                    "entity" : "PB-Outputs",
+                    "attribute": "status"
                 }
             },
             "outputs":{
                 "heater_status": {
-                    "entity" : "heater",
-                    "attribute": "operation__setpoint"
+                    "entity" : "PB-Outputs",
+                    "attribute": "status"
                 }
             },
             "config": {
@@ -101,7 +107,7 @@
             "calculation":
             {
                 "timerange":1,
-                "timerange_unit":"hour"
+                "timerange_unit":"minute"
             },
             "calibration":
             {

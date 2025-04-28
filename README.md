@@ -25,7 +25,8 @@
 - ENVs are required to configure the interfaces / get the config with the default value [`default`]:
     ```
     CONFIG_PATH =  ["./config.json"]
-    LOG_LEVEL = 
+    LOG_LEVEL =
+    RELOAD_STATICDATA = False
 
     # FIWARE - Interface
     CB_URL = ["http://localhost:1026"]

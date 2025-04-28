@@ -26,6 +26,24 @@ class ExampleService(ControllerBasicService):
             - do the calculation
             - send the data to the output
     """
+    def __init__(self):
+        """
+        Constructor of the class
+        """
+        super().__init__()
+        self.heater_config = None
+
+    async def prepare_start(self):
+        """
+        Function prepare the start of the service, \
+            including the loading configuration of the service
+
+        """
+        logger.info("Prepare Start of Service")
+
+        await self.prepare_basic_start()
+
+        self.heater_config = self.get_heat_controller_config()
 
     def get_heat_controller_config(self)-> dict:
         """
@@ -99,23 +117,21 @@ class ExampleService(ControllerBasicService):
             data (InputDataModel): Input data with the measured values for the calculation
         """
 
-        heater_config = self.get_heat_controller_config()
-
         inputs = {}
-        for input_key, input_config in heater_config.inputs.items():
+        for input_key, input_config in self.heater_config.inputs.items():
             inputs[input_key] = self.get_input_values(input_entities=data.input_entities,
                                                       input_config=input_config)
 
         heater_status = self.check_heater_command(
             temperature_setpoint=inputs["temperature_setpoint"],
             temperature_measured=inputs["temperature_measured"],
-            hysteresis=heater_config.config["temperature_hysteresis"],
+            hysteresis=self.heater_config.config["temperature_hysteresis"],
             heater_status_old=bool(inputs["heater_status"]))
 
         return DataTransferModel(components=[
             DataTransferComponentModel(
-                entity_id=heater_config.outputs["heater_status"]["entity"],
-                attribute_id=heater_config.outputs["heater_status"]["attribute"],
+                entity_id=self.heater_config.outputs["heater_status"]["entity"],
+                attribute_id=self.heater_config.outputs["heater_status"]["attribute"],
                 value=heater_status,
                 timestamp=datetime.now(timezone.utc))
                     ]

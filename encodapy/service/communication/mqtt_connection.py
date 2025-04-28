@@ -7,7 +7,7 @@ Author: Maximilian Beyer
 import json
 import os
 from datetime import datetime
-from typing import Union
+from typing import Union, Optional
 
 import paho.mqtt.client as mqtt
 from loguru import logger
@@ -38,7 +38,7 @@ class MqttConnection:
     def __init__(self) -> None:
         self.mqtt_params = {}
         # make ConfigModel-Class available in the MqttConnection-Class
-        self.config: ConfigModel
+        self.config: Optional[ConfigModel] = None
 
     def load_mqtt_params(self) -> None:
         """

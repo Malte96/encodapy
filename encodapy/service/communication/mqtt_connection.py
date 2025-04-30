@@ -338,7 +338,7 @@ class MqttConnection:
             # If the payload is a simple value, use it directly
             value = payload
 
-        # if remaining value is bool, return it, else return it as float
+        # if remaining value is bool, return it, else return it as float if possible
         if isinstance(value, bool):
             return value
         else:

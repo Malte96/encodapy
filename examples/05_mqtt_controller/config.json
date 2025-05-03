@@ -62,13 +62,14 @@
             "id": "system-controller",
             "interface": "mqtt",
             "id_interface": "MQTT/T207/",
-            "attributes": [],
-            "commands":[
+            "attributes": [
                 {
                     "id": "pb_heat_on", 
-                    "id_interface":"OP_S_Ke"
+                    "id_interface":"OP_S_Ke",
+                    "value": 0
                 }
-            ]
+            ],
+            "commands":[]
         }
     ],
     "staticdata": [],
@@ -92,8 +93,8 @@
             },
             "outputs":{
                 "heater_status": {
-                    "entity" : "PB-Outputs",
-                    "attribute": "status"
+                    "entity" : "system-controller",
+                    "attribute": "pb_heat_on"
                 }
             },
             "config": {

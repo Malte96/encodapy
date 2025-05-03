@@ -23,6 +23,8 @@ from encodapy.config import (
 )
 from encodapy.utils.error_handling import ConfigError, NotSupportedError
 from encodapy.utils.models import (
+    AttributeModel,
+    CommandModel,
     InputDataAttributeModel,
     InputDataEntityModel,
     OutputDataEntityModel,
@@ -95,11 +97,11 @@ class MqttConnection:
         self.prepare_mqtt_message_store()
 
         # subscribe to all topics in the message store
-        self.subscribe_to_topics()
+        self.subscribe_to_message_store_topics()
 
     def prepare_mqtt_message_store(self) -> None:
         """
-        Function to prepare the MQTT message store, subscribe to all topics from all in- and outputs
+        Function to prepare the MQTT message store for all in- and outputs
         (means subscribes to controller itself) and set the default values
         """
         # this dict should be filled by on_messages (messages are stored with topic as key and payload as value)
@@ -181,9 +183,11 @@ class MqttConnection:
             )
         self.mqtt_client.subscribe(topic)
 
-    def subscribe_to_topics(self) -> None:
+    def subscribe_to_message_store_topics(self) -> None:
         """
         Function to subscribe to all topics in the message store.
+
+        TODO MB: insert in mqtt_message_store instead of own define?
         """
         if not self.mqtt_message_store:
             raise NotSupportedError(
@@ -314,6 +318,45 @@ class MqttConnection:
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
+    def send_data_to_mqtt(
+        self,
+        output_entity: OutputModel,
+        output_attributes: list[AttributeModel],
+        # output_commands: list[CommandModel],
+    ) -> None:
+        """
+        Function to send the output data to MQTT (publish the data to the MQTT broker)
+
+        Args:
+            - output_entity: OutputModel with the output entity
+            - output_attributes: list with the output attributes
+            # - output_commands: list with the output commands
+        """
+        if not hasattr(self, "mqtt_client"):
+            raise NotSupportedError(
+                "MQTT client is not prepared. Call prepare_mqtt_connection() first."
+            )
+
+        # check if the config is set
+        if self.config is None:
+            raise ConfigError(
+                "ConfigModel is not set. Please set the config before using the MQTT connection."
+            )
+
+        # publish the data to the MQTT broker
+        for attribute in output_attributes:
+            topic = self.assemble_topic_parts(
+                [
+                    self.mqtt_params["topic_prefix"],
+                    output_entity.id_interface,
+                    attribute.id_interface,
+                ]
+            )
+            payload = attribute.value
+            self.publish(topic, payload)
+            logger.debug(f"Published to topic {topic}: {payload}")
+        
+
     def _extract_payload_value(self, payload) -> Union[float, bool]:
         """
         Function to extract data from the payload as needed.
@@ -332,7 +375,7 @@ class MqttConnection:
             if "value" in payload:
                 # Extract the value from the dictionary
                 value = payload["value"]
-            else:      
+            else:
                 raise ValueError("Invalid payload format: 'value' key not found")
         elif isinstance(payload, (float, int, str, bool)):
             # If the payload is a simple value, use it directly

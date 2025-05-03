@@ -399,9 +399,11 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 )
 
             elif output_entity.interface is Interfaces.MQTT:
-                # TODO: Implement the sending of the data to the mqtt interface HIER GEHTS WEITER
-                logger.warning("MQTT interface not implemented yet.")
-                raise NotSupportedError
+                self.send_data_to_mqtt(
+                    output_entity=output_entity,
+                    output_attributes=output_attributes,
+                    # output_commands=output_commands, TODO MB: why commands for MQTT?
+                )
 
             await sleep(0.1)
 

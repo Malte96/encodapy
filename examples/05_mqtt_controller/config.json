@@ -107,8 +107,8 @@
         {
             "calculation":
             {
-                "timerange":1,
-                "timerange_unit":"minute"
+                "timerange":10,
+                "timerange_unit":"second"
             },
             "calibration":
             {

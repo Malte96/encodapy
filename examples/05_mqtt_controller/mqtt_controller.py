@@ -47,8 +47,8 @@ class MQTTController(ControllerBasicService):
         temperature_setpoint: float,
         temperature_measured: float,
         hysteresis: float,
-        heater_status_old: bool,
-    ) -> bool:
+        heater_status_old: int,
+    ) -> int:
         """
         Function to check if the heater should be on or off \
             based on a 2 point controller with hysteresis
@@ -63,18 +63,18 @@ class MQTTController(ControllerBasicService):
             bool: The new status of the heater
         """
         if temperature_measured < temperature_setpoint - hysteresis:
-            return True
+            return 1
 
         if temperature_measured > temperature_setpoint:
-            return False
+            return 0
 
         if (
             heater_status_old
             and temperature_measured > temperature_setpoint - hysteresis
         ):
-            return True
+            return 1
 
-        return False
+        return 0
 
     def get_input_values(
         self,

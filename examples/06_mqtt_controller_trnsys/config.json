@@ -1,0 +1,104 @@
+{
+    "name": "mqtt_controller",
+    "interfaces":{
+        "mqtt": true,
+        "fiware": false,
+        "file": false
+    },
+    "inputs": [
+        {
+            "id": "TRNSYS-Outputs",
+            "interface": "mqtt",
+            "id_interface": "MQTT/T207/SENDEN",
+            "attributes": [
+                {
+                    "id": "time", 
+                    "id_interface":"IP_time",
+                    "type": "value",
+                    "value": 0
+                }
+            ]
+        },
+        {
+            "id": "PB-Outputs",
+            "interface": "mqtt",
+            "id_interface": "PB",
+            "attributes": [
+                {
+                    "id": "pb_flow_temp_from_model", 
+                    "id_interface":"flow_temp",
+                    "type": "value",
+                    "value": 40
+                },
+                {
+                    "id": "status",
+                    "id_interface":"status",
+                    "type": "value",
+                    "value": 0
+                }
+            ]
+        }
+    ],
+    "outputs": [
+        {
+            "id": "system-controller",
+            "interface": "mqtt",
+            "id_interface": "MQTT/T207/",
+            "attributes": [
+                {
+                    "id": "pb_on", 
+                    "id_interface":"OP_S_PK",
+                    "value": 0
+                }
+            ],
+            "commands":[]
+        }
+    ],
+    "staticdata": [],
+    "controller_components": [
+        {
+            "id": "heat_controller",
+            "type": "heat_controller",
+            "inputs": {
+                "temperature_measured": {
+                    "entity" : "TRNSYS-Outputs",
+                    "attribute": "time"
+                }, 
+                "temperature_setpoint": {
+                    "entity" : "TRNSYS-Outputs",
+                    "attribute": "time"
+                }, 
+                "heater_status": {
+                    "entity" : "PB-Outputs",
+                    "attribute": "status"
+                }
+            },
+            "outputs":{
+                "heater_status": {
+                    "entity" : "system-controller",
+                    "attribute": "pb_on"
+                }
+            },
+            "config": {
+                "temperature_hysteresis": 5
+                }
+        }
+    ],
+    "controller_settings": {
+        "time_settings":
+        {
+            "calculation":
+            {
+                "timerange":1,
+                "timerange_unit":"minute",
+                "sampling_time": 10,
+                "sampling_time_unit": "second"
+            },
+            "calibration":
+            {
+                "timerange":24,
+                "timerange_unit":"hour"
+            }
+        }
+    }
+}

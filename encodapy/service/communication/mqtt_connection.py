@@ -99,6 +99,9 @@ class MqttConnection:
         # subscribe to all topics in the message store
         self.subscribe_to_message_store_topics()
 
+        # start the MQTT client loop
+        self.start_mqtt_client()
+
     def prepare_mqtt_message_store(self) -> None:
         """
         Function to prepare the MQTT message store for all in- and outputs
@@ -157,6 +160,9 @@ class MqttConnection:
         """
         if not parts:
             raise ValueError("The list of parts cannot be empty.")
+        
+        # drop a part if it is None or empty 
+        parts = [part for part in parts if part not in (None, "")]
 
         # Join the parts with a single '/', stripping leading/trailing slashes from each part to avoid double slashes in the topic path
         topic_path = "/".join(part.strip("/") for part in parts)
@@ -218,7 +224,7 @@ class MqttConnection:
             f"MQTT storage received message on topic {message.topic}: {storage_value}"
         )
 
-    def start(self):
+    def start_mqtt_client(self):
         """
         Function to hang in on_message hook and start the MQTT client loop
         """
@@ -234,7 +240,7 @@ class MqttConnection:
         self.mqtt_client.loop_start()
         self._mqtt_loop_running = True  # state variable to check if the loop is running
 
-    def stop(self):
+    def stop_mqtt_client(self):
         """
         Function to stop the MQTT client loop and clean up resources
         """

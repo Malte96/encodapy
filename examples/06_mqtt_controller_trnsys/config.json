@@ -60,14 +60,10 @@
             "id": "heat_controller",
             "type": "heat_controller",
             "inputs": {
-                "temperature_measured": {
+                "time": {
                     "entity" : "TRNSYS-Outputs",
                     "attribute": "time"
-                }, 
-                "temperature_setpoint": {
-                    "entity" : "TRNSYS-Outputs",
-                    "attribute": "time"
-                }, 
+                },
                 "heater_status": {
                     "entity" : "PB-Outputs",
                     "attribute": "status"

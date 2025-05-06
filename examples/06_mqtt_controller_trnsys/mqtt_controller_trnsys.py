@@ -42,6 +42,15 @@ class MQTTControllerTrnsys(ControllerBasicService):
                 return component
         raise ValueError("No heat controller configuration found")
 
+    def tester(self, time: float) -> float:
+        """
+        Function to test the service
+
+        Returns:
+            float: The test result
+        """
+        return time
+    
     def check_heater_command(
         self,
         temperature_setpoint: float,
@@ -113,12 +122,14 @@ class MQTTControllerTrnsys(ControllerBasicService):
                 input_entities=data.input_entities, input_config=input_config
             )
 
-        heater_status = self.check_heater_command(
-            temperature_setpoint=inputs["temperature_setpoint"],
-            temperature_measured=inputs["temperature_measured"],
-            hysteresis=heater_config.config["temperature_hysteresis"],
-            heater_status_old=bool(inputs["heater_status"]),
-        )
+        # heater_status = self.check_heater_command(
+        #     temperature_setpoint=inputs["temperature_setpoint"],
+        #     temperature_measured=inputs["temperature_measured"],
+        #     hysteresis=heater_config.config["temperature_hysteresis"],
+        #     heater_status_old=bool(inputs["heater_status"]),
+        # )
+
+        heater_status = self.tester(time=inputs["time"])
 
         return DataTransferModel(
             components=[

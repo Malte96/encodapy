@@ -24,7 +24,6 @@ from encodapy.config import (
 from encodapy.utils.error_handling import ConfigError, NotSupportedError
 from encodapy.utils.models import (
     AttributeModel,
-    CommandModel,
     InputDataAttributeModel,
     InputDataEntityModel,
     OutputDataEntityModel,
@@ -160,8 +159,8 @@ class MqttConnection:
         """
         if not parts:
             raise ValueError("The list of parts cannot be empty.")
-        
-        # drop a part if it is None or empty 
+
+        # drop a part if it is None or empty
         parts = [part for part in parts if part not in (None, "")]
 
         # Join the parts with a single '/', stripping leading/trailing slashes from each part to avoid double slashes in the topic path
@@ -361,7 +360,6 @@ class MqttConnection:
             payload = attribute.value
             self.publish(topic, payload)
             logger.debug(f"Published to topic {topic}: {payload}")
-        
 
     def _extract_payload_value(self, payload) -> Union[float, bool]:
         """
@@ -374,18 +372,23 @@ class MqttConnection:
             except json.JSONDecodeError:
                 # If the payload is not a valid JSON but a string, split first string part as value.
                 # This is a workaround for cases where the payload is a string with a number and unit (e.g., "23.5 °C")
-                value = payload.split(" ")[0]
+                # Added strip() to remove leading/trailing spaces (e.g., " 6552.0 h")
+                payload = payload.strip().split(" ")[0]  
 
         # If the payload is a valid JSON string or dict, extract the value from it if possible
         if isinstance(payload, dict):
-            if "value" in payload:
+            if "value" in payload.keys():
                 # Extract the value from the dictionary
                 value = payload["value"]
             else:
-                raise ValueError("Invalid payload format: 'value' key not found")
+                raise ValueError(
+                    f"Invalid payload format: 'value' key not found in payload {payload}"
+                )
+        # If the payload itself is a number, boolean or string, use it directly
         elif isinstance(payload, (float, int, str, bool)):
-            # If the payload is a simple value, use it directly
             value = payload
+        else:
+            raise ValueError(f"Invalid payload format: {type(payload)}")
 
         # if remaining value is bool, return it, else return it as float if possible
         if isinstance(value, bool):
@@ -394,7 +397,7 @@ class MqttConnection:
             try:
                 return float(value)
             except ValueError:
-                raise ValueError(f"Invalid data type for value: {type(value)}")
+                raise ValueError(f"Invalid data type for payload value: {type(value)}")
 
     def _get_last_timestamp_for_mqtt_output(
         self, output_entity: OutputModel

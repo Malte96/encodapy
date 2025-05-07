@@ -1,6 +1,6 @@
 {
     "name": "mqtt_controller",
-    "interfaces":{
+    "interfaces": {
         "mqtt": true,
         "fiware": false,
         "file": false
@@ -12,10 +12,100 @@
             "id_interface": "MQTT/T207/SENDEN",
             "attributes": [
                 {
-                    "id": "time", 
-                    "id_interface":"IP_time",
+                    "id": "trnsys_time",
+                    "id_interface": "IP_time",
                     "type": "value",
                     "value": 0
+                },
+                {
+                    "id": "t_a",
+                    "id_interface": "IP_t_a",
+                    "type": "value",
+                    "value": 0
+                },
+                {
+                    "id": "t_sen_1",
+                    "id_interface": "IP_t_sen_1",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "t_sen_2",
+                    "id_interface": "IP_t_sen_2",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "t_sen_3",
+                    "id_interface": "IP_t_sen_3",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "t_sen_4",
+                    "id_interface": "IP_t_sen_4",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "t_sen_5",
+                    "id_interface": "IP_t_sen_5",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "tA_AP1_3L",
+                    "id_interface": "IP_tA_AP1_3L",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "tA_AP2_1R",
+                    "id_interface": "IP_tA_AP2_1R",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "tA_AP3_3R",
+                    "id_interface": "IP_tA_AP3_3R",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "tA_AP4_1R",
+                    "id_interface": "IP_tA_AP4_1R",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "tA_AP5_3L",
+                    "id_interface": "IP_tA_AP5_3L",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "tA_HX1",
+                    "id_interface": "IP_tA_HX1",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "t_soll_HK",
+                    "id_interface": "IP_t_soll_HK",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "Q_Netz",
+                    "id_interface": "IP_Q_Netz",
+                    "type": "value",
+                    "value": 30
+                },
+                {
+                    "id": "P_PV",
+                    "id_interface": "IP_P_PV",
+                    "type": "value",
+                    "value": 30
                 }
             ]
         },
@@ -25,14 +115,14 @@
             "id_interface": "PB",
             "attributes": [
                 {
-                    "id": "pb_flow_temp_from_model", 
-                    "id_interface":"flow_temp",
+                    "id": "pb_flow_temp_from_model",
+                    "id_interface": "flow_temp",
                     "type": "value",
                     "value": 40
                 },
                 {
                     "id": "status",
-                    "id_interface":"status",
+                    "id_interface": "status",
                     "type": "value",
                     "value": 0
                 }
@@ -46,12 +136,17 @@
             "id_interface": "MQTT/T207/",
             "attributes": [
                 {
-                    "id": "pb_on", 
-                    "id_interface":"OP_S_PK",
+                    "id": "S_PK",
+                    "id_interface": "OP_S_PK",
+                    "value": 0
+                },
+                {
+                    "id": "S_PK_TWE",
+                    "id_interface": "OP_S_PK_TWE",
                     "value": 0
                 }
             ],
-            "commands":[]
+            "commands": []
         }
     ],
     "staticdata": [],
@@ -61,39 +156,36 @@
             "type": "heat_controller",
             "inputs": {
                 "time": {
-                    "entity" : "TRNSYS-Outputs",
+                    "entity": "TRNSYS-Outputs",
                     "attribute": "time"
                 },
                 "heater_status": {
-                    "entity" : "PB-Outputs",
+                    "entity": "PB-Outputs",
                     "attribute": "status"
                 }
             },
-            "outputs":{
+            "outputs": {
                 "heater_status": {
-                    "entity" : "system-controller",
+                    "entity": "system-controller",
                     "attribute": "pb_on"
                 }
             },
             "config": {
                 "temperature_hysteresis": 5
-                }
+            }
         }
     ],
     "controller_settings": {
-        "time_settings":
-        {
-            "calculation":
-            {
-                "timerange":1,
-                "timerange_unit":"minute",
+        "time_settings": {
+            "calculation": {
+                "timerange": 1,
+                "timerange_unit": "minute",
                 "sampling_time": 10,
                 "sampling_time_unit": "second"
             },
-            "calibration":
-            {
-                "timerange":24,
-                "timerange_unit":"hour"
+            "calibration": {
+                "timerange": 24,
+                "timerange_unit": "hour"
             }
         }
     }

@@ -293,7 +293,7 @@ class MqttConnection:
                 )
                 continue
 
-            # Decode the message payload and extract the data
+            # extract the data from message payload 
             message_payload = self.mqtt_message_store[topic]
             try:
                 data = self._extract_payload_value(message_payload)
@@ -305,11 +305,11 @@ class MqttConnection:
                         data_type=attribute.type,
                         data_available=True,
                         latest_timestamp_input=None,
-                        unit=None,  # Add unit handling if necessary
+                        unit=None,  # TODO MB: Add unit handling if necessary
                     )
                 )
             except (json.JSONDecodeError, KeyError):
-                # Handle invalid or missing data in the payload
+                # Handle invalid or missing data in the payload, TODO MB: error handling working?
                 attributes_values.append(
                     InputDataAttributeModel(
                         id=attribute.id,

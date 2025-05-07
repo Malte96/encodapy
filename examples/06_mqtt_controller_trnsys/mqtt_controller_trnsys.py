@@ -105,7 +105,7 @@ class MQTTControllerTrnsys(ControllerBasicService):
                 for attribute in input_data.attributes:
                     if attribute.id == input_config["attribute"]:
                         return attribute.data
-        raise ValueError(f"Input data {input_config['entity']} not found")
+        raise ValueError(f"Input data '{input_config['attribute']}' from entity '{input_config['entity']}' not found")
 
     async def calculation(self, data: InputDataModel):
         """

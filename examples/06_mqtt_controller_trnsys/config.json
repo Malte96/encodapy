@@ -144,6 +144,46 @@
                     "id": "S_PK_TWE",
                     "id_interface": "OP_S_PK_TWE",
                     "value": 0
+                },
+                {
+                    "id": "S_WP",
+                    "id_interface": "OP_S_WP",
+                    "value": 0
+                },
+                {
+                    "id": "S_WP_TWE",
+                    "id_interface": "OP_S_WP_TWE",
+                    "value": 0
+                },
+                {
+                    "id": "Heizzeit",
+                    "id_interface": "OP_Heizzeit",
+                    "value": 0
+                },
+                {
+                    "id": "n_WP",
+                    "id_interface": "OP_n_WP",
+                    "value": 0
+                },
+                {
+                    "id": "m_PK",
+                    "id_interface": "OP_m_PK",
+                    "value": 0
+                },
+                {
+                    "id": "tA_PK",
+                    "id_interface": "OP_tA_PK",
+                    "value": 0
+                },
+                {
+                    "id": "Q_PK_BS",
+                    "id_interface": "OP_Q_PK_BS",
+                    "value": 0
+                },
+                {
+                    "id": "Mod_PK",
+                    "id_interface": "OP_Mod_PK",
+                    "value": 0
                 }
             ],
             "commands": []
@@ -157,7 +197,7 @@
             "inputs": {
                 "time": {
                     "entity": "TRNSYS-Outputs",
-                    "attribute": "time"
+                    "attribute": "trnsys_time"
                 },
                 "heater_status": {
                     "entity": "PB-Outputs",
@@ -167,7 +207,7 @@
             "outputs": {
                 "heater_status": {
                     "entity": "system-controller",
-                    "attribute": "pb_on"
+                    "attribute": "S_PK"
                 }
             },
             "config": {

@@ -21,7 +21,7 @@ from encodapy.utils.models import (
 class MQTTControllerTrnsys(ControllerBasicService):
     """
     Class for a example service controller for Trnsys
-    Service is used to control a hybrid plant with heat pump and pellet boiler 
+    Service is used to control a hybrid plant with heat pump and pellet boiler
         - read the configuration
         - prepare the start of the service
         - start the service
@@ -42,15 +42,6 @@ class MQTTControllerTrnsys(ControllerBasicService):
                 return component
         raise ValueError("No heat controller configuration found")
 
-    def tester(self, time: float) -> float:
-        """
-        Function to test the service
-
-        Returns:
-            float: The test result
-        """
-        return time
-    
     def check_heater_command(
         self,
         temperature_setpoint: float,
@@ -105,7 +96,9 @@ class MQTTControllerTrnsys(ControllerBasicService):
                 for attribute in input_data.attributes:
                     if attribute.id == input_config["attribute"]:
                         return attribute.data
-        raise ValueError(f"Input data '{input_config['attribute']}' from entity '{input_config['entity']}' not found")
+        raise ValueError(
+            f"Input data '{input_config['attribute']}' from entity '{input_config['entity']}' not found"
+        )
 
     async def calculation(self, data: InputDataModel):
         """
@@ -129,8 +122,8 @@ class MQTTControllerTrnsys(ControllerBasicService):
         #     heater_status_old=bool(inputs["heater_status"]),
         # )
 
-        heater_status = self.tester(time=inputs["time"])
-
+        heater_status = inputs["time"]
+        # HIER FORTFAHREN JE OUTPUT EIN DATATRANSFERMODEL ERSTELLEN
         return DataTransferModel(
             components=[
                 DataTransferComponentModel(

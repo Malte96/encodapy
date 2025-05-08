@@ -156,7 +156,7 @@
                     "value": 0
                 },
                 {
-                    "id": "Heizzeit",
+                    "id": "Heizperiode",
                     "id_interface": "OP_Heizzeit",
                     "value": 0
                 },
@@ -205,9 +205,45 @@
                 }
             },
             "outputs": {
-                "heater_status": {
+                "power_on_pk": {
                     "entity": "system-controller",
                     "attribute": "S_PK"
+                },
+                "pk_twe_mode": {
+                    "entity": "system-controller",
+                    "attribute": "S_PK_TWE"
+                },
+                "power_on_wp": {
+                    "entity": "system-controller",
+                    "attribute": "S_WP"
+                },
+                "wp_twe_mode": {
+                    "entity": "system-controller",
+                    "attribute": "S_WP_TWE"
+                },
+                "heating_period": {
+                    "entity": "system-controller",
+                    "attribute": "Heizperiode"
+                },
+                "n_wp_rel": {
+                    "entity": "system-controller",
+                    "attribute": "n_WP"
+                },
+                "flow_pk": {
+                    "entity": "system-controller",
+                    "attribute": "m_PK"
+                },
+                "temp_flow_pk": {
+                    "entity": "system-controller",
+                    "attribute": "tA_PK"
+                },
+                "heat_pk_fuel": {
+                    "entity": "system-controller",
+                    "attribute": "Q_PK_BS"
+                },
+                "modulation_pk": {
+                    "entity": "system-controller",
+                    "attribute": "Mod_PK"
                 }
             },
             "config": {

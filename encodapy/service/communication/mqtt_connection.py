@@ -106,9 +106,8 @@ class MqttConnection:
         Function to prepare the MQTT message store for all in- and outputs
         (means subscribes to controller itself) and set the default values
         """
-        # this dict should be filled by on_messages (messages are stored with topic as key and payload as value)
-        # and used to get the data in the get_data_from_mqtt function
-        # TODO MB: one "mqtt_message_store" for all connections? or one for inputs/outputs?
+        # this dict is filled by on_messages (messages are stored with topic as key and payload as value)
+        # and is used to get the data in the get_data_from_mqtt function
         self.mqtt_message_store = {}
 
         # check if the config is set
@@ -191,12 +190,10 @@ class MqttConnection:
     def subscribe_to_message_store_topics(self) -> None:
         """
         Function to subscribe to all topics in the message store.
-
-        TODO MB: insert in mqtt_message_store instead of own define?
         """
         if not self.mqtt_message_store:
             raise NotSupportedError(
-                "MQTT message store is empty. Cannot subscribe to topics."
+                "MQTT message store is initialized, but empty. Cannot subscribe to topics."
             )
 
         for topic in self.mqtt_message_store.keys():
@@ -309,7 +306,11 @@ class MqttConnection:
                     )
                 )
             except (json.JSONDecodeError, KeyError):
-                # Handle invalid or missing data in the payload, TODO MB: error handling working?
+                # Handle invalid or missing data in the payload, TODO MB: check if error handling is working correctly
+                logger.error(
+                    f"Invalid payload for topic {topic}: {message_payload}. Setting data as None and unavailable."
+                )
+
                 attributes_values.append(
                     InputDataAttributeModel(
                         id=attribute.id,

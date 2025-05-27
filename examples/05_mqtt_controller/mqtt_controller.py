@@ -16,6 +16,7 @@ from encodapy.utils.models import (
     InputDataEntityModel,
     InputDataModel,
 )
+from encodapy.config.models import ControllerComponentModel
 
 
 class MQTTController(ControllerBasicService):
@@ -30,7 +31,7 @@ class MQTTController(ControllerBasicService):
         - send the data to the output
     """
 
-    def get_heat_controller_config(self) -> dict:
+    def get_heat_controller_config(self) -> ControllerComponentModel:
         """
         Function to get the configuration of the heat controller
 

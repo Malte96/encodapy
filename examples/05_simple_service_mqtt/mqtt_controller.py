@@ -56,7 +56,7 @@ class MQTTController(ControllerBasicService):
 
         Args:
             temperature_setpoint (float): The setpoint temperature
-            temperature_measured (float): The measured temperature (acutal temperature)
+            temperature_measured (float): The measured temperature (actual temperature)
             hysteresis (float): The hysteresis of the controller
             heater_status_old (bool): The old status of the heater
 

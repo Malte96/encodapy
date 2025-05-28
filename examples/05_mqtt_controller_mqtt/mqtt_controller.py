@@ -1,7 +1,7 @@
 """
 Description: This module contains the definition of a small example service \
     in the form of a heat controller based on a two point controller with hysteresis.
-Author: Martin Altenburger
+Author: Martin Altenburger, Maximilian Beyer
 """
 
 from datetime import datetime, timezone

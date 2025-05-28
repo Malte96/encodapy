@@ -17,7 +17,6 @@ from encodapy.config import (
     Interfaces,
     OutputModel,
 )
-from encodapy.utils.error_handling import NotSupportedError
 from encodapy.utils.health import update_health_file
 from encodapy.utils.logging import LoggerControl
 from encodapy.utils.models import (
@@ -204,7 +203,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 )
                 output_timestamps.append(entity_timestamps)
                 output_latest_timestamps.append(output_latest_timestamp)
-                logger.info("MQTT interface, output_latest_timestamp is not defined.")        
+                logger.info("MQTT interface, output_latest_timestamp is not defined.")
 
 
             await sleep(0.1)

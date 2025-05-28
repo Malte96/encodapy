@@ -12,22 +12,10 @@
             "id_interface": "MQTT/T207/SENDEN",
             "attributes": [
                 {
-                    "id": "t_out", 
-                    "id_interface":"IP_t_a",
-                    "type": "value",
-                    "value": 0
-                },
-                {
                     "id": "t_hs_bot", 
                     "id_interface":"IP_t_sen_u",
                     "type": "value",
                     "value": 20
-                },
-                {
-                    "id": "t_hs_top", 
-                    "id_interface":"IP_t_sen_o",
-                    "type": "value",
-                    "value": 60
                 },
                 {
                     "id": "t_hs_set",
@@ -42,12 +30,6 @@
             "interface": "mqtt",
             "id_interface": "PB",
             "attributes": [
-                {
-                    "id": "pb_flow_temp_from_model", 
-                    "id_interface":"flow_temp",
-                    "type": "value",
-                    "value": 40
-                },
                 {
                     "id": "status",
                     "id_interface":"status",

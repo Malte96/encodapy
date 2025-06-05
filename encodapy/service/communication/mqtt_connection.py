@@ -407,16 +407,17 @@ class MqttConnection:
         else:
             raise ValueError(f"Invalid payload format: {type(payload)}")
 
-        # if remaining value is bool, return it, else return it as float if possible
+        # if remaining value is bool, return it
         if isinstance(value, bool):
             return value
-        else:
-            try:
-                return float(value)
-            except ValueError as exc:
-                raise ValueError(
-                    f"Invalid data type for payload value: {type(value)}"
-                ) from exc
+
+        # else try to convert it to float
+        try:
+            return float(value)
+        except ValueError as exc:
+            raise ValueError(
+                f"Invalid data type for payload value: {type(value)}"
+            ) from exc
 
     def _get_last_timestamp_for_mqtt_output(
         self, output_entity: OutputModel

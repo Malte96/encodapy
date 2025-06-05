@@ -40,6 +40,12 @@ class MqttConnection:
         self.mqtt_params = {}
         # make ConfigModel-Class available in the MqttConnection-Class
         self.config: Optional[ConfigModel] = None
+        self.mqtt_client: Optional[mqtt.Client] = None
+        self._mqtt_loop_running = False
+        # mqtt_message_store is filled by on_messages
+        # messages are stored with topic as key and payload as value
+        # dict is used to get the data in the get_data_from_mqtt function
+        self.mqtt_message_store = {}
 
     def load_mqtt_params(self) -> None:
         """
@@ -75,7 +81,10 @@ class MqttConnection:
         Function to prepare the MQTT connection
         """
         # initialize the MQTT client
-        self.mqtt_client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
+        if not self.mqtt_client:
+            self.mqtt_client = mqtt.Client(
+                callback_api_version=CallbackAPIVersion.VERSION2
+            )
 
         # set username and password for the MQTT client
         self.mqtt_client.username_pw_set(
@@ -89,7 +98,8 @@ class MqttConnection:
             )
         except Exception as e:
             raise ConfigError(
-                f"Could not connect to MQTT broker {self.mqtt_params['broker']}:{self.mqtt_params['port']} with given login information - {e}"
+                f"Could not connect to MQTT broker {self.mqtt_params['broker']}:"
+                f"{self.mqtt_params['port']} with given login information - {e}"
             ) from e
 
         # prepare the message store
@@ -106,9 +116,8 @@ class MqttConnection:
         Function to prepare the MQTT message store for all in- and outputs
         (means subscribes to controller itself) and set the default values
         """
-        # this dict is filled by on_messages (messages are stored with topic as key and payload as value)
-        # and is used to get the data in the get_data_from_mqtt function
-        self.mqtt_message_store = {}
+        if self.mqtt_message_store:
+            logger.warning("MQTT message store is not empty and will be overwritten.")
 
         # check if the config is set
         if self.config is None:
@@ -131,7 +140,9 @@ class MqttConnection:
 
                     if topic in self.mqtt_message_store:
                         logger.warning(
-                            f"Topic {topic} from {entity.id} already exists in the message store. Overwriting value."
+                            f"Topic {topic} from {entity.id} already exists in message store, "
+                            f"overwriting it with new value. "
+                            f"This should not happen, check your configuration. "
                         )
 
                     # set the default value for the attribute
@@ -144,17 +155,17 @@ class MqttConnection:
 
     def assemble_topic_parts(self, parts: list[str]) -> str:
         """
-        Function to build a topic path from a list of strings.
-        Ensures that the resulting topic path is correctly formatted with exactly one '/' between parts.
+        Function to build a topic from a list of strings.
+        Ensures that the resulting topic is correctly formatted with exactly one '/' between parts.
 
         Args:
-            parts (list[str]): List of strings to be joined into a topic path.
+            parts (list[str]): List of strings to be joined into a topic.
 
         Returns:
-            str: The correctly formatted topic path.
+            str: The correctly formatted topic.
 
         Raises:
-            ValueError: If the resulting topic path is not correctly formatted.
+            ValueError: If the resulting topic is not correctly formatted.
         """
         if not parts:
             raise ValueError("The list of parts cannot be empty.")
@@ -162,10 +173,11 @@ class MqttConnection:
         # drop a part if it is None or empty
         parts = [part for part in parts if part not in (None, "")]
 
-        # Join the parts with a single '/', stripping leading/trailing slashes from each part to avoid double slashes in the topic path
-        topic_path = "/".join(part.strip("/") for part in parts)
+        # Join the parts with a single '/',
+        # stripping leading/trailing slashes from each part to avoid double slashes in the topic
+        topic = "/".join(part.strip("/") for part in parts)
 
-        return topic_path
+        return topic
 
     def publish(self, topic, payload) -> None:
         """
@@ -196,7 +208,7 @@ class MqttConnection:
                 "MQTT message store is initialized, but empty. Cannot subscribe to topics."
             )
 
-        for topic in self.mqtt_message_store.keys():
+        for topic in self.mqtt_message_store:
             self.subscribe(topic)
             logger.debug(f"Subscribed to topic: {topic}")
 
@@ -211,7 +223,7 @@ class MqttConnection:
         # decode the message payload
         try:
             storage_value = message.payload.decode("utf-8")
-        except Exception as e:
+        except UnicodeDecodeError as e:
             logger.error(f"Failed to decode message payload: {e}")
             return
         # store it in the message store
@@ -240,8 +252,10 @@ class MqttConnection:
         """
         Function to stop the MQTT client loop and clean up resources
         """
-        self.mqtt_client.loop_stop()
-        self.mqtt_client.disconnect()
+        if isinstance(self.mqtt_client, mqtt.Client) and self._mqtt_loop_running:
+            self.mqtt_client.loop_stop()
+            self.mqtt_client.disconnect()
+            self._mqtt_loop_running = False
 
     def get_data_from_mqtt(
         self,
@@ -256,7 +270,7 @@ class MqttConnection:
             entity (InputModel): Input entity
 
         Returns:
-            Union[InputDataEntityModel, None]: Model with the input data or None if no data is available
+            Union[InputDataEntityModel, None]: Model with input data or None if no data available
         """
         if not hasattr(self, "mqtt_message_store"):
             raise NotSupportedError(
@@ -290,7 +304,7 @@ class MqttConnection:
                 )
                 continue
 
-            # extract the data from message payload 
+            # extract the data from message payload
             message_payload = self.mqtt_message_store[topic]
             try:
                 data = self._extract_payload_value(message_payload)
@@ -306,9 +320,11 @@ class MqttConnection:
                     )
                 )
             except (json.JSONDecodeError, KeyError):
-                # Handle invalid or missing data in the payload, TODO MB: check if error handling is working correctly
+                # Handle invalid or missing data in the payload
+                # TODO MB: check if error handling is working correctly
                 logger.error(
-                    f"Invalid payload for topic {topic}: {message_payload}. Setting data as None and unavailable."
+                    f"Invalid payload for topic {topic}: {message_payload}. "
+                    f"Setting data as None and unavailable."
                 )
 
                 attributes_values.append(
@@ -371,10 +387,10 @@ class MqttConnection:
             try:
                 payload = json.loads(payload)
             except json.JSONDecodeError:
-                # If the payload is not a valid JSON but a string, split first string part as value.
-                # This is a workaround for cases where the payload is a string with a number and unit (e.g., "23.5 °C")
+                # If the payload is not a valid JSON but a string, split first string part as value
+                # (workaround for cases where payload is a string from number and unit, e.g. 22 °C)
                 # Added strip() to remove leading/trailing spaces (e.g., " 6552.0 h")
-                payload = payload.strip().split(" ")[0]  
+                payload = payload.strip().split(" ")[0]
 
         # If the payload is a valid JSON string or dict, extract the value from it if possible
         if isinstance(payload, dict):
@@ -397,8 +413,10 @@ class MqttConnection:
         else:
             try:
                 return float(value)
-            except ValueError:
-                raise ValueError(f"Invalid data type for payload value: {type(value)}")
+            except ValueError as exc:
+                raise ValueError(
+                    f"Invalid data type for payload value: {type(value)}"
+                ) from exc
 
     def _get_last_timestamp_for_mqtt_output(
         self, output_entity: OutputModel

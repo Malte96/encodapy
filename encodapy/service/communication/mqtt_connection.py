@@ -378,7 +378,7 @@ class MqttConnection:
             payload = attribute.value
             self.publish(topic, payload)
             # TODO MB: find way to delete sleep time
-            time.sleep(0.1)  # small delay to ensure the message is sent and received by trnsys
+            time.sleep(0.01)  # small delay to ensure the message is sent and received by trnsys
             logger.debug(f"Published to topic {topic}: {payload}")
 
     def _extract_payload_value(self, payload) -> Union[float, bool]:

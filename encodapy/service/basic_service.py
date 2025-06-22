@@ -156,7 +156,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             if static_entity.interface == Interfaces.MQTT:
                 logger.warning("interface MQTT for staticdata not supported")
 
-            await sleep(0.1)
+            await sleep(0.01)
         return staticdata
 
     async def get_data(self, method: DataQueryTypes) -> InputDataModel:
@@ -214,7 +214,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_latest_timestamps.append(output_latest_timestamp)
                 logger.info("MQTT interface, output_latest_timestamp is not defined.")
 
-            await sleep(0.1)
+            await sleep(0.01)
 
         if None in output_latest_timestamps:
             output_latest_timestamp = None
@@ -247,7 +247,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                     )
                 )
 
-            await sleep(0.1)
+            await sleep(0.01)
 
         if self.reload_staticdata or self.staticdata is None:
             self.staticdata = await self.reload_static_data(
@@ -401,7 +401,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                     output_attributes=output_attributes,
                 )
 
-            await sleep(0.1)
+            await sleep(0.01)
 
         logger.debug("Finished sending output data")
 
@@ -421,7 +421,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 "The sampling time must be increased!"
             )
         while ((datetime.now() - start_time).total_seconds()) < hold_time:
-            await sleep(0.1)
+            await sleep(0.01)
 
     async def calculation(
         self,

@@ -26,7 +26,7 @@ async def main():
     await asyncio.gather(task_for_calibration, task_for_start_service)
 
     while True:
-        await sleep(0.1)
+        await sleep(0.01)
 
 
 if __name__ == "__main__":

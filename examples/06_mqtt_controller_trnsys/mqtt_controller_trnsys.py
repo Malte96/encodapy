@@ -9,6 +9,7 @@ from typing import Union
 
 from loguru import logger
 
+from encodapy.config.models import ControllerComponentModel
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
     DataTransferComponentModel,
@@ -30,13 +31,16 @@ class MQTTControllerTrnsys(ControllerBasicService):
         - send the data to the output
     """
 
-    def get_heat_controller_config(self) -> dict:
+    def get_heat_controller_config(self) -> ControllerComponentModel:
         """
         Function to get the configuration of the heat controller
 
         Returns:
             dict: The configuration of the heat controller
         """
+        if self.config is None:
+            raise ValueError("No configuration found")
+
         for component in self.config.controller_components:
             if component.type == "heat_controller":
                 return component
@@ -100,10 +104,6 @@ class MQTTControllerTrnsys(ControllerBasicService):
             f"Input data '{input_config['attribute']}' from entity '{input_config['entity']}' not found"
         )
 
-    # def set_output_values(
-    #     self,
-    #     output_entities: list[Output],
-
     async def calculation(self, data: InputDataModel):
         """
         Function to do the calculation
@@ -119,30 +119,14 @@ class MQTTControllerTrnsys(ControllerBasicService):
                 input_entities=data.input_entities, input_config=input_config
             )
 
-        # heater_status = self.check_heater_command(
-        #     temperature_setpoint=inputs["temperature_setpoint"],
-        #     temperature_measured=inputs["temperature_measured"],
-        #     hysteresis=heater_config.config["temperature_hysteresis"],
-        #     heater_status_old=bool(inputs["heater_status"]),
-        # )
-
-        # for each attribut in controller output get current value from input data and send it to the output
-        for output_key, output_config in heater_config.outputs.items():
-            for input_data in data.input_entities:
-                if input_data.id == output_config["entity"]:
-                    for attribute in input_data.attributes:
-                        if attribute.id == output_config["attribute"]:
-                            # set the value of the output to the value of the input
-                            attribute.data = inputs[output_key]
-
-        # add all output values to the output data
+        # add all output values to the output data (None for now)
         components = []
         for output_key, output_config in heater_config.outputs.items():
             components.append(
                 DataTransferComponentModel(
                     entity_id=output_config["entity"],
                     attribute_id=output_config["attribute"],
-                    value=inputs[output_key],
+                    value=None,
                     timestamp=datetime.now(timezone.utc),
                 )
             )

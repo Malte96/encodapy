@@ -9,7 +9,7 @@
         {
             "id": "TRNSYS-Outputs",
             "interface": "mqtt",
-            "id_interface": "MQTT/T207/SENDEN",
+            "id_interface": "MQTT/T207/RBV01/SENDEN",
             "attributes": [
                 {
                     "id": "trnsys_time",
@@ -133,7 +133,7 @@
         {
             "id": "system-controller",
             "interface": "mqtt",
-            "id_interface": "MQTT/T207/",
+            "id_interface": "MQTT/T207/SAMMELN",
             "attributes": [
                 {
                     "id": "S_PK",

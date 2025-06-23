@@ -9,7 +9,7 @@ from typing import Union
 
 from loguru import logger
 
-from encodapy.config.models import ControllerComponentModel
+from encodapy.config.models import ControllerComponentModel, OutputModel
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
     DataTransferComponentModel,
@@ -45,6 +45,21 @@ class MQTTControllerTrnsys(ControllerBasicService):
             if component.type == "heat_controller":
                 return component
         raise ValueError("No heat controller configuration found")
+
+    def get_output_config(self, output_entity: str) -> OutputModel:
+        """
+        Function to get the output of the configuration
+
+        Returns:
+            OutputModel: The output configuration
+        """
+        if self.config is None:
+            raise ValueError("No configuration found")
+
+        for entity in self.config.outputs:
+            if entity.id == output_entity:
+                return entity
+        raise ValueError("No output configuration found")
 
     def check_heater_command(
         self,
@@ -104,7 +119,7 @@ class MQTTControllerTrnsys(ControllerBasicService):
             f"Input data '{input_config['attribute']}' from entity '{input_config['entity']}' not found"
         )
 
-    async def calculation(self, data: InputDataModel):
+    async def calculation(self, data: InputDataModel) -> DataTransferModel:
         """
         Function to do the calculation
         Args:
@@ -112,6 +127,7 @@ class MQTTControllerTrnsys(ControllerBasicService):
         """
 
         heater_config = self.get_heat_controller_config()
+        controller_outputs = self.get_output_config(output_entity="system-controller")
 
         inputs = {}
         for input_key, input_config in heater_config.inputs.items():
@@ -121,15 +137,43 @@ class MQTTControllerTrnsys(ControllerBasicService):
 
         # add all output values to the output data (None for now)
         components = []
+        sammeln_payload = ""
+
         for output_key, output_config in heater_config.outputs.items():
+            if output_key == "full_trnsys_message":
+                # skip the full output, it is handled separately
+                continue
+
+            entity_id = output_config["entity"]
+            attribute_id = output_config["attribute"]
+
+            # add standard message of the output to DataTransferComponentModel
             components.append(
                 DataTransferComponentModel(
-                    entity_id=output_config["entity"],
-                    attribute_id=output_config["attribute"],
+                    entity_id=entity_id,
+                    attribute_id=attribute_id,
                     value=None,
                     timestamp=datetime.now(timezone.utc),
                 )
             )
+
+            # build the trnsys payload for the full message
+            for output_attribute in controller_outputs.attributes:
+                if output_attribute.id == attribute_id:
+                    controller_outputs_attribute = output_attribute
+                    trnsys_value = controller_outputs_attribute.value
+                    trnsys_variable_name = controller_outputs_attribute.id_interface
+                    sammeln_payload += f"{trnsys_variable_name} : {trnsys_value} # "
+
+        # add trnsys full message to DataTransferComponentModel
+        components.append(
+            DataTransferComponentModel(
+                entity_id="system-controller",
+                attribute_id="trnsys_sammeln",
+                value=sammeln_payload,
+                timestamp=datetime.now(timezone.utc),
+            )
+        )
 
         return DataTransferModel(components=components)
 

@@ -184,6 +184,10 @@
                     "id": "Mod_PK",
                     "id_interface": "OP_Mod_PK",
                     "value": 0
+                },
+                {
+                    "id": "trnsys_sammeln",
+                    "id_interface": ""
                 }
             ],
             "commands": []
@@ -244,6 +248,10 @@
                 "modulation_pk": {
                     "entity": "system-controller",
                     "attribute": "Mod_PK"
+                },
+                "full_trnsys_message": {
+                    "entity": "system-controller",
+                    "attribute": "trnsys_sammeln"
                 }
             },
             "config": {

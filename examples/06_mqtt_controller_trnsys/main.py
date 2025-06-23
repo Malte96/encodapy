@@ -30,6 +30,6 @@ async def main():
 
 
 if __name__ == "__main__":
-    loaded_env = load_dotenv(".env")
-    print(f"Loaded env: {loaded_env}")
+    LOADED_ENV = load_dotenv(".env")
+    print(f"Loaded env: {LOADED_ENV}")
     asyncio.run(main())

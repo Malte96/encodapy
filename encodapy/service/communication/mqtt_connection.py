@@ -6,7 +6,6 @@ Author: Maximilian Beyer
 
 import json
 import os
-import time
 from datetime import datetime
 from typing import Optional, Union
 
@@ -377,8 +376,6 @@ class MqttConnection:
             )
             payload = attribute.value
             self.publish(topic, payload)
-            # TODO MB: find way to delete sleep time
-            time.sleep(0.01)  # small delay to ensure the message is sent and received by trnsys
             logger.debug(f"Published to topic {topic}: {payload}")
 
     def _extract_payload_value(self, payload) -> Union[float, bool]:

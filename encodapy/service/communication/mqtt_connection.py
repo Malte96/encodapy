@@ -37,7 +37,7 @@ class MqttConnection:
     """
 
     def __init__(self) -> None:
-        self.mqtt_params = {}
+        self.mqtt_params: dict[str, object] = {}
         # make ConfigModel-Class available in the MqttConnection-Class
         self.config: Optional[ConfigModel] = None
         self.mqtt_client: Optional[mqtt.Client] = None
@@ -45,7 +45,7 @@ class MqttConnection:
         # mqtt_message_store is filled by on_messages
         # messages are stored with topic as key and payload as value
         # dict is used to get the data in the get_data_from_mqtt function
-        self.mqtt_message_store = {}
+        self.mqtt_message_store: dict[str, object] = {}
 
     def load_mqtt_params(self) -> None:
         """

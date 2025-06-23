@@ -4,12 +4,13 @@ Description: This module contains the definition of a small example service \
 Author: Martin Altenburger
 """
 
+import time
 from datetime import datetime, timezone
 from typing import Union
 
 from loguru import logger
 
-from encodapy.config.models import ControllerComponentModel, OutputModel
+from encodapy.config.models import ControllerComponentModel, OutputModel, InputModel
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
     DataTransferComponentModel,
@@ -31,7 +32,7 @@ class MQTTControllerTrnsys(ControllerBasicService):
         - send the data to the output
     """
 
-    def get_heat_controller_config(self) -> ControllerComponentModel:
+    def get_controller_config(self, type: str) -> ControllerComponentModel:
         """
         Function to get the configuration of the heat controller
 
@@ -42,13 +43,16 @@ class MQTTControllerTrnsys(ControllerBasicService):
             raise ValueError("No configuration found")
 
         for component in self.config.controller_components:
-            if component.type == "heat_controller":
+            if component.type == type:
                 return component
         raise ValueError("No heat controller configuration found")
 
     def get_output_config(self, output_entity: str) -> OutputModel:
         """
-        Function to get the output of the configuration
+        Function to get the output configuration for a specific entity
+
+        Args:
+            output_entity (str): The ID of the output entity
 
         Returns:
             OutputModel: The output configuration
@@ -61,6 +65,30 @@ class MQTTControllerTrnsys(ControllerBasicService):
                 return entity
         raise ValueError("No output configuration found")
 
+    def get_input_attribute_value(
+        self,
+        input_entities: list[InputDataEntityModel],
+        input_config: dict,
+    ) -> Union[float, int, str, bool]:
+        """
+        Function to get the values of the input data
+
+        Args:
+            input_entities (list[InputDataEntityModel]): Data of input entities
+            input_config (dict): Configuration of the input
+
+        Returns:
+            Union[float, int, str, bool]: The value of the input data
+        """
+        for input_data in input_entities:
+            if input_data.id == input_config["entity"]:
+                for attribute in input_data.attributes:
+                    if attribute.id == input_config["attribute"]:
+                        return attribute.data  # data is the value in case of mqtt
+        raise ValueError(
+            f"Input data '{input_config['attribute']}' from entity '{input_config['entity']}' not found"
+        )
+    
     def check_heater_command(
         self,
         temperature_setpoint: float,
@@ -95,29 +123,25 @@ class MQTTControllerTrnsys(ControllerBasicService):
 
         return 0
 
-    def get_input_values(
-        self,
-        input_entities: list[InputDataEntityModel],
-        input_config: dict,
-    ) -> Union[float, int, str, bool]:
+    def check_mqtt_messages_from_trnsys_not_false(self, trnsys_inputs: dict) -> bool:
         """
-        Function to get the values of the input data
-
-        Args:
-            input_entities (list[InputDataEntityModel]): Data of input entities
-            input_config (dict): Configuration of the input
-
-        Returns:
-            Union[float, int, str, bool]: The value of the input data
+        Function to check if the MQTT message store is not False in any attribute.
         """
-        for input_data in input_entities:
-            if input_data.id == input_config["entity"]:
-                for attribute in input_data.attributes:
-                    if attribute.id == input_config["attribute"]:
-                        return attribute.data
-        raise ValueError(
-            f"Input data '{input_config['attribute']}' from entity '{input_config['entity']}' not found"
-        )
+        for attribute_key, attribute_value in trnsys_inputs.items():
+            if attribute_value is False:
+                logger.debug(
+                    f"MQTT message store for attribute '{attribute_key}' is False"
+                )
+                return False
+        return True
+        # for input_key in trnsys_inputs:
+        #     for topic, message in self.mqtt_message_store.items():
+        #         if input_key in topic:
+        #             if message is None:
+        #                 logger.debug(f"MQTT message store for topic '{topic}' is None")
+        #                 return False
+        #             continue  # continue to next input_key if message is not None
+        # return True
 
     async def calculation(self, data: InputDataModel) -> DataTransferModel:
         """
@@ -126,14 +150,28 @@ class MQTTControllerTrnsys(ControllerBasicService):
             data (InputDataModel): Input data with the measured values for the calculation
         """
 
-        heater_config = self.get_heat_controller_config()
+        heater_config = self.get_controller_config(type="heat_controller")
         controller_outputs = self.get_output_config(output_entity="system-controller")
 
-        inputs = {}
+        #do something with the inputs
+        trnsys_inputs = {}
+        pellet_inputs = {}
         for input_key, input_config in heater_config.inputs.items():
-            inputs[input_key] = self.get_input_values(
-                input_entities=data.input_entities, input_config=input_config
-            )
+            # check if the input is a TRNSYS input or a PB input
+            if input_config["entity"] == "TRNSYS-Outputs":
+                trnsys_inputs[input_key] = self.get_input_attribute_value(
+                    input_entities=data.input_entities, input_config=input_config
+                )
+            elif input_config["entity"] == "PB-Outputs":
+                pellet_inputs[input_key] = self.get_input_attribute_value(
+                    input_entities=data.input_entities, input_config=input_config
+                )
+
+        # start loop to check if the TRNSYS MQTT messages in store are not None
+        while not self.check_mqtt_messages_from_trnsys_not_false(trnsys_inputs):
+            logger.debug("Waiting for MQTT messages from TRNSYS to be fully available in store...")
+            # HIER WIRD IMMER NUR NACH DEM WERT IN DER CONFIG GESCHAUT - Vergleich mit Bsp. 5 nötig
+            time.sleep(0.01)
 
         # add all output values to the output data (None for now)
         components = []
@@ -147,7 +185,7 @@ class MQTTControllerTrnsys(ControllerBasicService):
             entity_id = output_config["entity"]
             attribute_id = output_config["attribute"]
 
-            # add standard message of the output to DataTransferComponentModel
+            # add standard message of the outputs to DataTransferComponentModel
             components.append(
                 DataTransferComponentModel(
                     entity_id=entity_id,
@@ -160,9 +198,8 @@ class MQTTControllerTrnsys(ControllerBasicService):
             # build the trnsys payload for the full message
             for output_attribute in controller_outputs.attributes:
                 if output_attribute.id == attribute_id:
-                    controller_outputs_attribute = output_attribute
-                    trnsys_value = controller_outputs_attribute.value
-                    trnsys_variable_name = controller_outputs_attribute.id_interface
+                    trnsys_value = output_attribute.value
+                    trnsys_variable_name = output_attribute.id_interface
                     sammeln_payload += f"{trnsys_variable_name} : {trnsys_value} # "
 
         # add trnsys full message to DataTransferComponentModel
@@ -174,6 +211,9 @@ class MQTTControllerTrnsys(ControllerBasicService):
                 timestamp=datetime.now(timezone.utc),
             )
         )
+
+        # set the trnsys mqtt messages in store to None
+        # self. 
 
         return DataTransferModel(components=components)
 

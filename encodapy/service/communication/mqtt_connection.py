@@ -352,7 +352,6 @@ class MqttConnection:
         Args:
             - output_entity: OutputModel with the output entity
             - output_attributes: list with the output attributes
-            # - output_commands: list with the output commands
         """
         if not hasattr(self, "mqtt_client"):
             raise NotSupportedError(

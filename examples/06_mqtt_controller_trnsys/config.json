@@ -15,97 +15,97 @@
                     "id": "trnsys_time",
                     "id_interface": "IP_time",
                     "type": "value",
-                    "value": 0
+                    "value": false
                 },
                 {
                     "id": "t_a",
                     "id_interface": "IP_t_a",
                     "type": "value",
-                    "value": 0
+                    "value": false
                 },
                 {
                     "id": "t_sen_1",
                     "id_interface": "IP_t_sen_1",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "t_sen_2",
                     "id_interface": "IP_t_sen_2",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "t_sen_3",
                     "id_interface": "IP_t_sen_3",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "t_sen_4",
                     "id_interface": "IP_t_sen_4",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "t_sen_5",
                     "id_interface": "IP_t_sen_5",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "tA_AP1_3L",
                     "id_interface": "IP_tA_AP1_3L",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "tA_AP2_1R",
                     "id_interface": "IP_tA_AP2_1R",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "tA_AP3_3R",
                     "id_interface": "IP_tA_AP3_3R",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "tA_AP4_1R",
                     "id_interface": "IP_tA_AP4_1R",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "tA_AP5_3L",
                     "id_interface": "IP_tA_AP5_3L",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "tA_HX1",
                     "id_interface": "IP_tA_HX1",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "t_soll_HK",
                     "id_interface": "IP_t_soll_HK",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "Q_Netz",
                     "id_interface": "IP_Q_Netz",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 },
                 {
                     "id": "P_PV",
                     "id_interface": "IP_P_PV",
                     "type": "value",
-                    "value": 30
+                    "value": false
                 }
             ]
         },

@@ -131,7 +131,7 @@
     ],
     "outputs": [
         {
-            "id": "system-controller",
+            "id": "TRNSYS-Inputs",
             "interface": "mqtt",
             "id_interface": "MQTT/T207/SAMMELN",
             "attributes": [
@@ -196,8 +196,8 @@
     "staticdata": [],
     "controller_components": [
         {
-            "id": "heat_controller",
-            "type": "heat_controller",
+            "id": "BioHybrid-controller",
+            "type": "system-controller",
             "inputs": {
                 "time": {
                     "entity": "TRNSYS-Outputs",
@@ -210,47 +210,47 @@
             },
             "outputs": {
                 "power_on_pk": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "S_PK"
                 },
                 "pk_twe_mode": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "S_PK_TWE"
                 },
                 "power_on_wp": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "S_WP"
                 },
                 "wp_twe_mode": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "S_WP_TWE"
                 },
                 "heating_period": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "Heizperiode"
                 },
                 "n_wp_rel": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "n_WP"
                 },
                 "flow_pk": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "m_PK"
                 },
                 "temp_flow_pk": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "tA_PK"
                 },
                 "heat_pk_fuel": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "Q_PK_BS"
                 },
                 "modulation_pk": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "Mod_PK"
                 },
                 "full_trnsys_message": {
-                    "entity": "system-controller",
+                    "entity": "TRNSYS-Inputs",
                     "attribute": "trnsys_sammeln"
                 }
             },

@@ -4,7 +4,6 @@ Description: This module contains the definition of a small example service \
 Author: Martin Altenburger
 """
 
-import time
 from datetime import datetime, timezone
 from typing import Optional, Union
 
@@ -182,6 +181,16 @@ class MQTTControllerTrnsys(ControllerBasicService):
                 return False
         return True
 
+    def reset_mqtt_message_store(self, inputs: dict) -> None:
+        """
+        Function to reset the MQTT message store for TRNSYS inputs.
+        This is necessary to wait until TRNSYS send new messages.
+        """
+        # TODO: HIER GEHTS WEITER
+        for attribute_key in inputs.keys():
+            inputs[attribute_key] = None
+            logger.debug(f"Reset MQTT message store for attribute '{attribute_key}'")
+
     async def calculation(self, data: InputDataModel) -> Union[DataTransferModel, None]:
         """
         Function to do the calculation
@@ -195,19 +204,19 @@ class MQTTControllerTrnsys(ControllerBasicService):
         # get the current inputs
         trnsys_inputs, boiler_inputs = self.get_inputs(data=data)
 
-        # start loop to check if the TRNSYS MQTT messages in store are not empty
-        while not self.check_inputs_not_empty(inputs=trnsys_inputs):
+        # check if the TRNSYS MQTT messages in store are not empty
+        if not self.check_inputs_not_empty(inputs=trnsys_inputs):
             logger.debug(
                 "Waiting for MQTT messages from TRNSYS to be fully available in store..."
             )
-            time.sleep(0.01)
             # exit calculation and retry
             return None
-
         logger.debug(
-            "TRNSYS MQTT messages are fully available in store, continue with calculation..."
+            "TRNSYS MQTT messages were fully available in store, reset store and continue calculation..."
         )
-        
+        # reset the MQTT message store for TRNSYS
+        self.reset_mqtt_message_store(inputs=trnsys_inputs)
+
         # add all output values to the output data (None for now)
         components = []
         sammeln_payload = ""

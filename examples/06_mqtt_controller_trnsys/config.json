@@ -15,7 +15,7 @@
                     "id": "trnsys_time",
                     "id_interface": "IP_time",
                     "type": "value",
-                    "value": 0
+                    "value": false
                 },
                 {
                     "id": "t_a",

@@ -4,6 +4,7 @@ Description: This module contains the definition of a small example service \
 Author: Martin Altenburger
 """
 
+import time
 from datetime import datetime, timezone
 from typing import Optional, Union
 
@@ -181,36 +182,32 @@ class MQTTControllerTrnsys(ControllerBasicService):
                 return False
         return True
 
-    async def calculation(self, data: InputDataModel) -> DataTransferModel:
+    async def calculation(self, data: InputDataModel) -> Union[DataTransferModel, None]:
         """
         Function to do the calculation
         Args:
             data (InputDataModel): Input data with the measured values for the calculation
         """
-
-        # start loop to check if the TRNSYS MQTT messages in store are not None
-        # while not self.check_inputs_not_empty(inputs=trnsys_inputs):
-        #     logger.debug(
-        #         "Waiting for MQTT messages from TRNSYS to be fully available in store..."
-        #     )
-        #     # HIER WIRD IMMER NUR NACH DEM WERT IN DER CONFIG GESCHAUT - Vergleich mit Bsp. 5 nötig
-        #     time.sleep(0.01)
+        # check if the controller configuration is available
+        if self.controller_config is None or self.controller_outputs_for_trnsys is None:
+            raise ValueError("Prepare the start of the service before calculation")
 
         # get the current inputs
         trnsys_inputs, boiler_inputs = self.get_inputs(data=data)
 
-        # start loop to check if the TRNSYS MQTT messages in store are not None
-        # while not self.check_mqtt_messages_from_trnsys_not_false(trnsys_inputs):
-        #     logger.debug(
-        #         "Waiting for MQTT messages from TRNSYS to be fully available in store..."
-        #     )
-        #     # HIER WIRD IMMER NUR NACH DEM WERT IN DER CONFIG GESCHAUT - Vergleich mit Bsp. 5 nötig
-        #     time.sleep(0.01)
+        # start loop to check if the TRNSYS MQTT messages in store are not empty
+        while not self.check_inputs_not_empty(inputs=trnsys_inputs):
+            logger.debug(
+                "Waiting for MQTT messages from TRNSYS to be fully available in store..."
+            )
+            time.sleep(0.01)
+            # exit calculation and retry
+            return None
 
-        # print(
-        #     "TRNSYS MQTT messages are fully available in store, continue with calculation..."
-        # )
-
+        logger.debug(
+            "TRNSYS MQTT messages are fully available in store, continue with calculation..."
+        )
+        
         # add all output values to the output data (None for now)
         components = []
         sammeln_payload = ""

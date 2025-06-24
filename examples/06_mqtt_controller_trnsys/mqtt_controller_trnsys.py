@@ -32,6 +32,11 @@ class MQTTControllerTrnsys(ControllerBasicService):
         - send the data to the output
     """
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.controller_config = None
+        self.controller_outputs_for_trnsys = None
+
     async def prepare_start(self) -> None:
         """
         prepare the start of the trnsys controller service

@@ -4,9 +4,8 @@ Description: This module contains the definition of a small example service \
 Author: Martin Altenburger
 """
 
-import time
 from datetime import datetime, timezone
-from typing import Union
+from typing import Optional, Union
 
 from loguru import logger
 
@@ -34,8 +33,8 @@ class MQTTControllerTrnsys(ControllerBasicService):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.controller_config = None
-        self.controller_outputs_for_trnsys = None
+        self.controller_config: Optional[ControllerComponentModel] = None
+        self.controller_outputs_for_trnsys: Optional[OutputModel] = None
 
     async def prepare_start(self) -> None:
         """
@@ -47,8 +46,12 @@ class MQTTControllerTrnsys(ControllerBasicService):
         await self.prepare_basic_start()
 
         # add own functionality for the current service here
-        self.controller_config = self.get_controller_config(type_name="system-controller")
-        self.controller_outputs_for_trnsys = self.get_output_config(output_entity="TRNSYS-Inputs")
+        self.controller_config = self.get_controller_config(
+            type_name="system-controller"
+        )
+        self.controller_outputs_for_trnsys = self.get_output_config(
+            output_entity="TRNSYS-Inputs"
+        )
 
         logger.info("TRNSYS Controller Service prepared successfully")
 
@@ -84,6 +87,31 @@ class MQTTControllerTrnsys(ControllerBasicService):
             if entity.id == output_entity:
                 return entity
         raise ValueError("No output configuration found")
+
+    def get_inputs(self, data: InputDataModel) -> tuple[dict, dict]:
+        """
+        Function to get the inputs from trnsys and the pellet boiler
+
+        Returns:
+            dict: The inputs of the heat controller
+        """
+        if self.controller_config is None:
+            raise ValueError("No controller configuration found")
+
+        trnsys_inputs = {}
+        boiler_inputs = {}
+        for input_key, input_config in self.controller_config.inputs.items():
+            # check if the input is a TRNSYS input or a PB input
+            if input_config["entity"] == "TRNSYS-Outputs":
+                trnsys_inputs[input_key] = self.get_input_values(
+                    input_entities=data.input_entities, input_config=input_config
+                )
+            elif input_config["entity"] == "PB-Outputs":
+                boiler_inputs[input_key] = self.get_input_values(
+                    input_entities=data.input_entities, input_config=input_config
+                )
+
+        return trnsys_inputs, boiler_inputs
 
     def get_input_values(
         self,
@@ -141,11 +169,11 @@ class MQTTControllerTrnsys(ControllerBasicService):
 
         return 0
 
-    def check_inputs_not_empty(self, trnsys_inputs: dict) -> bool:
+    def check_inputs_not_empty(self, inputs: dict) -> bool:
         """
         Function to check if the MQTT message store is not False in any attribute.
         """
-        for attribute_key, attribute_value in trnsys_inputs.items():
+        for attribute_key, attribute_value in inputs.items():
             if attribute_value is False:
                 logger.debug(
                     f"MQTT message store for attribute '{attribute_key}' is False"
@@ -160,19 +188,16 @@ class MQTTControllerTrnsys(ControllerBasicService):
             data (InputDataModel): Input data with the measured values for the calculation
         """
 
+        # start loop to check if the TRNSYS MQTT messages in store are not None
+        # while not self.check_inputs_not_empty(inputs=trnsys_inputs):
+        #     logger.debug(
+        #         "Waiting for MQTT messages from TRNSYS to be fully available in store..."
+        #     )
+        #     # HIER WIRD IMMER NUR NACH DEM WERT IN DER CONFIG GESCHAUT - Vergleich mit Bsp. 5 nötig
+        #     time.sleep(0.01)
+
         # get the current inputs
-        trnsys_inputs = {}
-        pellet_inputs = {}
-        for input_key, input_config in self.controller_config.inputs.items():
-            # check if the input is a TRNSYS input or a PB input
-            if input_config["entity"] == "TRNSYS-Outputs":
-                trnsys_inputs[input_key] = self.get_input_values(
-                    input_entities=data.input_entities, input_config=input_config
-                )
-            elif input_config["entity"] == "PB-Outputs":
-                pellet_inputs[input_key] = self.get_input_values(
-                    input_entities=data.input_entities, input_config=input_config
-                )
+        trnsys_inputs, boiler_inputs = self.get_inputs(data=data)
 
         # start loop to check if the TRNSYS MQTT messages in store are not None
         # while not self.check_mqtt_messages_from_trnsys_not_false(trnsys_inputs):

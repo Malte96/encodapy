@@ -12,100 +12,88 @@
             "id_interface": "MQTT/T207/RBV01/SENDEN",
             "attributes": [
                 {
-                    "id": "trnsys_time",
-                    "id_interface": "time",
-                    "type": "value",
+                    "id": "time",
                     "value": false
                 },
                 {
-                    "id": "t_a",
-                    "id_interface": "IP_t_a",
-                    "type": "value",
+                    "id": "IP_t_a",
                     "value": 0
                 },
                 {
-                    "id": "t_sen_1",
-                    "id_interface": "IP_t_sen_1",
-                    "type": "value",
+                    "id": "IP_t_sen_1",
                     "value": 30
                 },
                 {
-                    "id": "t_sen_2",
-                    "id_interface": "IP_t_sen_2",
-                    "type": "value",
+                    "id": "IP_t_sen_2",
                     "value": 30
                 },
                 {
-                    "id": "t_sen_3",
-                    "id_interface": "IP_t_sen_3",
-                    "type": "value",
+                    "id": "IP_t_sen_3",
                     "value": 30
                 },
                 {
-                    "id": "t_sen_4",
-                    "id_interface": "IP_t_sen_4",
-                    "type": "value",
+                    "id": "IP_t_sen_4",
                     "value": 30
                 },
                 {
-                    "id": "t_sen_5",
-                    "id_interface": "IP_t_sen_5",
-                    "type": "value",
+                    "id": "IP_t_sen_5",
                     "value": 30
                 },
                 {
-                    "id": "tA_AP1_3L",
-                    "id_interface": "IP_tA_AP1_3L",
-                    "type": "value",
+                    "id": "IP_t_sen_6",
                     "value": 30
                 },
                 {
-                    "id": "tA_AP2_1R",
-                    "id_interface": "IP_tA_AP2_1R",
-                    "type": "value",
+                    "id": "IP_t_sen_7",
                     "value": 30
                 },
                 {
-                    "id": "tA_AP3_3R",
-                    "id_interface": "IP_tA_AP3_3R",
-                    "type": "value",
+                    "id": "IP_t_sen_8",
                     "value": 30
                 },
                 {
-                    "id": "tA_AP4_1R",
-                    "id_interface": "IP_tA_AP4_1R",
-                    "type": "value",
+                    "id": "IP_t_sen_9",
                     "value": 30
                 },
                 {
-                    "id": "tA_AP5_3L",
-                    "id_interface": "IP_tA_AP5_3L",
-                    "type": "value",
+                    "id": "IP_t_sen_10",
                     "value": 30
                 },
                 {
-                    "id": "tA_HX1",
-                    "id_interface": "IP_tA_HX1",
-                    "type": "value",
+                    "id": "IP_tA_AP1_3L",
                     "value": 30
                 },
                 {
-                    "id": "t_soll_HK",
-                    "id_interface": "IP_t_soll_HK",
-                    "type": "value",
+                    "id": "IP_tA_AP2_1R",
                     "value": 30
                 },
                 {
-                    "id": "Q_Netz",
-                    "id_interface": "IP_Q_Netz",
-                    "type": "value",
+                    "id": "IP_tA_AP3_3R",
                     "value": 30
                 },
                 {
-                    "id": "P_PV",
-                    "id_interface": "IP_P_PV",
-                    "type": "value",
+                    "id": "IP_tA_AP4_1R",
                     "value": 30
+                },
+                {
+                    "id": "IP_tA_AP5_3L",
+                    "value": 30
+                },
+                {
+                    "id": "IP_tA_HX1",
+                    "value": 30
+                },
+                {
+                    "id": "IP_t_soll_HK",
+                    "value": 50
+                },
+                {
+                    "id": "IP_Q_Netz",
+                    "value": 0
+                },
+                {
+                    "id": "IP_P_PV",
+                    "value": 0
                 }
             ]
         },
@@ -115,15 +103,11 @@
             "id_interface": "PB",
             "attributes": [
                 {
-                    "id": "pb_flow_temp_from_model",
-                    "id_interface": "flow_temp",
-                    "type": "value",
+                    "id": "flow_temp",
                     "value": 40
                 },
                 {
                     "id": "status",
-                    "id_interface": "status",
-                    "type": "value",
                     "value": 0
                 }
             ]
@@ -201,23 +185,23 @@
             "inputs": {
                 "time": {
                     "entity": "TRNSYS-Outputs",
-                    "attribute": "trnsys_time"
+                    "attribute": "time"
                 },
                 "t_out": {
                     "entity": "TRNSYS-Outputs",
-                    "attribute": "t_a"
+                    "attribute": "IP_t_a"
                 },
                 "t_heat": {
                     "entity": "TRNSYS-Outputs",
-                    "attribute": "t_sen_2"
+                    "attribute": "IP_t_sen_2"
                 },
                 "t_heat_set": {
                     "entity": "TRNSYS-Outputs",
-                    "attribute": "t_soll_HK"
+                    "attribute": "IP_t_soll_HK"
                 },
                 "t_dhw": {
                     "entity": "TRNSYS-Outputs",
-                    "attribute": "t_sen_4"
+                    "attribute": "IP_t_sen_4"
                 },
                 "boiler_status": {
                     "entity": "PB-Outputs",

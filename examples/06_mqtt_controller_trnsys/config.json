@@ -13,7 +13,7 @@
             "attributes": [
                 {
                     "id": "trnsys_time",
-                    "id_interface": "IP_time",
+                    "id_interface": "time",
                     "type": "value",
                     "value": false
                 },
@@ -203,7 +203,23 @@
                     "entity": "TRNSYS-Outputs",
                     "attribute": "trnsys_time"
                 },
-                "heater_status": {
+                "t_out": {
+                    "entity": "TRNSYS-Outputs",
+                    "attribute": "t_a"
+                },
+                "t_heat": {
+                    "entity": "TRNSYS-Outputs",
+                    "attribute": "t_sen_2"
+                },
+                "t_heat_set": {
+                    "entity": "TRNSYS-Outputs",
+                    "attribute": "t_soll_HK"
+                },
+                "t_dhw": {
+                    "entity": "TRNSYS-Outputs",
+                    "attribute": "t_sen_4"
+                },
+                "boiler_status": {
                     "entity": "PB-Outputs",
                     "attribute": "status"
                 }
@@ -264,7 +280,7 @@
             "calculation": {
                 "timerange": 1,
                 "timerange_unit": "minute",
-                "sampling_time": 0.01,
+                "sampling_time": 0.1,
                 "sampling_time_unit": "second"
             },
             "calibration": {

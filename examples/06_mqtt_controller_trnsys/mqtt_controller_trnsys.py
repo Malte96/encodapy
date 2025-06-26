@@ -86,7 +86,9 @@ class MQTTControllerTrnsys(ControllerBasicService):
         for entity in self.config.outputs:
             if entity.id == output_entity:
                 return entity
-        raise ValueError("No output configuration found")
+        raise ValueError(
+            f"No output configuration for the entity '{output_entity}' found"
+        )
 
     def get_inputs(self, data: InputDataModel) -> tuple[dict, dict]:
         """
@@ -186,9 +188,11 @@ class MQTTControllerTrnsys(ControllerBasicService):
         Function to reset the MQTT message store for TRNSYS inputs.
         This is necessary to wait until TRNSYS send new messages.
         """
-        # TODO: HIER GEHTS WEITER
+        # TODO: HIER GEHTS WEITER, RESETTET NOCH NICHT KORREKT
+        # TODO: Reset muss im self.mqtt_message_store sein, dafür Topics nötig
+
         for attribute_key in inputs.keys():
-            inputs[attribute_key] = None
+            inputs[attribute_key] = False
             logger.debug(f"Reset MQTT message store for attribute '{attribute_key}'")
 
     async def calculation(self, data: InputDataModel) -> Union[DataTransferModel, None]:
@@ -212,7 +216,7 @@ class MQTTControllerTrnsys(ControllerBasicService):
             # exit calculation and retry
             return None
         logger.debug(
-            "TRNSYS MQTT messages were fully available in store, reset store and continue calculation..."
+            "TRNSYS MQTT messages were available in store, reset store and continue calculation..."
         )
         # reset the MQTT message store for TRNSYS
         self.reset_mqtt_message_store(inputs=trnsys_inputs)
@@ -242,7 +246,22 @@ class MQTTControllerTrnsys(ControllerBasicService):
             # build the trnsys payload for the full message
             for output_attribute in self.controller_outputs_for_trnsys.attributes:
                 if output_attribute.id == attribute_id:
-                    trnsys_value = output_attribute.value
+                    if output_attribute.id == "S_WP":
+                        trnsys_value = 0
+                    elif output_attribute.id == "S_WP_TWE":
+                        trnsys_value = 0
+                    elif output_attribute.id == "n_WP":
+                        trnsys_value = 0.5
+                    elif output_attribute.id == "S_PK":
+                        trnsys_value = 1
+                    elif output_attribute.id == "S_PK_TWE":
+                        trnsys_value = 0
+                    elif output_attribute.id == "m_PK":
+                        trnsys_value = 2000
+                    elif output_attribute.id == "tA_PK":
+                        trnsys_value = 70
+                    else:
+                        trnsys_value = output_attribute.value
                     trnsys_variable_name = output_attribute.id_interface
                     sammeln_payload += f"{trnsys_variable_name} : {trnsys_value} # "
 

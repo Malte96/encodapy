@@ -173,12 +173,12 @@ class MQTTControllerTrnsys(ControllerBasicService):
 
     def check_inputs_not_empty(self, inputs: dict) -> bool:
         """
-        Function to check if the MQTT message store is not False in any attribute.
+        Function to check if the MQTT message store is not None in any attribute.
         """
         for attribute_key, attribute_value in inputs.items():
-            if attribute_value is False:
+            if attribute_value is None:
                 logger.debug(
-                    f"MQTT message store for attribute '{attribute_key}' is False"
+                    f"MQTT message store for attribute '{attribute_key}' is None"
                 )
                 return False
         return True
@@ -246,20 +246,20 @@ class MQTTControllerTrnsys(ControllerBasicService):
             # build the trnsys payload for the full message
             for output_attribute in self.controller_outputs_for_trnsys.attributes:
                 if output_attribute.id == attribute_id:
-                    if output_attribute.id == "S_WP":
-                        trnsys_value = 0
-                    elif output_attribute.id == "S_WP_TWE":
+                    if output_attribute.id == "OP_S_WP":
+                        trnsys_value = 1
+                    elif output_attribute.id == "OP_S_WP_TWE":
                         trnsys_value = 0
                     elif output_attribute.id == "n_WP":
-                        trnsys_value = 0.5
+                        trnsys_value = 0.25
                     elif output_attribute.id == "S_PK":
-                        trnsys_value = 1
+                        trnsys_value = 0
                     elif output_attribute.id == "S_PK_TWE":
                         trnsys_value = 0
                     elif output_attribute.id == "m_PK":
-                        trnsys_value = 2000
+                        trnsys_value = 0
                     elif output_attribute.id == "tA_PK":
-                        trnsys_value = 70
+                        trnsys_value = 50
                     else:
                         trnsys_value = output_attribute.value
                     trnsys_variable_name = output_attribute.id_interface

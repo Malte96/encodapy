@@ -12,88 +12,67 @@
             "id_interface": "MQTT/T207/RBV01/SENDEN",
             "attributes": [
                 {
-                    "id": "time",
-                    "value": false
+                    "id": "time"
                 },
                 {
-                    "id": "IP_t_a",
-                    "value": 0
+                    "id": "IP_t_a"
                 },
                 {
-                    "id": "IP_t_sen_1",
-                    "value": 30
+                    "id": "IP_t_sen_1"
                 },
                 {
-                    "id": "IP_t_sen_2",
-                    "value": 30
+                    "id": "IP_t_sen_2"
                 },
                 {
-                    "id": "IP_t_sen_3",
-                    "value": 30
+                    "id": "IP_t_sen_3"
                 },
                 {
-                    "id": "IP_t_sen_4",
-                    "value": 30
+                    "id": "IP_t_sen_4"
                 },
                 {
-                    "id": "IP_t_sen_5",
-                    "value": 30
+                    "id": "IP_t_sen_5"
                 },
                 {
-                    "id": "IP_t_sen_6",
-                    "value": 30
+                    "id": "IP_t_sen_6"
                 },
                 {
-                    "id": "IP_t_sen_7",
-                    "value": 30
+                    "id": "IP_t_sen_7"
                 },
                 {
-                    "id": "IP_t_sen_8",
-                    "value": 30
+                    "id": "IP_t_sen_8"
                 },
                 {
-                    "id": "IP_t_sen_9",
-                    "value": 30
+                    "id": "IP_t_sen_9"
                 },
                 {
-                    "id": "IP_t_sen_10",
-                    "value": 30
+                    "id": "IP_t_sen_10"
                 },
                 {
-                    "id": "IP_tA_AP1_3L",
-                    "value": 30
+                    "id": "IP_tA_AP1_3L"
                 },
                 {
-                    "id": "IP_tA_AP2_1R",
-                    "value": 30
+                    "id": "IP_tA_AP2_1R"
                 },
                 {
-                    "id": "IP_tA_AP3_3R",
-                    "value": 30
+                    "id": "IP_tA_AP3_3R"
                 },
                 {
-                    "id": "IP_tA_AP4_1R",
-                    "value": 30
+                    "id": "IP_tA_AP4_1R"
                 },
                 {
-                    "id": "IP_tA_AP5_3L",
-                    "value": 30
+                    "id": "IP_tA_AP5_3L"
                 },
                 {
-                    "id": "IP_tA_HX1",
-                    "value": 30
+                    "id": "IP_tA_HX1"
                 },
                 {
-                    "id": "IP_t_soll_HK",
-                    "value": 50
+                    "id": "IP_t_soll_HK"
                 },
                 {
-                    "id": "IP_Q_Netz",
-                    "value": 0
+                    "id": "IP_Q_Netz"
                 },
                 {
-                    "id": "IP_P_PV",
-                    "value": 0
+                    "id": "IP_P_PV"
                 }
             ]
         },
@@ -103,12 +82,10 @@
             "id_interface": "PB",
             "attributes": [
                 {
-                    "id": "flow_temp",
-                    "value": 40
+                    "id": "flow_temp"
                 },
                 {
-                    "id": "status",
-                    "value": 0
+                    "id": "status"
                 }
             ]
         }
@@ -120,54 +97,34 @@
             "id_interface": "MQTT/T207/SAMMELN",
             "attributes": [
                 {
-                    "id": "S_PK",
-                    "id_interface": "OP_S_PK",
-                    "value": 0
+                    "id": "OP_S_PK"
                 },
                 {
-                    "id": "S_PK_TWE",
-                    "id_interface": "OP_S_PK_TWE",
-                    "value": 0
+                    "id": "OP_S_PK_TWE"
                 },
                 {
-                    "id": "S_WP",
-                    "id_interface": "OP_S_WP",
-                    "value": 0
+                    "id": "OP_S_WP"
                 },
                 {
-                    "id": "S_WP_TWE",
-                    "id_interface": "OP_S_WP_TWE",
-                    "value": 0
+                    "id": "OP_S_WP_TWE"
                 },
                 {
-                    "id": "Heizperiode",
-                    "id_interface": "OP_Heizzeit",
-                    "value": 0
+                    "id": "OP_Heizzeit"
                 },
                 {
-                    "id": "n_WP",
-                    "id_interface": "OP_n_WP",
-                    "value": 0
+                    "id": "OP_n_WP"
                 },
                 {
-                    "id": "m_PK",
-                    "id_interface": "OP_m_PK",
-                    "value": 0
+                    "id": "OP_m_PK"
                 },
                 {
-                    "id": "tA_PK",
-                    "id_interface": "OP_tA_PK",
-                    "value": 0
+                    "id": "OP_tA_PK"
                 },
                 {
-                    "id": "Q_PK_BS",
-                    "id_interface": "OP_Q_PK_BS",
-                    "value": 0
+                    "id": "OP_Q_PK_BS"
                 },
                 {
-                    "id": "Mod_PK",
-                    "id_interface": "OP_Mod_PK",
-                    "value": 0
+                    "id": "OP_Mod_PK"
                 },
                 {
                     "id": "trnsys_sammeln",
@@ -211,43 +168,43 @@
             "outputs": {
                 "power_on_pk": {
                     "entity": "TRNSYS-Inputs",
-                    "attribute": "S_PK"
+                    "attribute": "OP_S_PK"
                 },
                 "pk_twe_mode": {
                     "entity": "TRNSYS-Inputs",
-                    "attribute": "S_PK_TWE"
+                    "attribute": "OP_S_PK_TWE"
                 },
                 "power_on_wp": {
                     "entity": "TRNSYS-Inputs",
-                    "attribute": "S_WP"
+                    "attribute": "OP_S_WP"
                 },
                 "wp_twe_mode": {
                     "entity": "TRNSYS-Inputs",
-                    "attribute": "S_WP_TWE"
+                    "attribute": "OP_S_WP_TWE"
                 },
                 "heating_period": {
                     "entity": "TRNSYS-Inputs",
-                    "attribute": "Heizperiode"
+                    "attribute": "OP_Heizzeit"
                 },
                 "n_wp_rel": {
                     "entity": "TRNSYS-Inputs",
-                    "attribute": "n_WP"
+                    "attribute": "OP_n_WP"
                 },
                 "flow_pk": {
                     "entity": "TRNSYS-Inputs",
-                    "attribute": "m_PK"
+                    "attribute": "OP_m_PK"
                 },
                 "temp_flow_pk": {
                     "entity": "TRNSYS-Inputs",
-                    "attribute": "tA_PK"
+                    "attribute": "OP_tA_PK"
                 },
                 "heat_pk_fuel": {
                     "entity": "TRNSYS-Inputs",
-                    "attribute": "Q_PK_BS"
+                    "attribute": "OP_Q_PK_BS"
                 },
                 "modulation_pk": {
                     "entity": "TRNSYS-Inputs",
-                    "attribute": "Mod_PK"
+                    "attribute": "OP_Mod_PK"
                 },
                 "full_trnsys_message": {
                     "entity": "TRNSYS-Inputs",

@@ -377,10 +377,14 @@ class MqttConnection:
             self.publish(topic, payload)
             logger.debug(f"Published to topic {topic}: {payload}")
 
-    def _extract_payload_value(self, payload) -> Union[float, bool]:
+    def _extract_payload_value(self, payload) -> Union[float, bool, None]:
         """
         Function to extract data from the payload as needed.
         """
+        # Check if the payload is None or empty
+        if payload is None or payload == "":
+            return None
+        
         # Check if the payload is a JSON string and try to parse it
         if isinstance(payload, str):
             try:

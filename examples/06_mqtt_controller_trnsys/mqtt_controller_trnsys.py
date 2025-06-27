@@ -171,10 +171,11 @@ class MQTTControllerTrnsys(ControllerBasicService):
 
         return 0
 
-    def check_inputs_not_empty(self, inputs: dict) -> bool:
+    def check_inputs_are_updated(self, inputs: dict) -> bool:
         """
         Function to check if the MQTT message store is not None in any attribute.
         """
+        # TODO: check if it would be better to check the timestamps of the inputs
         for attribute_key, attribute_value in inputs.items():
             if attribute_value is None:
                 logger.debug(
@@ -209,14 +210,14 @@ class MQTTControllerTrnsys(ControllerBasicService):
         trnsys_inputs, boiler_inputs = self.get_inputs(data=data)
 
         # check if the TRNSYS MQTT messages in store are not empty
-        if not self.check_inputs_not_empty(inputs=trnsys_inputs):
+        if not self.check_inputs_are_updated(inputs=trnsys_inputs):
             logger.debug(
-                "Waiting for MQTT messages from TRNSYS to be fully available in store..."
+                "Waiting for MQTT messages from TRNSYS to be fully updated in store..."
             )
             # exit calculation and retry
             return None
         logger.debug(
-            "TRNSYS MQTT messages were available in store, reset store and continue calculation..."
+            "TRNSYS MQTT messages were available and up to date in store, continue calculation..."
         )
         # reset the MQTT message store for TRNSYS
         self.reset_mqtt_message_store(inputs=trnsys_inputs)

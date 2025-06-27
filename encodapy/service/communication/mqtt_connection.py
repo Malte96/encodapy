@@ -37,15 +37,11 @@ class MqttConnection:
     """
 
     def __init__(self) -> None:
-        self.mqtt_params: dict[str, object] = {}
-        # make ConfigModel-Class available in the MqttConnection-Class
+        self.mqtt_params: dict = {}
         self.config: Optional[ConfigModel] = None
         self.mqtt_client: Optional[mqtt.Client] = None
+        self.mqtt_message_store: dict[str, dict] = {}
         self._mqtt_loop_running = False
-        # mqtt_message_store is filled by on_messages
-        # messages are stored with topic as key and payload as value
-        # dict is used to get the data in the get_data_from_mqtt function
-        self.mqtt_message_store: dict[str, object] = {}
 
     def load_mqtt_params(self) -> None:
         """
@@ -141,8 +137,7 @@ class MqttConnection:
                     if topic in self.mqtt_message_store:
                         logger.warning(
                             f"Topic {topic} from {entity.id} already exists in message store, "
-                            f"overwriting it with new value. "
-                            f"This should not happen, check your configuration. "
+                            f"overwriting it. This should not happen, check your configuration."
                         )
 
                     # set the default value for the attribute
@@ -151,7 +146,12 @@ class MqttConnection:
                     else:
                         value = None
 
-                    self.mqtt_message_store[topic] = value
+                    self.mqtt_message_store[topic] = {
+                        "entity_id": entity.id,
+                        "attribute_id": attribute.id,
+                        "payload": value,
+                        "timestamp": datetime.now(),
+                    }
 
     def assemble_topic_parts(self, parts: list[str]) -> str:
         """
@@ -212,24 +212,30 @@ class MqttConnection:
             self.subscribe(topic)
             logger.debug(f"Subscribed to topic: {topic}")
 
-    def on_message(self, client, userdata, message):
+    def on_message(self, _, __, message):
         """
-        Callback function for received messages, stores the decoded message in the message store
+        Callback function for received messages, stores the decoded message with
+        its timestamp in the message store
         """
         if not hasattr(self, "mqtt_message_store"):
             raise NotSupportedError(
                 "MQTT message store is not initialized. Call prepare_mqtt_connection() first."
             )
+        # save the time from receiving the message
+        current_time = datetime.now()
         # decode the message payload
         try:
-            storage_value = message.payload.decode("utf-8")
+            payload = message.payload.decode("utf-8")
         except UnicodeDecodeError as e:
             logger.error(f"Failed to decode message payload: {e}")
             return
         # store it in the message store
-        self.mqtt_message_store[message.topic] = storage_value
+        self.mqtt_message_store[message.topic] = {
+            "payload": payload,
+            "timestamp": current_time,
+        }
         logger.debug(
-            f"MQTT storage received message on topic {message.topic}: {storage_value}"
+            f"MQTT storage received message on {message.topic}: {payload} at {current_time}"
         )
 
     def start_mqtt_client(self):
@@ -305,7 +311,7 @@ class MqttConnection:
                 continue
 
             # extract the data from message payload
-            message_payload = self.mqtt_message_store[topic]
+            message_payload = self.mqtt_message_store[topic]["payload"]
             try:
                 data = self._extract_payload_value(message_payload)
 
@@ -315,7 +321,7 @@ class MqttConnection:
                         data=data,
                         data_type=attribute.type,
                         data_available=True,
-                        latest_timestamp_input=None,
+                        latest_timestamp_input=self.mqtt_message_store[topic]["timestamp"],
                         unit=None,  # TODO MB: Add unit handling if necessary
                     )
                 )
@@ -384,7 +390,7 @@ class MqttConnection:
         # Check if the payload is None or empty
         if payload is None or payload == "":
             return None
-        
+
         # Check if the payload is a JSON string and try to parse it
         if isinstance(payload, str):
             try:
@@ -426,7 +432,7 @@ class MqttConnection:
         self, output_entity: OutputModel
     ) -> tuple[OutputDataEntityModel, Union[datetime, None]]:
         """
-        Function to get the latest timestamps of the output entity from a MQTT message, if exitst
+        Function to get the latest timestamps of the output entity from a MQTT message, if exists
 
         Args:
             output_entity (OutputModel): Output entity
@@ -437,16 +443,14 @@ class MqttConnection:
                 - the latest timestamp of the output entity for the attribute
                 with the oldest value (None if no timestamp is available)
         TODO:
-            - is it really nessesary to get a timestamp for MQTT-calculations /
-            during calculation time is set to input_time
+            - why the oldest value? Shouldn't it be the latest value?
         """
 
-        output_id = output_entity.id_interface
 
-        timestamps = []
+        timestamps: list = []
         timestamp_latest_output = None
 
         return (
-            OutputDataEntityModel(id=output_id, attributes_status=timestamps),
+            OutputDataEntityModel(id=output_entity.id, attributes_status=timestamps),
             timestamp_latest_output,
         )

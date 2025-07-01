@@ -38,7 +38,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
     """
     Class for processing the data transfer to different connections
     and start a function to do the calculations.
-    TODO: Implement the other interfaces(MQTT, ...)
 
     """
 
@@ -56,6 +55,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         self.staticdata = None
 
         self.timestamp_health = None
+
+        self.prepare_basic_start()
 
     def _load_config(self):
         """
@@ -88,12 +89,12 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
         return config_path
 
-    async def prepare_basic_start(self):
+    def prepare_basic_start(self):
         """
         Function to create important objects with the configuration from the configuration
         file (.env) and prepare the start basics of the service.
-        TODO: Implement the other interfaces(MQTT, ...)
         """
+        logger.info("Prepare the basic start of the service")
 
         self._load_config()
 
@@ -103,16 +104,22 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         if self.config.interfaces.mqtt:
             self.prepare_mqtt_connection()
 
-        return
+        self.prepare_start()
 
-    async def prepare_start(self):
+
+    def prepare_start(self):
         """
-        Function prepare the start of the service (calls the function for the basic preparing)
+        Function prepare the specific aspects of the start of the service \
+            Fuction is called by the function for the basic preparing
+
+        This function can be overwritten in the specific service.
+        
+        The function should not be do anything time consuming, \
+            because the health check is not running yet.
 
         """
-        logger.info("Prepare Start of Service")
+        logger.debug("There is nothing else to prepare for the start of the service.")
 
-        await self.prepare_basic_start()
 
     async def reload_static_data(
         self, method: DataQueryTypes, staticdata: list

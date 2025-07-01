@@ -7,7 +7,9 @@ import os
 from asyncio import sleep
 from datetime import datetime
 from typing import Union
+
 from loguru import logger
+
 from encodapy.config import (
     AttributeModel,
     CommandModel,
@@ -17,9 +19,15 @@ from encodapy.config import (
     Interfaces,
     OutputModel,
 )
+from encodapy.service.communication import (
+    FileConnection,
+    FiwareConnection,
+    MqttConnection,
+)
 from encodapy.utils.health import update_health_file
 from encodapy.utils.logging import LoggerControl
 from encodapy.utils.models import (
+    DataTransferComponentModel,
     DataTransferModel,
     InputDataModel,
     OutputDataEntityModel,
@@ -27,18 +35,12 @@ from encodapy.utils.models import (
     StaticDataEntityModel,
 )
 from encodapy.utils.units import get_time_unit_seconds
-from encodapy.service.communication import (
-    FiwareConnection,
-    FileConnection,
-    MqttConnection,
-)
 
 
 class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
     """
     Class for processing the data transfer to different connections
     and start a function to do the calculations.
-    TODO: Implement the other interfaces(MQTT, ...)
 
     """
 
@@ -57,6 +59,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
         self.timestamp_health = None
 
+        self.prepare_basic_start()
+
     def _load_config(self):
         """
         Function loads the environemtal variables and the config of the service.
@@ -69,15 +73,12 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         self.config = ConfigModel.from_json(file_path=config_path)
 
         if self.config.interfaces.fiware:
-
             self.load_fiware_params()
 
         if self.config.interfaces.file:
-
             self.load_file_params()
 
         if self.config.interfaces.mqtt:
-
             self.load_mqtt_params()
 
         self.reload_staticdata = os.getenv(
@@ -88,31 +89,37 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
         return config_path
 
-    async def prepare_basic_start(self):
+    def prepare_basic_start(self):
         """
         Function to create important objects with the configuration from the configuration
         file (.env) and prepare the start basics of the service.
-        TODO: Implement the other interfaces(MQTT, ...)
         """
+        logger.info("Prepare the basic start of the service")
 
         self._load_config()
 
-        if self.config.interfaces.fiware:
-            self.prepare_fiware_connection()
+        interfaces = getattr(self.config, "interfaces", None)
+        if interfaces:
+            if getattr(interfaces, "fiware", False):
+                self.prepare_fiware_connection()
 
-        if self.config.interfaces.mqtt:
-            self.prepare_mqtt_connection()
+            if getattr(interfaces, "mqtt", False):
+                self.prepare_mqtt_connection()
 
-        return
+        self.prepare_start()
 
-    async def prepare_start(self):
+    def prepare_start(self):
         """
-        Function prepare the start of the service (calls the function for the basic preparing)
+        Function prepare the specific aspects of the start of the service \
+            Fuction is called by the function for the basic preparing
+
+        This function can be overwritten in the specific service.
+        
+        The function should not be do anything time consuming, \
+            because the health check is not running yet.
 
         """
-        logger.info("Prepare Start of Service")
-
-        await self.prepare_basic_start()
+        logger.debug("There is nothing else to prepare for the start of the service.")
 
     async def reload_static_data(
         self, method: DataQueryTypes, staticdata: list
@@ -129,9 +136,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             return []
 
         for static_entity in self.config.staticdata:
-
             if static_entity.interface == Interfaces.FIWARE:
-
                 staticdata.append(
                     StaticDataEntityModel(
                         **self.get_data_from_fiware(
@@ -143,7 +148,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 )
 
             if static_entity.interface == Interfaces.FILE:
-
                 staticdata.append(
                     StaticDataEntityModel(
                         **self.get_staticdata_from_file(
@@ -155,7 +159,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             if static_entity.interface == Interfaces.MQTT:
                 logger.warning("interface MQTT for staticdata not supported")
 
-            await sleep(0.1)
+            await sleep(0.01)
         return staticdata
 
     async def get_data(self, method: DataQueryTypes) -> InputDataModel:
@@ -169,18 +173,21 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         Returns:
             InputDataModel: Model with the input data
 
-
-        TODO:
-            - Implement the other interfaces(MQTT, ...)
-            - loading data from a file -> first/last/specific value in file
         """
 
         input_data = []
         output_timestamps = []
         output_latest_timestamps = []
 
-        for output_entity in self.config.outputs:
+        if self.config is None:
+            logger.error(
+                "Configuration is not loaded. Please call prepare_start() first."
+            )
+            return InputDataModel(
+                input_entities=[], output_entities=[], static_entities=[]
+            )
 
+        for output_entity in self.config.outputs:
             if output_entity.interface == Interfaces.FIWARE:
                 entity_timestamps, output_latest_timestamp = (
                     self._get_last_timestamp_for_fiware_output(output_entity)
@@ -197,7 +204,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_latest_timestamps.append(output_latest_timestamp)
                 logger.info("File interface, output_latest_timestamp is not defined.")
 
-            elif output_entity.interface == Interfaces.MQTT:  # TODO MB: How to handle MQTT interface?
+            elif output_entity.interface == Interfaces.MQTT: #TODO MB: How to handle MQTT interface?
                 entity_timestamps, output_latest_timestamp = (
                     self._get_last_timestamp_for_mqtt_output(output_entity)
                 )
@@ -205,8 +212,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_latest_timestamps.append(output_latest_timestamp)
                 logger.info("MQTT interface, output_latest_timestamp is not defined.")
 
-
-            await sleep(0.1)
+            await sleep(0.01)
 
         if None in output_latest_timestamps:
             output_latest_timestamp = None
@@ -217,7 +223,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_latest_timestamp = None
 
         for input_entity in self.config.inputs:
-
             if input_entity.interface == Interfaces.FIWARE:
                 input_data.append(
                     self.get_data_from_fiware(
@@ -229,10 +234,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
             elif input_entity.interface == Interfaces.FILE:
                 input_data.append(
-                        self.get_data_from_file(
-                            method=method,
-                            entity=input_entity)
-                    )
+                    self.get_data_from_file(method=method, entity=input_entity)
+                )
 
             elif input_entity.interface == Interfaces.MQTT:
                 input_data.append(
@@ -242,10 +245,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                     )
                 )
 
-            await sleep(0.1)
+            await sleep(0.01)
 
         if self.reload_staticdata or self.staticdata is None:
-
             self.staticdata = await self.reload_static_data(
                 method=method, staticdata=[]
             )
@@ -294,7 +296,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         for entity in self.config.outputs:
             if entity.id == output_entity_id:
-
                 for attribute in entity.attributes:
                     if attribute.id == output_attribute_id:
                         return attribute
@@ -319,7 +320,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         for entity in self.config.outputs:
             if entity.id == output_entity_id:
-
                 for commmand in entity.commands:
                     if commmand.id == output_command_id:
                         return commmand
@@ -341,7 +341,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             return
 
         for output in data_output.entities:
-
             output_entity = self._get_output_entity_config(output_entity_id=output.id)
             output_attributes = []
             output_commands = []
@@ -351,7 +350,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 continue
 
             for attribute in output.attributes:
-
                 output_attribute = self._get_output_attribute_config(
                     output_entity_id=output.id, output_attribute_id=attribute.id
                 )
@@ -368,7 +366,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_attributes.append(output_attribute)
 
             for command in output.commands:
-
                 output_command = self._get_output_command_config(
                     output_entity_id=output.id, output_command_id=command.id
                 )
@@ -383,7 +380,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_commands.append(output_command)
 
             if output_entity.interface is Interfaces.FIWARE:
-
                 await self._send_data_to_fiware(
                     output_entity=output_entity,
                     output_attributes=output_attributes,
@@ -403,7 +399,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                     output_attributes=output_attributes,
                 )
 
-            await sleep(0.1)
+            await sleep(0.01)
 
         logger.debug("Finished sending output data")
 
@@ -423,7 +419,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 "The sampling time must be increased!"
             )
         while ((datetime.now() - start_time).total_seconds()) < hold_time:
-            await sleep(0.1)
+            await sleep(0.01)
 
     async def calculation(
         self,
@@ -437,19 +433,22 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         Returns:
             - Union[DataTransferModel, None]: Output data from the calculation
         """
-        logger.debug("No calculation function implemented, "
-                     f"get the data only: {data.model_dump_json()}")
+        logger.debug(
+            "No calculation function implemented, "
+            f"get the data only: {data.model_dump_json()}"
+        )
         return None
 
-    async def calibration(self,
-                          data: InputDataModel):
+    async def calibration(self, data: InputDataModel):
         """
         Function to start the calibration, do something with data - used in the services
         Only a dummy function, has to be implemented in the services
         """
 
-        logger.debug("No calibration function implemented, "
-                     f"get the data only: {data.model_dump_json()}")
+        logger.debug(
+            "No calibration function implemented, "
+            f"get the data only: {data.model_dump_json()}"
+        )
         return None
 
     def prepare_output(self, data_output: DataTransferModel) -> OutputDataModel:
@@ -470,8 +469,14 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         if data_output is None:
             logger.debug("No data for preparing the output.")
             return output_data
-        output_attrs = {}
-        output_cmds = {}
+        output_attrs: dict[str, list] = {}
+        output_cmds: dict[str, list] = {}
+
+        if self.config is None:
+            logger.error(
+                "Configuration is not loaded. Please call prepare_start() first."
+            )
+            return output_data
 
         for component in data_output.components:
             for output in self.config.outputs:
@@ -491,17 +496,25 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         return output_data
 
     def _process_attributes(
-        self, component: str, output: str, output_attrs: str
+        self,
+        component: DataTransferComponentModel,
+        output: OutputModel,
+        output_attrs: dict,
     ) -> dict:
         """Helper function to process attributes."""
         for attribute in output.attributes:
             if attribute.id == component.attribute_id:
                 if output.id not in output_attrs:
                     output_attrs[output.id] = []
+
+                attribute.value = (
+                    component.value if component.value is not None else attribute.value
+                )
+
                 output_attrs[output.id].append(
                     AttributeModel(
                         id=attribute.id,
-                        value=component.value,
+                        value=attribute.value,
                         unit=component.unit,
                         timestamp=component.timestamp,
                     )
@@ -509,14 +522,25 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 break
         return output_attrs
 
-    def _process_commands(self, component: str, output: str, output_cmds: dict) -> dict:
+    def _process_commands(
+        self,
+        component: DataTransferComponentModel,
+        output: OutputModel,
+        output_cmds: dict,
+    ) -> dict:
         """Helper function to process commands."""
         for command in output.commands:
             if command.id == component.attribute_id:
                 if output.id not in output_cmds:
                     output_cmds[output.id] = []
+
+                # TODO: type checking necessary? Dataframes and bools not allowed for commands
+                command.value = (
+                    component.value if component.value is not None else command.value
+                )
+
                 output_cmds[output.id].append(
-                    CommandModel(id=command.id, value=component.value)
+                    CommandModel(id=command.id, value=command.value)
                 )
                 break
         return output_cmds
@@ -541,7 +565,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
 
             if data_input is not None:
-
                 data_output = await self.calculation(data=data_input)
 
                 data_output = self.prepare_output(data_output=data_output)
@@ -594,7 +617,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         logger.debug("Start the the Health-Check")
         while True:
-
             start_time = datetime.now()
             sampling_time = (
                 self.config.controller_settings.time_settings.calculation.sampling_time

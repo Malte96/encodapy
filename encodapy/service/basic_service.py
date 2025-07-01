@@ -98,14 +98,12 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
         self._load_config()
 
-        if (
-            self.config is not None
-            and getattr(self.config, "interfaces", None) is not None
-        ):
-            if self.config.interfaces.fiware:
+        interfaces = getattr(self.config, "interfaces", None)
+        if interfaces:
+            if getattr(interfaces, "fiware", False):
                 self.prepare_fiware_connection()
 
-            if self.config.interfaces.mqtt:
+            if getattr(interfaces, "mqtt", False):
                 self.prepare_mqtt_connection()
 
         self.prepare_start()
@@ -175,9 +173,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         Returns:
             InputDataModel: Model with the input data
 
-        TODO:
-            - Implement other interfaces(...)
-            - loading data from a file -> first/last/specific value in file
         """
 
         input_data = []
@@ -209,7 +204,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_latest_timestamps.append(output_latest_timestamp)
                 logger.info("File interface, output_latest_timestamp is not defined.")
 
-            elif output_entity.interface == Interfaces.MQTT:  # TODO MB: How to handle MQTT interface?
+            elif output_entity.interface == Interfaces.MQTT: #TODO MB: How to handle MQTT interface?
                 entity_timestamps, output_latest_timestamp = (
                     self._get_last_timestamp_for_mqtt_output(output_entity)
                 )

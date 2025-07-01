@@ -16,9 +16,9 @@ async def main():
         - start the service
     Possibilitie to stop the service with SIGINT or SIGTERM
     """
-    logger.debug("Example Service is starting... 0 ")
+
     service = ExampleService()
-    logger.debug("Example Service is starting... 1 ")
+
     task_for_check_health = asyncio.create_task(service.check_health_status())
     task_for_calibration = asyncio.create_task(service.start_calibration())
     task_for_start_service = asyncio.create_task(service.start_service())

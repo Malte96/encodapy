@@ -2,7 +2,7 @@
 Simple Method to caluculate the energy in a the thermal storage
 Author: Martin Altenburger
 """
-from typing import Union
+from typing import Union, Optional
 from pandas import DataFrame, Series
 import numpy as np
 from encodapy.components.thermal_storage_config import (
@@ -18,6 +18,10 @@ class ThermalStorage():
     Class to calculate the energy in a thermal storage.
     
     Args:
+        sensor_config (ThermalStorageTemperatureSensors): \
+            Configuration of the temperature sensors in the thermal storage
+        volume (float): Volume of the thermal storage in m³
+        medium (Medium): Medium in the thermal storage, e.g. water 
     
     """
     def __init__(self,
@@ -79,7 +83,7 @@ class ThermalStorage():
             float: Volume of the sensors in the thermal storage in m³
         """
 
-        return self.sensor_volumes[sensor]
+        return round(self.sensor_volumes[sensor],3)
 
     def _get_sensor_limits(self,
                            sensor:str) -> TemperatureLimits:
@@ -116,8 +120,8 @@ class ThermalStorage():
 
             if sensor_name is None:
                 continue
-            #TODO: replace it with _get_sensor_limits()
-            limits:TemperatureLimits = getattr(self.sensor_config, f"sensor_{i}_limits")
+            limits = self._get_sensor_limits(sensor_name)
+
             total_energy_calculator += ((limits.maximal_temperature
                                         - limits.minimal_temperature)
                                         * self._get_sensor_volume(sensor_name))
@@ -142,8 +146,8 @@ class ThermalStorage():
 
             if sensor_name is None:
                 continue
-            #TODO: replace it with _get_sensor_limits()
-            limits:TemperatureLimits = getattr(self.sensor_config, f"sensor_{i}_limits")
+            limits = self._get_sensor_limits(sensor_name)
+
             total_energy_calculator += ((limits.minimal_temperature
                                         - limits.reference_temperature)
                                         * self._get_sensor_volume(sensor_name))
@@ -169,8 +173,8 @@ class ThermalStorage():
             if sensor_name is None:
                 continue
 
-            #TODO: replace it with _get_sensor_limits()
-            limits:TemperatureLimits = getattr(self.sensor_config, f"sensor_{i}_limits")
+            limits = self._get_sensor_limits(sensor_name)
+
             total_energy_calculator += ((limits.maximal_temperature
                                         - limits.reference_temperature)
                                         * self._get_sensor_volume(sensor_name))
@@ -187,7 +191,8 @@ class ThermalStorage():
         Function to set the sensor values in the thermal storage
 
         Args:
-            sensor_values (dict): Sensor values in the thermal storage
+            sensor_values (dict): Sensor values in the thermal storage \
+                with the sensor names as keys
         """
 
         self.sensor_values = TemperatureSensorValues(
@@ -216,14 +221,14 @@ class ThermalStorage():
             pd.Series: Adjustested state of charge
         """
         ref_value = (
-            temperature_limits.minimal_temperature 
+            temperature_limits.minimal_temperature
             + (temperature_limits.maximal_temperature  - temperature_limits.minimal_temperature
                ) * 0.1)
         df = df.copy()
 
         df["state_of_charge"] = np.where(
             df[sensor_name] < temperature_limits.minimal_temperature , 0,
-            np.where(df[sensor_name] < ref_value, 
+            np.where(df[sensor_name] < ref_value,
                      (df[sensor_name] - temperature_limits.minimal_temperature )
                      /(temperature_limits.maximal_temperature
                        -temperature_limits.minimal_temperature),
@@ -232,9 +237,10 @@ class ThermalStorage():
         return df["state_of_charge"]
 
     def calculate_state_of_charge(self,
-                                  input_data: Union[dict,
-                                                    DataFrame,
-                                                    TemperatureSensorValues]
+                                  input_data: Optional[Union[dict,
+                                                             DataFrame,
+                                                             TemperatureSensorValues
+                                                             ]] = None
                                   )-> Union[float, DataFrame]:
         """
         Function to calculate the state of charge of the thermal storage
@@ -242,13 +248,17 @@ class ThermalStorage():
         If the temperature of the highest sensor is too low, there is no energy left.
         
         Args:
-            input_data (Union[dict, DataFrame]): Input data for the calculation of 
-                the state of charge of the thermal storage (temperature values of the sensors)
+            input_data (Optional[Union[dict, DataFrame, TemperatureSensorValues]]): \
+                Input data for the calculation of the state of charge of the thermal storage \
+                    (temperature values of the sensors)
 
         Returns:
             Union[float, DataFrame]: State of charge of the thermal storage in percent (0-100) 
                 / DataFrame with the state of charge if the input is a DataFrame
         """
+
+        if input_data is None:
+            input_data = self.sensor_values
 
         if isinstance(input_data, dict):
             df = DataFrame(input_data, index=[0])
@@ -265,7 +275,6 @@ class ThermalStorage():
 
         else:
             df = input_data.copy()
-
 
 
         sensors = {}
@@ -295,9 +304,9 @@ class ThermalStorage():
         )
 
         if isinstance(input_data, dict) or isinstance(input_data, TemperatureSensorValues):
-            return df["state_of_charge"].values[0]
+            return round(df["state_of_charge"].values[0],2)
 
-        return df.filter(["state_of_charge"])
+        return df.filter(["state_of_charge"]).round(2)
 
     def get_energy_content(self,
                            state_of_charge: Union[float, None] = None

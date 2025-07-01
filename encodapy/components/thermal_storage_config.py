@@ -2,7 +2,7 @@
 Description: Configuration models for the thermal storage component
 Author: Martin Altenburger
 """
-from typing import Union
+from typing import Optional
 from pydantic import BaseModel, Field
 from pydantic.functional_validators import model_validator
 
@@ -44,7 +44,7 @@ class TemperatureLimits(BaseModel):
 class ThermalStorageTemperatureSensors(BaseModel):
     """
     Configuration of the temperature sensors in the termal 
-    storage (max. 5 sensors (x = 1...5)), contains:
+    storage (between 3 and 5 sensors (x = 1...5)), contains:
         - `sensor_x_name`: Name of the sensor
         - `sensor_x_height`: height of the sensor in percent
         - `sensor_x_limits`: Temperature limits of the sensor
@@ -81,23 +81,23 @@ class ThermalStorageTemperatureSensors(BaseModel):
         description= "Height of the sensor 3 in the termal storage in percent")
     sensor_3_limits: TemperatureLimits
 
-    sensor_4_name: Union[str, None] = Field(
+    sensor_4_name: Optional[str] = Field(
         None,
         description="Name of the sensor 4 in the termal storage")
-    sensor_4_height: Union[float, None] = Field(
+    sensor_4_height: Optional[float] = Field(
         None,
         description= "Height of the sensor 4 in the termal storage in percent")
-    sensor_4_limits: Union[TemperatureLimits, None] = Field(
+    sensor_4_limits: Optional[TemperatureLimits] = Field(
         None,
         description= "Temperature limits of the sensor 4 in the termal storage")
 
-    sensor_5_name: Union[str, None] = Field(
+    sensor_5_name: Optional[str] = Field(
         None,
         description="Name of the sensor 5 in the termal storage")
-    sensor_5_height: Union[float, None] = Field(
+    sensor_5_height: Optional[float] = Field(
         None,
         description="Height of the sensor 5 in the termal storage in percent")
-    sensor_5_limits: Union[TemperatureLimits, None] = Field(
+    sensor_5_limits: Optional[TemperatureLimits] = Field(
         None,
         description= "Temperature limits of the sensor 5 in the termal storage")
 
@@ -122,6 +122,33 @@ class ThermalStorageTemperatureSensors(BaseModel):
 
         return self
 
+    @model_validator(mode="after")
+    def check_optional_fields(self) -> "ThermalStorageTemperatureSensors":
+        """Check the optional fields of the model. If sensor 4 or 5 is set, \
+            the height and the limits for this sensor must also be set.
+
+        Raises:
+            ValueError: if the optional fields are set incorrectly
+
+        Returns:
+            ThermalStorageTemperatureSensors: The model with the validated parameters
+        """
+
+        if self.sensor_4_name is not None:
+            if self.sensor_4_height is None:
+                raise ValueError("If sensor 4 is set, the height must also be set")
+            if self.sensor_4_limits is None:
+                raise ValueError("If sensor 4 is set, the limits must also be set")
+
+        if self.sensor_5_name is not None:
+            if self.sensor_5_height is None:
+                raise ValueError("If sensor 5 is set, the height must also be set")
+            if self.sensor_5_limits is None:
+                raise ValueError("If sensor 5 is set, the limits must also be set")
+
+        return self
+
+
 class TemperatureSensorValues(BaseModel):
     """
     Model for the temperature sensor values in the thermal storage
@@ -143,9 +170,85 @@ class TemperatureSensorValues(BaseModel):
     sensor_3: float = Field(
         ...,
         description= "Temperature value of the sensor 3 in the thermal storage in °C")
-    sensor_4: Union[float, None] = Field(
+    sensor_4: Optional[float] = Field(
         None,
         description= "Temperature value of the sensor 4 in the thermal storage in °C")
-    sensor_5: Union[float, None] = Field(
+    sensor_5: Optional[float] = Field(
         None,
         description= "Temperature value of the sensor 5 in the thermal storage in °C")
+
+class IOAlocationModel(BaseModel):
+    """
+    Model for the input or output allocation in the thermal storage service.
+    
+    Contains:
+        `entity`: ID of the entity to which the input or output is allocated
+        `attribute`: ID of the attribute to which the input or output is allocated
+    """
+    entity: str = Field(
+        ...,
+        description="ID of the entity to which the input or output is allocated")
+    attribute: str = Field(
+        ...,
+        description="ID of the attribute to which the input or output is allocated")
+
+class InputModel(BaseModel):
+    """
+    Model for the input of the thermal storage service, containing the temperature sensors
+    in the thermal storage.
+    
+    Contains:
+        `temperature_1`: IOAlocationModel = first temperature sensor
+        `temperature_2`: IOAlocationModel = second temperature sensor
+        `temperature_3`: IOAlocationModel = third temperature sensor
+        `temperature_4`: Optional[IOAlocationModel] = fourth temperature sensor (optional)
+        `temperature_5`: Optional[IOAlocationModel] = fifth temperature sensor (optional)
+    """
+    temperature_1: IOAlocationModel = Field(
+        ...,
+        description="Input for the temperature of sensor 1 in the thermal storage")
+    temperature_2: IOAlocationModel = Field(
+        ...,
+        description="Input for the temperature of sensor 2 in the thermal storage")
+    temperature_3: IOAlocationModel = Field(
+        ...,
+        description="Input for the temperature of sensor 3 in the thermal storage")
+    temperature_4: Optional[IOAlocationModel] = Field(
+        None,
+        description="Input for the temperature of sensor 4 in the thermal storage")
+    temperature_5: Optional[IOAlocationModel] = Field(
+        None,
+        description="Input for the temperature of sensor 5 in the thermal storage")
+
+class OutputModel(BaseModel):
+    """
+    Model for the output of the thermal storage service, containing the temperature sensors
+    in the thermal storage.
+    
+    Contains:
+        `storage__level`: Optional[IOAlocationModel] = Output for storage charge in percent \
+            (0-100) (optional)
+        `storage__energy`: Optional[IOAlocationModel] = Output for storage energy in kWh \
+            (optional)
+    """
+    storage__level: Optional[IOAlocationModel] = Field(
+        None,
+        description="Output for storage charge in percent (0-100)")
+    storage__energy: Optional[IOAlocationModel] = Field(
+        None,
+        description="Output for storage energy in Wh")
+
+class ThermalStorageIO(BaseModel):
+    """
+    Model for the input and output of the thermal storage service.
+    
+    Contains:
+        `input`: InputModel = Input configuration for the thermal storage service
+        `output`: OutputModel = Output configuration for the thermal storage service
+    """
+    input: InputModel = Field(
+        ...,
+        description="Input configuration for the thermal storage service")
+    output: OutputModel = Field(
+        ...,
+        description="Output configuration for the thermal storage service")

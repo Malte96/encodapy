@@ -5,6 +5,7 @@ Author: Martin Altenburger
 from typing import Optional
 from pydantic import BaseModel, Field
 from pydantic.functional_validators import model_validator
+from encodapy.config.components_basic_config import IOAlocationModel
 
 class TemperatureLimits(BaseModel):
     """
@@ -176,21 +177,6 @@ class TemperatureSensorValues(BaseModel):
     sensor_5: Optional[float] = Field(
         None,
         description= "Temperature value of the sensor 5 in the thermal storage in °C")
-
-class IOAlocationModel(BaseModel):
-    """
-    Model for the input or output allocation in the thermal storage service.
-    
-    Contains:
-        `entity`: ID of the entity to which the input or output is allocated
-        `attribute`: ID of the attribute to which the input or output is allocated
-    """
-    entity: str = Field(
-        ...,
-        description="ID of the entity to which the input or output is allocated")
-    attribute: str = Field(
-        ...,
-        description="ID of the attribute to which the input or output is allocated")
 
 class InputModel(BaseModel):
     """

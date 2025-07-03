@@ -5,15 +5,21 @@ Author: Martin Altenburger
 from typing import Union, Optional
 from pandas import DataFrame, Series
 import numpy as np
+from loguru import logger
+from pydantic import ValidationError
 from encodapy.components.thermal_storage_config import (
     ThermalStorageTemperatureSensors,
     TemperatureLimits,
-    TemperatureSensorValues)
+    TemperatureSensorValues,
+    InputModel,
+    OutputModel,
+    ThermalStorageIO)
 from encodapy.utils.mediums import(
     Medium,
     get_medium_parameter)
+from encodapy.config.models import ControllerComponentModel
 
-class ThermalStorage():
+class ThermalStorage:
     """
     Class to calculate the energy in a thermal storage.
     
@@ -25,19 +31,19 @@ class ThermalStorage():
     
     """
     def __init__(self,
-                 sensor_config: ThermalStorageTemperatureSensors,
-                 volume:float,
-                 medium:Medium
+                 config: ControllerComponentModel
                  ) -> None:
-        self.sensor_config = ThermalStorageTemperatureSensors.model_validate(sensor_config)
+        # Basic initialization of the thermal storage
+        self.sensor_config: ThermalStorageTemperatureSensors = None
+        self.medium: Medium = None
+        self.volume: float = None
+        self.io_model: ThermalStorageIO = None
 
-        self.volume = float(volume)
-
+        # Prepare the thermal storage based on the configuration
+        self.prepare_start_thermal_storage(config=config)
         self.sensor_volumes = self._calculate_volume_per_sensor()
-
-        self.medium = medium
-
         self.sensor_values = None
+
 
     def _calculate_volume_per_sensor(self) -> dict:
         """
@@ -130,6 +136,7 @@ class ThermalStorage():
                 * medium_parameter.rho
                 * medium_parameter.cp
                 /3.6,2)
+
     def get_storage_energy_minimum(self) -> float:
         """
         Function to get the minimum energy content of the thermal storage
@@ -303,7 +310,7 @@ class ThermalStorage():
             temperature_limits=sensor_limits[self.sensor_config.sensor_1_name]
         )
 
-        if isinstance(input_data, dict) or isinstance(input_data, TemperatureSensorValues):
+        if isinstance(input_data, (dict, TemperatureSensorValues)):
             return round(df["state_of_charge"].values[0],2)
 
         return df.filter(["state_of_charge"]).round(2)
@@ -327,3 +334,138 @@ class ThermalStorage():
 
         return round(state_of_charge/100
                 * self.get_nominal_energy_content(),2)
+
+    def _prepare_thermal_storage(self,
+                                 config:ControllerComponentModel
+                                 ):
+        """
+        Function to prepare the thermal storage based on the configuration.
+
+        Args:
+            config (ControllerComponentModel): Configuration of the thermal storage component
+
+        Raises:
+            KeyError: Invalid medium in the configuration
+            KeyError: No volume of the thermal storage specified in the configuration
+            KeyError: No sensor configuration of the thermal storage specified in the configuration
+            ValidationError: Invalid sensor configuration for the thermal storage
+
+        Returns:
+            ThermalStorage: Instance of the ThermalStorage class with the prepared configuration
+        """
+
+        medium_value = config.config.get("medium")
+        if medium_value is None:
+            error_msg = "No medium of the thermal storage specified in the configuration, \
+                using default medium 'water'"
+            logger.warning(error_msg)
+            medium_value = 'water'
+        try:
+            self.medium:Medium = Medium(medium_value)
+        except ValueError:
+            error_msg = f"Invalid medium in the configuration: '{medium_value}'"
+            logger.error(error_msg)
+            raise ValueError(error_msg) from None
+
+        self.volume:float = config.config.get("volume")
+
+        if self.volume is None:
+            error_msg = "No volume of the thermal storage specified in the configuration."
+            logger.error(error_msg)
+            raise KeyError(error_msg) from None
+
+        sensor_config = config.config.get("sensor_config")
+        if sensor_config is None:
+            error_msg = "No sensor configuration of the thermal storage specified \
+                in the configuration."
+            logger.error(error_msg)
+            raise KeyError(error_msg) from None
+
+        try:
+            self.sensor_config = ThermalStorageTemperatureSensors.model_validate(sensor_config)
+        except ValidationError:
+            error_msg = "Invalid sensor configuration in the thermal storage"
+            logger.error(error_msg)
+            raise
+
+    def _prepare_i_o_config(self,
+                            config:ControllerComponentModel
+                            ):
+        """
+        Function to prepare the inputs and outputs of the service.
+        This function is called before the service is started.
+        """
+        try:
+            input_config = InputModel.model_validate(config.inputs)
+        except ValidationError:
+            error_msg = "Invalid input configuration for the thermal storage"
+            logger.error(error_msg)
+            raise
+
+        try:
+            output_config = OutputModel.model_validate(config.outputs)
+        except ValidationError :
+            error_msg = "Invalid output configuration for the thermal storage"
+            logger.error(error_msg)
+            raise
+
+        self.io_model = ThermalStorageIO(
+            input=input_config,
+            output=output_config
+            )
+
+    def _check_input_configuration(self):
+        """
+        Function to check the input configuration of the service \
+            in comparison to the sensor configuration.
+        The inputs needs to match the sensor configuration.
+        Raises:
+            KeyError: If the input configuration does not match the sensor configuration
+            Warning: If the input configuration does not match the sensor configuration,\
+                but is not critical
+        """
+        # pylint problems see: https://github.com/pylint-dev/pylint/issues/4899
+        if (self.sensor_config.sensor_4_name is not None
+            and self.io_model.input.temperature_4 is None): # pylint: disable=no-member
+            error_msg = ("Input configuration does not match sensor configuration: "
+                         "Sensor 4 is defined in the sensor configuration, "
+                         "but not in the input configuration.")
+            logger.error(error_msg)
+            raise KeyError(error_msg)
+        if (self.sensor_config.sensor_5_name is not None
+            and self.io_model.input.temperature_5 is None): # pylint: disable=no-member
+            error_msg = ("Input configuration does not match sensor configuration: "
+                         "Sensor 5 is defined in the sensor configuration, "
+                         "but not in the input configuration.")
+            logger.error(error_msg)
+            raise KeyError(error_msg)
+
+        if (self.sensor_config.sensor_4_name is None
+            and self.io_model.input.temperature_4 is not None): # pylint: disable=no-member
+            logger.warning("Input configuration does not match sensor configuration: "
+                           "Sensor 4 is defined in the input configuration, "
+                           "but not in the sensor configuration."
+                           "The sensor will not be used in the calculation.")
+        if (self.sensor_config.sensor_5_name is None
+            and self.io_model.input.temperature_5 is not None): # pylint: disable=no-member
+            logger.warning("Input configuration does not match sensor configuration: "
+                           "Sensor 5 is defined in the input configuration, "
+                           "but not in the sensor configuration."
+                           "The sensor will not be used in the calculation.")
+
+
+    def prepare_start_thermal_storage(
+        self,
+        config: ControllerComponentModel
+        ):
+        """
+        Function to prepare the start of the service, \
+            including the loading configuration of the service \
+                and preparing the thermal storage.
+        """
+
+        self._prepare_thermal_storage(config=config)
+
+        self._prepare_i_o_config(config=config)
+
+        self._check_input_configuration()

@@ -10,15 +10,14 @@ from thermal_storage_service import ThermalStorageService
 async def main():
     """
     Main function to start the example service
-        - prepare the start of the service
+
         - start the calibration
         - start the health check
         - start the service
     """
 
     service = ThermalStorageService()
-    #TODO Ajust the structure here
-    await service.prepare_start()
+
     task_for_calibration = asyncio.create_task(service.start_calibration())
     task_for_check_health = asyncio.create_task(service.check_health_status())
     task_for_start_service = asyncio.create_task(service.start_service())

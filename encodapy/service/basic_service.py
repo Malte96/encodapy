@@ -14,12 +14,13 @@ from encodapy.config import (
     AttributeModel,
     CommandModel,
     ConfigModel,
+    ControllerComponentModel,
     DataQueryTypes,
     DefaultEnvVariables,
     Interfaces,
     OutputModel,
-    ControllerComponentModel
 )
+from encodapy.config.components_basic_config import IOAlocationModel
 from encodapy.service.communication import (
     FileConnection,
     FiwareConnection,
@@ -30,14 +31,13 @@ from encodapy.utils.logging import LoggerControl
 from encodapy.utils.models import (
     DataTransferComponentModel,
     DataTransferModel,
+    InputDataEntityModel,
     InputDataModel,
     OutputDataEntityModel,
     OutputDataModel,
     StaticDataEntityModel,
-    InputDataEntityModel
 )
 from encodapy.utils.units import get_time_unit_seconds
-from encodapy.config.components_basic_config import IOAlocationModel
 
 
 class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
@@ -47,14 +47,11 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
     """
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self) -> None:
         FiwareConnection.__init__(self)
         FileConnection.__init__(self)
         MqttConnection.__init__(self)
 
-        self.config = None
         self.logger = LoggerControl()
 
         self.reload_staticdata = False
@@ -207,7 +204,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_latest_timestamps.append(output_latest_timestamp)
                 logger.info("File interface, output_latest_timestamp is not defined.")
 
-            elif output_entity.interface == Interfaces.MQTT: #TODO MB: How to handle MQTT interface?
+            elif (
+                output_entity.interface == Interfaces.MQTT
+            ):  # TODO MB: How to handle MQTT interface?
                 entity_timestamps, output_latest_timestamp = (
                     self._get_last_timestamp_for_mqtt_output(output_entity)
                 )
@@ -643,28 +642,27 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         self.timestamp_health = datetime.now()
         return
 
-    def get_component_config(self,
-                             component_id:str
-                             )-> ControllerComponentModel:
+    def get_component_config(self, component_id: str) -> ControllerComponentModel:
         """
         Function to get the configuration of a specific component from the service configuration
         Args:
             component_names (str): Name of the component to get the configuration
         Returns:
             ControllerComponentModel: Configuration of the component by name
-        
+
         Raises:
             ValueError: If the component with the given ID is not found in the configuration
         """
         for component in self.config.controller_components:
             if component.id == component_id:
                 return component
-            raise ValueError("No thermal storage configuration found")
+        raise ValueError("No thermal storage configuration found")
 
-    def get_input_values(self,
-                         input_entities:list[InputDataEntityModel],
-                         input_config:IOAlocationModel,
-                         )-> Union[float, int, str, bool]:
+    def get_input_values(
+        self,
+        input_entities: list[InputDataEntityModel],
+        input_config: IOAlocationModel,
+    ) -> Union[float, int, str, bool]:
         """
         Function to get the values of the input data for a spesific input configuration \
             of a component of the controller (or a inividual one).

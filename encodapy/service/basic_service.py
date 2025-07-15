@@ -645,10 +645,12 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
     def get_component_config(self, component_id: str) -> ControllerComponentModel:
         """
         Function to get the configuration of a specific component from the service configuration
+
         Args:
-            component_names (str): Name of the component to get the configuration
+            component_id (str): ID of the component to get the configuration
+            
         Returns:
-            ControllerComponentModel: Configuration of the component by name
+            ControllerComponentModel: Configuration of the component by ID
 
         Raises:
             ValueError: If the component with the given ID is not found in the configuration
@@ -656,16 +658,16 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         for component in self.config.controller_components:
             if component.id == component_id:
                 return component
-        raise ValueError("No thermal storage configuration found")
+        raise ValueError(f"No configuration found for component ID {component_id}")
 
-    def get_input_values(
+    def get_input_values(  # TODO: rename to get_input_value
         self,
         input_entities: list[InputDataEntityModel],
         input_config: IOAlocationModel,
     ) -> Union[float, int, str, bool]:
         """
-        Function to get the values of the input data for a spesific input configuration \
-            of a component of the controller (or a inividual one).
+        Function to get the values of the input data for a specific input configuration \
+            of a component of the controller (or a individual one).
 
         Args:
             input_entities (list[InputDataEntityModel]): Data of input entities

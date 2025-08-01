@@ -7,7 +7,6 @@ import os
 from asyncio import sleep
 from datetime import datetime
 from typing import Union
-
 from loguru import logger
 
 from encodapy.config import (
@@ -17,8 +16,7 @@ from encodapy.config import (
     DataQueryTypes,
     DefaultEnvVariables,
     Interfaces,
-    OutputModel,
-    ControllerComponentModel
+    OutputModel
 )
 from encodapy.service.communication import (
     FileConnection,
@@ -33,11 +31,9 @@ from encodapy.utils.models import (
     InputDataModel,
     OutputDataEntityModel,
     OutputDataModel,
-    StaticDataEntityModel,
-    InputDataEntityModel
+    StaticDataEntityModel
 )
 from encodapy.utils.units import get_time_unit_seconds
-from encodapy.config.components_basic_config import IOAlocationModel
 
 
 class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
@@ -642,43 +638,3 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         self.timestamp_health = datetime.now()
         return
-
-    def get_component_config(self,
-                             component_id:str
-                             )-> ControllerComponentModel:
-        """
-        Function to get the configuration of a specific component from the service configuration
-        Args:
-            component_names (str): Name of the component to get the configuration
-        Returns:
-            ControllerComponentModel: Configuration of the component by name
-        
-        Raises:
-            ValueError: If the component with the given ID is not found in the configuration
-        """
-        for component in self.config.controller_components:
-            if component.id == component_id:
-                return component
-            raise ValueError("No thermal storage configuration found")
-
-    def get_input_values(self,
-                         input_entities:list[InputDataEntityModel],
-                         input_config:IOAlocationModel,
-                         )-> Union[float, int, str, bool]:
-        """
-        Function to get the values of the input data for a spesific input configuration \
-            of a component of the controller (or a inividual one).
-
-        Args:
-            input_entities (list[InputDataEntityModel]): Data of input entities
-            input_config (dict): Configuration of the input
-
-        Returns:
-            Union[float, int, str, bool]: The value of the input data
-        """
-        for input_data in input_entities:
-            if input_data.id == input_config.entity:
-                for attribute in input_data.attributes:
-                    if attribute.id == input_config.attribute:
-                        return attribute.data
-        raise ValueError(f"Input data {input_config['entity']} not found")

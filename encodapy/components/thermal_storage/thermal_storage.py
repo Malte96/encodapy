@@ -7,19 +7,20 @@ from pandas import DataFrame, Series
 import numpy as np
 from loguru import logger
 from pydantic import ValidationError
-from encodapy.components.thermal_storage_config import (
+from encodapy.components.thermal_storage.thermal_storage_config import (
     ThermalStorageTemperatureSensors,
     TemperatureLimits,
     TemperatureSensorValues,
     InputModel,
     OutputModel,
     ThermalStorageIO)
+from encodapy.components.basic_component import BasicComponent
 from encodapy.utils.mediums import(
     Medium,
     get_medium_parameter)
 from encodapy.config.models import ControllerComponentModel
 
-class ThermalStorage:
+class ThermalStorage (BasicComponent):
     """
     Class to calculate the energy in a thermal storage.
     
@@ -31,18 +32,23 @@ class ThermalStorage:
     
     """
     def __init__(self,
-                 config: ControllerComponentModel
+                 config: Union[ControllerComponentModel, list[ControllerComponentModel]],
+                 component_id: str
                  ) -> None:
+
+        super().__init__(config=config,
+                         component_id=component_id)
+
         # Basic initialization of the thermal storage
-        self.sensor_config: ThermalStorageTemperatureSensors = None
-        self.medium: Medium = None
-        self.volume: float = None
-        self.io_model: ThermalStorageIO = None
+        self.sensor_config: Optional[ThermalStorageTemperatureSensors] = None
+        self.medium: Optional[Medium] = None
+        self.volume: Optional[float] = None
+        self.io_model: Optional[ThermalStorageIO] = None
+        self.sensor_values: Optional[TemperatureSensorValues] = None
 
         # Prepare the thermal storage based on the configuration
-        self.prepare_start_thermal_storage(config=config)
+        self.prepare_start_thermal_storage()
         self.sensor_volumes = self._calculate_volume_per_sensor()
-        self.sensor_values = None
 
 
     def _calculate_volume_per_sensor(self) -> dict:
@@ -336,7 +342,6 @@ class ThermalStorage:
                 * self.get_nominal_energy_content(),2)
 
     def _prepare_thermal_storage(self,
-                                 config:ControllerComponentModel
                                  ):
         """
         Function to prepare the thermal storage based on the configuration.
@@ -353,7 +358,7 @@ class ThermalStorage:
         Returns:
             ThermalStorage: Instance of the ThermalStorage class with the prepared configuration
         """
-
+        config = self.component_config
         medium_value = config.config.get("medium")
         if medium_value is None:
             error_msg = "No medium of the thermal storage specified in the configuration, \
@@ -388,13 +393,13 @@ class ThermalStorage:
             logger.error(error_msg)
             raise
 
-    def _prepare_i_o_config(self,
-                            config:ControllerComponentModel
+    def _prepare_i_o_config(self
                             ):
         """
         Function to prepare the inputs and outputs of the service.
         This function is called before the service is started.
         """
+        config = self.component_config
         try:
             input_config = InputModel.model_validate(config.inputs)
         except ValidationError:
@@ -455,8 +460,7 @@ class ThermalStorage:
 
 
     def prepare_start_thermal_storage(
-        self,
-        config: ControllerComponentModel
+        self
         ):
         """
         Function to prepare the start of the service, \
@@ -464,8 +468,8 @@ class ThermalStorage:
                 and preparing the thermal storage.
         """
 
-        self._prepare_thermal_storage(config=config)
+        self._prepare_thermal_storage()
 
-        self._prepare_i_o_config(config=config)
+        self._prepare_i_o_config()
 
         self._check_input_configuration()

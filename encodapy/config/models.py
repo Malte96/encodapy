@@ -14,7 +14,6 @@ from filip.models.base import DataType
 
 from encodapy.config.types import (
     AttributeTypes,
-    ControllerComponents,
     Interfaces,
     TimerangeTypes,
 )
@@ -139,16 +138,22 @@ class OutputModel(BaseModel):
 class ControllerComponentModel(BaseModel):
     """
     Model for the configuration of the controller components.
-    TODO: - Improve the model
+    Contains:
+    - active: Whether the component is active or not
+    - id: The id of the component
+    - type: The type of the component (e.g. thermal storage, heat pump, etc. / \
+        needs to be defined for individual components)
+    - inputs: The inputs of the component as a dictionary with IOAllocationModel \
+        for the individual inputs
+    - outputs: The outputs of the component as a dictionary with IOAllocationModel \
+        for the individual outputs
+    - config: The configuration of the component as a dictionary
+    
     """
 
     active: bool = True
     id: str
-    type: Union[
-        ControllerComponents, str
-    ]
-    #TODO: How to reference the component types?
-    #TODO: How to reference the input/output models?
+    type: str
     inputs: dict
     outputs: dict
     config: dict

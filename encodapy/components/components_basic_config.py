@@ -1,13 +1,12 @@
 """
 Basic configuration for the components in the Encodapy framework.
 Author: Martin Altenburger
-TODO: Add more detailed descriptions and examples for each component needed?
 """
 from pydantic import BaseModel, Field
 
-class IOAlocationModel(BaseModel):
+class IOAllocationModel(BaseModel):
     """
-    Model for the input or output allocation in the thermal storage service.
+    Model for the input or output allocation.
     
     Contains:
         `entity`: ID of the entity to which the input or output is allocated

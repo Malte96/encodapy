@@ -5,8 +5,7 @@ Author: Martin Altenburger
 """
 from datetime import datetime, timezone
 
-from encodapy.components.thermal_storage import ThermalStorage
-from encodapy.components.thermal_storage_config import IOAlocationModel
+from encodapy.components import ThermalStorage
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
     InputDataModel,
@@ -34,7 +33,9 @@ class ThermalStorageService(ControllerBasicService):
             and initializes the thermal storage component.
         """
         self.thermal_storage = ThermalStorage(
-            config=self.get_component_config(component_id="thermal_storage"))
+            config=self.config.controller_components,
+            component_id="thermal_storage"
+            )
 
     async def calculation(self,
                           data: InputDataModel
@@ -50,9 +51,9 @@ class ThermalStorageService(ControllerBasicService):
         for input_key, input_config in self.thermal_storage.io_model.input.__dict__.items():
             if input_config is None:
                 continue
-            input_temperatures[input_key] = self.get_input_values(
+            input_temperatures[input_key] = self.thermal_storage.get_input_values(
                 input_entities=data.input_entities,
-                input_config=IOAlocationModel.model_validate(input_config))
+                input_config=input_config)
 
         self.thermal_storage.set_temperature_values(temperature_values=input_temperatures)
 

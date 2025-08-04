@@ -17,7 +17,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"
-pandas = ">=2.1.4,<2.2.0"
+pandas = ">=2.1.4,<=2.3.1"
 nbformat = ">=5.7.1"
 filip = ">=0.7.0"
 numpy = ">=1.23.5"

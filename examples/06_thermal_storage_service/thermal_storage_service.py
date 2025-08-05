@@ -4,6 +4,7 @@ Description: This module contains the definition of a service to calculate \
 Author: Martin Altenburger
 """
 from datetime import datetime, timezone
+from loguru import logger
 
 from encodapy.components import ThermalStorage
 from encodapy.service import ControllerBasicService
@@ -58,6 +59,7 @@ class ThermalStorageService(ControllerBasicService):
         self.thermal_storage.set_temperature_values(temperature_values=input_temperatures)
 
         storage__level = self.thermal_storage.calculate_state_of_charge()
+        logger.debug("Energy Storage Level: " + str(storage__level))
 
         storage__energy = self.thermal_storage.get_energy_content(storage__level)
 

@@ -3,7 +3,7 @@ This module provides basic components for the encodapy package.
 """
 # from loguru import logger
 from typing import Union
-from encodapy.config.models import ControllerComponentModel
+from encodapy.config.models import ControllerComponentModel, StaticDataModel
 from encodapy.utils.models import InputDataEntityModel
 from encodapy.components.components_basic_config import IOAllocationModel
 
@@ -17,7 +17,7 @@ class BasicComponent:
     - Getting input values: `get_input_values()`
     """
     def __init__(self,
-                 config: Union[ControllerComponentModel, list[ControllerComponentModel]],
+                 config: Union[ControllerComponentModel, StaticDataModel, list[ControllerComponentModel]],
                  component_id:str
                  ) -> None:
         if isinstance(config, ControllerComponentModel):
@@ -29,6 +29,7 @@ class BasicComponent:
                     component_id = component_id
                 )
             )
+
 
     def get_component_config(self,
                               config: list[ControllerComponentModel],

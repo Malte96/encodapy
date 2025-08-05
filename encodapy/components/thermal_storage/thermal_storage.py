@@ -18,7 +18,7 @@ from encodapy.components.basic_component import BasicComponent
 from encodapy.utils.mediums import(
     Medium,
     get_medium_parameter)
-from encodapy.config.models import ControllerComponentModel
+from encodapy.config.models import ControllerComponentModel, StaticDataModel
 
 class ThermalStorage (BasicComponent):
     """
@@ -318,7 +318,7 @@ class ThermalStorage (BasicComponent):
 
         if isinstance(input_data, (dict, TemperatureSensorValues)):
             return round(df["state_of_charge"].values[0],2)
-
+        
         return df.filter(["state_of_charge"]).round(2)
 
     def get_energy_content(self,

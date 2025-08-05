@@ -57,7 +57,21 @@
             "commands":[]
         }
     ],
-    "staticdata": [],
+    "staticdata": [
+        {
+            "id": "thermal_storage",
+            "interface": "fiware",
+            "id_interface": "urn:thermal_storage:01",
+            "attributes": [
+                    {"id": "volume", 
+                    "id_interface":"thermal_storage",
+                    "type": "value",
+                    "value": 1500.0,
+                    "unit" : "LIT"
+                    }
+            ]
+        }
+    ],
     "controller_components": [
         {
             "id": "thermal_storage",
@@ -127,7 +141,6 @@
                         "maximal_temperature": 85
                     }
                 },
-                "volume": 1.5,
                 "medium": "water"
             }
         }

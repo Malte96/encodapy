@@ -32,12 +32,13 @@ class ThermalStorage (BasicComponent):
     
     """
     def __init__(self,
-                 config: Union[ControllerComponentModel, list[ControllerComponentModel]],
+                 config,   # : Union[ControllerComponentModel, list[ControllerComponentModel]]
                  component_id: str
                  ) -> None:
 
         super().__init__(config=config,
                          component_id=component_id)
+        
 
         # Basic initialization of the thermal storage
         self.sensor_config: Optional[ThermalStorageTemperatureSensors] = None
@@ -358,8 +359,9 @@ class ThermalStorage (BasicComponent):
         Returns:
             ThermalStorage: Instance of the ThermalStorage class with the prepared configuration
         """
-        config = self.component_config
-        medium_value = config.config.get("medium")
+        config_static = self.static_config
+        config_coponent = self.component_config
+        medium_value = config_coponent.config.get("medium")
         if medium_value is None:
             error_msg = "No medium of the thermal storage specified in the configuration, \
                 using default medium 'water'"
@@ -372,14 +374,15 @@ class ThermalStorage (BasicComponent):
             logger.error(error_msg)
             raise ValueError(error_msg) from None
 
-        self.volume:float = config.config.get("volume")
-
+        for data in config_static.attributes:
+            if data.id == "volume":
+                self.volume:float = data.value
         if self.volume is None:
             error_msg = "No volume of the thermal storage specified in the configuration."
             logger.error(error_msg)
             raise KeyError(error_msg) from None
 
-        sensor_config = config.config.get("sensor_config")
+        sensor_config = config_coponent.config.get("sensor_config")
         if sensor_config is None:
             error_msg = "No sensor configuration of the thermal storage specified \
                 in the configuration."

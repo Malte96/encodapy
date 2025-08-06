@@ -15,6 +15,7 @@ from paho.mqtt.enums import CallbackAPIVersion
 
 from encodapy.config import (
     ConfigModel,
+    DataQueryTypes,
     DefaultEnvVariables,
     InputModel,
     Interfaces,
@@ -282,6 +283,7 @@ class MqttConnection:
 
     def get_data_from_mqtt(
         self,
+        method: DataQueryTypes,
         entity: InputModel,
     ) -> InputDataEntityModel:
         """

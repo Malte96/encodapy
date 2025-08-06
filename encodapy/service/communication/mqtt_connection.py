@@ -12,6 +12,7 @@ from typing import Optional, Union
 import paho.mqtt.client as mqtt
 from loguru import logger
 from paho.mqtt.enums import CallbackAPIVersion
+from pandas import DataFrame
 
 from encodapy.config import (
     ConfigModel,
@@ -192,20 +193,55 @@ class MqttConnection:
         parts = [part for part in parts if part not in (None, "")]
 
         # Join the parts with a single '/',
-        # stripping leading/trailing slashes from each part to avoid double slashes in the topic
-        topic = "/".join(part.strip("/") for part in parts if isinstance(part, str))
+        # stripping only trailing slashes from each part to avoid double slashes in the topic
+        topic = "/".join(part.rstrip("/") for part in parts if isinstance(part, str))
 
         return topic
 
-    def publish(self, topic, payload) -> None:
+    def publish(
+        self,
+        topic: str,
+        payload: Union[str, float, int, bool, dict, list, DataFrame, None],
+    ) -> None:
         """
-        Function to publish a message to a topic
+        Function to publish a message (payload) to a topic.
+
+        Every payload is converted to a utf8 encoded string before publishing
+        (at the latest from the paho-mqtt package used).
+
+        Args:
+            topic (str): The topic to publish the message to
+            payload (Union[str, float, int, bool, dict, list, DataFrame, None]):
+            The message payload to publish
         """
         if not self.mqtt_client:
             raise NotSupportedError(
                 "MQTT client is not prepared. Call prepare_mqtt_connection() first."
             )
+
+        # if payload is dict, convert it to JSON string
+        if isinstance(payload, dict):
+            try:
+                payload = json.dumps(payload)
+            except TypeError as e:
+                logger.warning(
+                    f"Failed to serialize payload to JSON str: {e}, set it to None"
+                )
+                payload = None
+
+        # if payload is DataFrame, convert it to JSON string
+        elif isinstance(payload, DataFrame):
+            try:
+                payload = payload.to_json()
+            except ValueError as e:
+                logger.warning(
+                    f"Failed to serialize DataFrame to JSON str: {e}, set it to None"
+                )
+                payload = None
+
+        # publish the message to the topic
         self.mqtt_client.publish(topic, payload)
+        logger.debug(f"Published to topic {topic}: {payload}")
 
     def subscribe(self, topic) -> None:
         """
@@ -386,7 +422,6 @@ class MqttConnection:
             )
             payload = attribute.value
             self.publish(topic, payload)
-            logger.debug(f"Published to topic {topic}: {payload}")
 
     def _extract_payload_value(self, payload) -> Union[float, bool, None]:
         """

@@ -15,7 +15,6 @@ from paho.mqtt.enums import CallbackAPIVersion
 
 from encodapy.config import (
     ConfigModel,
-    DataQueryTypes,
     DefaultEnvVariables,
     InputModel,
     Interfaces,
@@ -38,7 +37,7 @@ class MqttConnection:
 
     def __init__(self) -> None:
         self.mqtt_params: dict = {}
-        self.config: Optional[ConfigModel] = None
+        self.config: ConfigModel
         self.mqtt_client: Optional[mqtt.Client] = None
         self.mqtt_message_store: dict[str, dict] = {}
         self._mqtt_loop_running = False
@@ -111,6 +110,17 @@ class MqttConnection:
         """
         Function to prepare the MQTT message store for all in- and outputs
         (means subscribes to controller itself) and set the default values
+        for all attributes of the entities in the config.
+        Format of the message store:
+        {
+            "topic": {
+                "entity_id": "entity_id",
+                "entity_type": "input/output",
+                "attribute_id": "attribute_id",
+                "payload": value,
+                "timestamp": datetime.now(),
+            }
+        }
         """
         if self.mqtt_message_store:
             logger.warning("MQTT message store is not empty and will be overwritten.")
@@ -142,24 +152,31 @@ class MqttConnection:
 
                     # set the default value for the attribute
                     if hasattr(attribute, "value"):
-                        value = attribute.value
+                        default_value = attribute.value
                     else:
-                        value = None
+                        default_value = None
+
+                    # set the entity_type
+                    if entity in self.config.inputs:
+                        entity_type = "input"
+                    else:
+                        entity_type = "output"
 
                     self.mqtt_message_store[topic] = {
                         "entity_id": entity.id,
+                        "entity_type": entity_type,
                         "attribute_id": attribute.id,
-                        "payload": value,
-                        "timestamp": datetime.now(),
+                        "payload": default_value,
+                        "timestamp": None,
                     }
 
-    def assemble_topic_parts(self, parts: list[str]) -> str:
+    def assemble_topic_parts(self, parts: list[str | None]) -> str:
         """
         Function to build a topic from a list of strings.
         Ensures that the resulting topic is correctly formatted with exactly one '/' between parts.
 
         Args:
-            parts (list[str]): List of strings to be joined into a topic.
+            parts (list[str|None]): List of strings to be joined into a topic.
 
         Returns:
             str: The correctly formatted topic.
@@ -175,7 +192,7 @@ class MqttConnection:
 
         # Join the parts with a single '/',
         # stripping leading/trailing slashes from each part to avoid double slashes in the topic
-        topic = "/".join(part.strip("/") for part in parts)
+        topic = "/".join(part.strip("/") for part in parts if isinstance(part, str))
 
         return topic
 
@@ -214,8 +231,8 @@ class MqttConnection:
 
     def on_message(self, _, __, message):
         """
-        Callback function for received messages, stores the decoded message with
-        its timestamp in the message store
+        Callback function for received messages, stores the decoded message with its timestamp
+        in the message store
         """
         if not hasattr(self, "mqtt_message_store"):
             raise NotSupportedError(
@@ -265,18 +282,16 @@ class MqttConnection:
 
     def get_data_from_mqtt(
         self,
-        method: DataQueryTypes,
         entity: InputModel,
-    ) -> Union[InputDataEntityModel, None]:
+    ) -> InputDataEntityModel:
         """
         Function to get the data from the MQTT broker
 
         Args:
-            method (DataQueryTypes): Keyword for type of query
             entity (InputModel): Input entity
 
         Returns:
-            Union[InputDataEntityModel, None]: Model with input data or None if no data available
+            InputDataEntityModel: Model with input data (data=None if no data available)
         """
         if not hasattr(self, "mqtt_message_store"):
             raise NotSupportedError(
@@ -295,55 +310,43 @@ class MqttConnection:
                 ]
             )
 
-            # check if the topic is in the message store
+            # If the topic is not in the message store, mark the data as unavailable
             if topic not in self.mqtt_message_store:
-                # If the topic is not in the message store, mark the data as unavailable
-                attributes_values.append(
-                    InputDataAttributeModel(
-                        id=attribute.id,
-                        data=None,
-                        data_type=attribute.type,
-                        data_available=False,
-                        latest_timestamp_input=None,
-                        unit=None,
+                logger.warning(
+                    f"Topic {topic} not found in MQTT message store. Setting data as None and "
+                    "unavailable. User should check for possible misconfiguration!"
+                )
+                data = None
+                data_available = False
+                timestamp = None
+
+            # if the topic is in the message store, extract the data from message payload
+            else:
+                message_payload = self.mqtt_message_store[topic]["payload"]
+                try:
+                    data = self._extract_payload_value(message_payload)
+                    data_available = True
+                except ValueError as e:
+                    logger.error(
+                        f"Failed to extract payload value for topic {topic}: {e}. "
+                        "Setting data as None and unavailable."
                     )
-                )
-                continue
+                    data = None
+                    data_available = False
 
-            # extract the data from message payload
-            message_payload = self.mqtt_message_store[topic]["payload"]
-            try:
-                data = self._extract_payload_value(message_payload)
+                # Get the timestamp from the message store
+                timestamp = self.mqtt_message_store[topic]["timestamp"]
 
-                attributes_values.append(
-                    InputDataAttributeModel(
-                        id=attribute.id,
-                        data=data,
-                        data_type=attribute.type,
-                        data_available=True,
-                        latest_timestamp_input=self.mqtt_message_store[topic]["timestamp"],
-                        unit=None,  # TODO MB: Add unit handling if necessary
-                    )
+            attributes_values.append(
+                InputDataAttributeModel(
+                    id=attribute.id,
+                    data=data,
+                    data_type=attribute.type,
+                    data_available=data_available,
+                    latest_timestamp_input=timestamp,
+                    unit=None,  # TODO MB: Add unit handling if necessary
                 )
-            except (json.JSONDecodeError, KeyError):
-                # Handle invalid or missing data in the payload
-                # TODO MB: check if error handling is working correctly
-                logger.error(
-                    f"Invalid payload for topic {topic}: {message_payload}. "
-                    "Setting data as None and unavailable."
-                )
-
-                attributes_values.append(
-                    InputDataAttributeModel(
-                        id=attribute.id,
-                        data=None,
-                        data_type=attribute.type,
-                        data_available=False,
-                        latest_timestamp_input=None,
-                        unit=None,
-                    )
-                )
-
+            )
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
     def send_data_to_mqtt(
@@ -403,9 +406,17 @@ class MqttConnection:
 
         # If the payload is a valid JSON string or dict, extract the value from it if possible
         if isinstance(payload, dict):
-            if "value" in payload.keys():
-                # Extract the value from the dictionary
-                value = payload["value"]
+            # Ensure case-insensitive key check
+            if "value" in {k.lower() for k in payload.keys()}:
+                # Search for actual key that is (case-insensitive) "value" and extract its value
+                for k in payload.keys():
+                    if k.lower() == "value":
+                        value = payload[k]
+                        break
+                else:
+                    raise ValueError(
+                        f"Invalid payload format: 'value' key not found in payload {payload}"
+                    )
             else:
                 raise ValueError(
                     f"Invalid payload format: 'value' key not found in payload {payload}"
@@ -443,9 +454,8 @@ class MqttConnection:
                 - the latest timestamp of the output entity for the attribute
                 with the oldest value (None if no timestamp is available)
         TODO:
-            - why the oldest value? Shouldn't it be the latest value?
+            - Just here for compatibility with the old code, should be removed in the future
         """
-
 
         timestamps: list = []
         timestamp_latest_output = None

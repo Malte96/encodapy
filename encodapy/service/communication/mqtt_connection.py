@@ -327,7 +327,7 @@ class MqttConnection:
     def on_message(self, _, __, message):
         """
         Callback function for received messages, stores the decoded message with its timestamp
-        in the message store
+        in the message store.
         """
         if not hasattr(self, "mqtt_message_store"):
             raise NotSupportedError(
@@ -341,7 +341,7 @@ class MqttConnection:
         except UnicodeDecodeError as e:
             logger.error(f"Failed to decode message payload: {e}")
             return
-        # store it in the message store
+        # store payload in the message store
         self.mqtt_message_store[message.topic] = {
             "payload": payload,
             "timestamp": current_time,
@@ -349,6 +349,31 @@ class MqttConnection:
         logger.debug(
             f"MQTT storage received message on {message.topic}: {payload} at {current_time}"
         )
+
+        # if the item in the store is from an entity, attribute values are possibly in payload
+        if self.mqtt_message_store[message.topic]["attribute_id"] is None:
+            # try to parse the payload as JSON
+            try:
+                payload = json.loads(payload)
+                self._extract_attributes_from_payload(payload)
+            except json.JSONDecodeError:
+                logger.error(
+                    f"Failed to decode JSON payload for topic {message.topic}: {payload}"
+                )
+                return
+
+    def _extract_attributes_from_payload(self, payload: dict) -> None:
+        """
+        Function to extract attributes from the payload and update the message store.
+        This is called when a message is received on a topic that corresponds to an entity.
+        """
+        if not hasattr(self, "mqtt_message_store"):
+            raise NotSupportedError(
+                "MQTT message store is not initialized. Call prepare_mqtt_connection() first."
+            )
+
+        for key, value in payload.items():
+            pass
 
     def start_mqtt_client(self):
         """

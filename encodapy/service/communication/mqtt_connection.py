@@ -228,45 +228,29 @@ class MqttConnection:
     def prepare_payload_for_publish(self, payload) -> Union[str, None]:
         """
         Function to prepare the payload for publishing.
+
+        Converts the payload to a JSON string if it is a dict, list or DataFrame.
+        If the payload is a string, float, int or bool, it is converted to a string.
+        If the payload is None or an unsupported type, it is set to None.
         """
-        result = None
 
-        # dict to JSON string
-        if isinstance(payload, dict):
-            try:
-                result = json.dumps(payload)
-            except TypeError as e:
+        payload = None
+
+        try:
+            if isinstance(payload, (dict, list)):
+                payload = json.dumps(payload)
+            elif isinstance(payload, DataFrame):
+                payload = payload.to_json()
+            elif isinstance(payload, (str, float, int, bool)):
+                payload = str(payload)
+            else:
                 logger.warning(
-                    f"Failed to serialize dict to JSON str: {e}, set it to None"
+                    f"Unsupported payload type: {type(payload)}, set it to None"
                 )
+        except TypeError as e:
+            logger.warning(f"Failed to convert payload: {e}, set it to None")
 
-        # list to JSON string
-        elif isinstance(payload, list):
-            try:
-                result = json.dumps(payload)
-            except TypeError as e:
-                logger.warning(
-                    f"Failed to serialize list to JSON str: {e}, set it to None"
-                )
-
-        # DataFrame to JSON string
-        elif isinstance(payload, DataFrame):
-            try:
-                result = payload.to_json()
-            except ValueError as e:
-                logger.warning(
-                    f"Failed to serialize DataFrame to JSON str: {e}, set it to None"
-                )
-
-        # other types to string
-        elif isinstance(payload, (str, float, int, bool)):
-            result = str(payload)
-
-        # for unsupported types, return None
-        else:
-            logger.warning(f"Unsupported payload type: {type(payload)}, set it to None")
-
-        return result
+        return payload
 
     def subscribe(self, topic) -> None:
         """

@@ -211,37 +211,62 @@ class MqttConnection:
 
         Args:
             topic (str): The topic to publish the message to
-            payload (Union[str, float, int, bool, dict, list, DataFrame, None]):
-            The message payload to publish
+            payload (Union[str, float, int, bool, dict, list, DataFrame, None]): payload to publish
         """
         if not self.mqtt_client:
             raise NotSupportedError(
                 "MQTT client is not prepared. Call prepare_mqtt_connection() first."
             )
 
-        # if payload is dict, convert it to JSON string
-        if isinstance(payload, dict):
-            try:
-                payload = json.dumps(payload)
-            except TypeError as e:
-                logger.warning(
-                    f"Failed to serialize payload to JSON str: {e}, set it to None"
-                )
-                payload = None
-
-        # if payload is DataFrame, convert it to JSON string
-        elif isinstance(payload, DataFrame):
-            try:
-                payload = payload.to_json()
-            except ValueError as e:
-                logger.warning(
-                    f"Failed to serialize DataFrame to JSON str: {e}, set it to None"
-                )
-                payload = None
+        # prepare the payload for publishing
+        payload = self.prepare_payload_for_publish(payload)
 
         # publish the message to the topic
         self.mqtt_client.publish(topic, payload)
         logger.debug(f"Published to topic {topic}: {payload}")
+
+    def prepare_payload_for_publish(self, payload) -> Union[str, None]:
+        """
+        Function to prepare the payload for publishing.
+        """
+        result = None
+
+        # dict to JSON string
+        if isinstance(payload, dict):
+            try:
+                result = json.dumps(payload)
+            except TypeError as e:
+                logger.warning(
+                    f"Failed to serialize dict to JSON str: {e}, set it to None"
+                )
+
+        # list to JSON string
+        elif isinstance(payload, list):
+            try:
+                result = json.dumps(payload)
+            except TypeError as e:
+                logger.warning(
+                    f"Failed to serialize list to JSON str: {e}, set it to None"
+                )
+
+        # DataFrame to JSON string
+        elif isinstance(payload, DataFrame):
+            try:
+                result = payload.to_json()
+            except ValueError as e:
+                logger.warning(
+                    f"Failed to serialize DataFrame to JSON str: {e}, set it to None"
+                )
+
+        # other types to string
+        elif isinstance(payload, (str, float, int, bool)):
+            result = str(payload)
+
+        # for unsupported types, return None
+        else:
+            logger.warning(f"Unsupported payload type: {type(payload)}, set it to None")
+
+        return result
 
     def subscribe(self, topic) -> None:
         """

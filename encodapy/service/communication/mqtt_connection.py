@@ -38,6 +38,10 @@ class MqttConnection:
     """
 
     def __init__(self) -> None:
+        """
+        Constructor for the MqttConnection class.
+        Initializes the MQTT parameters and the MQTT client.
+        """
         self.mqtt_params: dict = {}
         self.config: ConfigModel
         self.mqtt_client: Optional[mqtt.Client] = None
@@ -111,11 +115,11 @@ class MqttConnection:
     def prepare_mqtt_message_store(self) -> None:
         """
         Function to prepare the MQTT message store for all in- and outputs
-        (means subscribes to controller itself) and set the default values
+        (subscribes to controllers outputs, too) and set the default values
         for all attributes of the entities in the config.
         Format of the message store:
         {
-            "topic": {
+            "full_topic": {
                 "entity_id": "entity_id",
                 "entity_type": "input/output",
                 "attribute_id": "attribute_id",
@@ -126,6 +130,7 @@ class MqttConnection:
         """
         if self.mqtt_message_store:
             logger.warning("MQTT message store is not empty and will be overwritten.")
+            self.mqtt_message_store.clear()
 
         # check if the config is set
         if self.config is None:
@@ -133,11 +138,32 @@ class MqttConnection:
                 "ConfigModel is not set. Please set the config before using the MQTT connection."
             )
 
-        # set the message store with default values for all mqtt attributes in config
+        # set the message store with default values for all mqtt entities and their attributes
         for entity in self.config.inputs + self.config.outputs:
             if entity.interface == Interfaces.MQTT:
+                # add the entity itself to the message store
+                topic = self.assemble_topic_parts(
+                    [self.mqtt_params["topic_prefix"], entity.id_interface]
+                )
+
+                if entity in self.config.inputs:
+                    entity_type = "input"
+                elif entity in self.config.outputs:
+                    entity_type = "output"
+                else:
+                    raise ValueError(
+                        f"Entity {entity.id} is neither an input nor an output. "
+                        "This should not happen."
+                    )
+
+                self._add_item_to_mqtt_message_store(
+                    topic=topic,
+                    entity_id=entity.id,
+                    entity_type=entity_type,
+                )
+
+                # iterate over all attributes of the entity and add them to the message store
                 for attribute in entity.attributes:
-                    # set the topic for the attribute
                     topic = self.assemble_topic_parts(
                         [
                             self.mqtt_params["topic_prefix"],
@@ -146,31 +172,19 @@ class MqttConnection:
                         ]
                     )
 
-                    if topic in self.mqtt_message_store:
-                        logger.warning(
-                            f"Topic {topic} from {entity.id} already exists in message store, "
-                            "overwriting it. This should not happen, check your configuration."
-                        )
-
                     # set the default value for the attribute
                     if hasattr(attribute, "value"):
                         default_value = attribute.value
                     else:
                         default_value = None
 
-                    # set the entity_type
-                    if entity in self.config.inputs:
-                        entity_type = "input"
-                    else:
-                        entity_type = "output"
-
-                    self.mqtt_message_store[topic] = {
-                        "entity_id": entity.id,
-                        "entity_type": entity_type,
-                        "attribute_id": attribute.id,
-                        "payload": default_value,
-                        "timestamp": None,
-                    }
+                    self._add_item_to_mqtt_message_store(
+                        topic=topic,
+                        entity_id=entity.id,
+                        entity_type=entity_type,
+                        attribute_id=attribute.id,
+                        payload=default_value,
+                    )
 
     def assemble_topic_parts(self, parts: list[str | None]) -> str:
         """
@@ -197,6 +211,41 @@ class MqttConnection:
         topic = "/".join(part.rstrip("/") for part in parts if isinstance(part, str))
 
         return topic
+
+    def _add_item_to_mqtt_message_store(
+        self,
+        *,
+        topic: str,
+        entity_id: str,
+        entity_type: str,
+        attribute_id: Optional[str] = None,
+        payload=None,
+        timestamp: Optional[datetime] = None,
+    ) -> None:
+        """
+        Function to add an item to the MQTT message store.
+        If the topic already exists, it will be overwritten.
+        Args:
+            topic (str): The topic to add the item to.
+            entity_id (str): The ID of the entity.
+            entity_type (str): The type of the entity (input/output).
+            attribute_id (Optional[str]): The ID of the attribute (if applicable).
+            payload: The default value of the message (if applicable).
+            timestamp (Optional[datetime]): The initial timestamp of the message (if applicable).
+        """
+        if topic in self.mqtt_message_store:
+            logger.warning(
+                f"Topic {topic} from {entity_id} already exists in message store, "
+                "overwriting it. This should not happen, check your configuration."
+            )
+
+        self.mqtt_message_store[topic] = {
+            "entity_id": entity_id,
+            "entity_type": entity_type,
+            "attribute_id": attribute_id,
+            "payload": payload,
+            "timestamp": timestamp,
+        }
 
     def publish(
         self,
@@ -332,9 +381,14 @@ class MqttConnection:
         entity: InputModel,
     ) -> InputDataEntityModel:
         """
-        Function to get the data from the MQTT broker
+        Function to get the data from the MQTT broker.
+        It checks the MQTT message store for the topics of the entity and its attributes.
+        If the topic is found, it extracts the data from the message payload.
+        If the topic is not found or the payload is not in the expected format,
+        it sets the data to None and marks it as unavailable.
 
         Args:
+            method (DataQueryTypes): The method is currently not used.
             entity (InputModel): Input entity
 
         Returns:
@@ -348,7 +402,7 @@ class MqttConnection:
         attributes_values = []
 
         for attribute in entity.attributes:
-            # Construct the topic for the attribute
+            # construct the topic for the attribute
             topic = self.assemble_topic_parts(
                 [
                     self.mqtt_params["topic_prefix"],
@@ -357,7 +411,7 @@ class MqttConnection:
                 ]
             )
 
-            # If the topic is not in the message store, mark the data as unavailable
+            # if the topic is not in the message store, mark the data as unavailable
             if topic not in self.mqtt_message_store:
                 logger.warning(
                     f"Topic {topic} not found in MQTT message store. Setting data as None and "

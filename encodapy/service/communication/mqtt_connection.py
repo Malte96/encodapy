@@ -6,6 +6,7 @@ Author: Maximilian Beyer
 
 import json
 import os
+import time
 from datetime import datetime
 from typing import Optional, Union
 
@@ -114,12 +115,12 @@ class MqttConnection:
 
     def prepare_mqtt_message_store(self) -> None:
         """
-        Function to prepare the MQTT message store for all in- and outputs
-        (subscribes to controllers outputs, too) and set the default values
-        for all attributes of the entities in the config.
+        Function to prepare the MQTT message store for all in- and outputs and set the default
+        values for all attributes of the entities in the config.
+
         Format of the message store:
         {
-            "full_topic": {
+            "topic": {
                 "entity_id": "entity_id",
                 "entity_type": "input/output",
                 "attribute_id": "attribute_id",
@@ -185,6 +186,10 @@ class MqttConnection:
                         attribute_id=attribute.id,
                         payload=default_value,
                     )
+
+                    # wait 0.1 seconds to avoid flooding the MQTT broker with messages
+                    # (especially if there are many attributes)
+                    time.sleep(1)
 
     def assemble_topic_parts(self, parts: list[str | None]) -> str:
         """
@@ -339,41 +344,43 @@ class MqttConnection:
             f"MQTT connection received message on {message.topic} at {current_time}"
         )
 
-        # decode the message payload
-        try:
-            payload = message.payload.decode("utf-8")
-        except UnicodeDecodeError as e:
-            logger.error(f"Failed to decode message payload: {e}")
-            return
-        # store payload in the message store
-        self.mqtt_message_store[message.topic] = {
-            "payload": payload,
-            "timestamp": current_time,
-        }
-        logger.debug(
-            f"Updated MQTT message store for topic {message.topic} with value: {payload}"
-        )
-
-        # if the item in the store is from an entity, its attribute_id in the store must be None
-        # and attribute values are possibly in payload
-        if self.mqtt_message_store[message.topic]["attribute_id"] is None:
-            # get the entity from the message store
-            entity_id = self.mqtt_message_store[message.topic]["entity_id"]
-            logger.debug(
-                f"MQTT message was received at topic from entity {entity_id}, "
-                "try to scan payload for attributes."
-            )
-            # try to parse the payload as JSON
+        if message.topic in self.mqtt_message_store:
+            # decode the message payload
             try:
-                payload = json.loads(payload)
-                self._extract_attributes_from_payload_and_update_store(
-                    entity=entity_id, payload=payload, timestamp=current_time
-                )
-            except json.JSONDecodeError:
-                logger.error(
-                    f"Failed to decode JSON payload for topic {message.topic}: {payload}"
-                )
+                payload = message.payload.decode("utf-8")
+            except UnicodeDecodeError as e:
+                logger.error(f"Failed to decode message payload: {e}")
                 return
+
+            # store payload and current time in the message store
+            self.mqtt_message_store[message.topic]["payload"] = payload
+            self.mqtt_message_store[message.topic]["timestamp"] = current_time
+
+            logger.debug(
+                f"Updated MQTT message store for topic {message.topic} with value: {payload} "
+                f"and timestamp: {current_time}"
+            )
+
+            # if the item in the store is from an entity, its attribute_id in the store must be None
+            # and attribute values are possibly in payload
+            if self.mqtt_message_store[message.topic]["attribute_id"] is None:
+                # get the entity from the message store
+                entity_id = self.mqtt_message_store[message.topic]["entity_id"]
+                logger.debug(
+                    f"MQTT message was received at topic from entity {entity_id}, "
+                    "try to scan payload for attributes."
+                )
+                # try to parse the payload as JSON
+                try:
+                    payload = json.loads(payload)
+                    self._extract_attributes_from_payload_and_update_store(
+                        entity=entity_id, payload=payload, timestamp=current_time
+                    )
+                except json.JSONDecodeError:
+                    logger.error(
+                        f"Failed to decode JSON payload for topic {message.topic}: {payload}"
+                    )
+                    return
 
     def _extract_attributes_from_payload_and_update_store(
         self,
@@ -549,7 +556,9 @@ class MqttConnection:
             payload = attribute.value
             self.publish(topic, payload)
 
-    def _extract_payload_value(self, payload) -> Union[float, bool, None]:
+    def _extract_payload_value(
+        self, payload
+    ) -> Union[str, float, int, bool, dict, list, DataFrame, None]:
         """
         Function to extract data from the payload as needed.
         """

@@ -335,6 +335,10 @@ class MqttConnection:
             )
         # save the time from receiving the message
         current_time = datetime.now()
+        logger.debug(
+            f"MQTT storage received message on {message.topic}: {payload} at {current_time}"
+        )
+
         # decode the message payload
         try:
             payload = message.payload.decode("utf-8")
@@ -347,7 +351,7 @@ class MqttConnection:
             "timestamp": current_time,
         }
         logger.debug(
-            f"MQTT storage received message on {message.topic}: {payload} at {current_time}"
+            f"Updated MQTT message store for topic {message.topic} with value: {payload}"
         )
 
         # if the item in the store is from an entity, attribute values are possibly in payload
@@ -355,17 +359,25 @@ class MqttConnection:
             # try to parse the payload as JSON
             try:
                 payload = json.loads(payload)
-                self._extract_attributes_from_payload(payload)
+                self._extract_attributes_from_payload_and_update_store(
+                    payload, current_time
+                )
             except json.JSONDecodeError:
                 logger.error(
                     f"Failed to decode JSON payload for topic {message.topic}: {payload}"
                 )
                 return
 
-    def _extract_attributes_from_payload(self, payload: dict) -> None:
+    def _extract_attributes_from_payload_and_update_store(
+        self, payload: dict, timestamp: datetime
+    ) -> None:
         """
         Function to extract attributes from the payload and update the message store.
         This is called when a message is received on a topic that corresponds to an entity.
+
+        Args:
+            payload (dict): The payload received from the MQTT broker.
+            timestamp (datetime): The timestamp when the message was received.
         """
         if not hasattr(self, "mqtt_message_store"):
             raise NotSupportedError(
@@ -373,7 +385,20 @@ class MqttConnection:
             )
 
         for key, value in payload.items():
-            pass
+            # search in subtopic of eacht key in message store if it machtes the key in the payload
+            for topic, item in self.mqtt_message_store.items():
+                # get subtopic (last part of the topic), which references the attribute.id_interface
+                subtopic = topic.split("/")[-1] if "/" in topic else topic
+
+                # if the subtopic matches the key in the payload, update the message store
+                if subtopic == key:
+                    # update the payload and timestamp in the message store
+                    item["payload"] = value
+                    item["timestamp"] = timestamp
+                    logger.debug(
+                        f"Updated MQTT message store for topic {topic} with value: {value}"
+                    )
+                    break
 
     def start_mqtt_client(self):
         """

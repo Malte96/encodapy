@@ -2,6 +2,7 @@
 Simple Method to caluculate the energy in a the thermal storage
 Author: Martin Altenburger
 """
+import json
 from typing import Union, Optional
 from pandas import DataFrame, Series
 import numpy as np
@@ -15,41 +16,59 @@ from encodapy.components.thermal_storage.thermal_storage_config import (
     OutputModel,
     ThermalStorageIO)
 from encodapy.components.basic_component import BasicComponent
+from encodapy.components.components_basic_config import IOModell
 from encodapy.utils.mediums import(
     Medium,
     get_medium_parameter)
-from encodapy.config.models import ControllerComponentModel, StaticDataModel
+from encodapy.utils.models import StaticDataEntityModel
+from encodapy.config.models import ControllerComponentModel
 
-class ThermalStorage (BasicComponent):
+class ThermalStorage(BasicComponent):
     """
     Class to calculate the energy in a thermal storage.
-    
+
+    Service needs to be prepared before use (`prepare_start_thermal_storage`).
+
     Args:
         sensor_config (ThermalStorageTemperatureSensors): \
             Configuration of the temperature sensors in the thermal storage
-        volume (float): Volume of the thermal storage in m³
-        medium (Medium): Medium in the thermal storage, e.g. water 
+        component_id (str): ID of the thermal storage component
+    
     
     """
     def __init__(self,
-                 config,   # : Union[ControllerComponentModel, list[ControllerComponentModel]]
-                 component_id: str
+                 config: Union[ControllerComponentModel, list[ControllerComponentModel]],
+                 component_id: str,
+                 static_data: Optional[list[StaticDataEntityModel]] = None,
                  ) -> None:
 
         super().__init__(config=config,
-                         component_id=component_id)
-        
+                         component_id=component_id,
+                         static_data=static_data)
+
 
         # Basic initialization of the thermal storage
+        # Configuration of the thermal storage
         self.sensor_config: Optional[ThermalStorageTemperatureSensors] = None
         self.medium: Optional[Medium] = None
         self.volume: Optional[float] = None
+        # Variables for the calcuation
         self.io_model: Optional[ThermalStorageIO] = None
         self.sensor_values: Optional[TemperatureSensorValues] = None
+        self.sensor_volumes: Optional[dict] = None
 
-        # Prepare the thermal storage based on the configuration
+        # Prepare the thermal storage
         self.prepare_start_thermal_storage()
-        self.sensor_volumes = self._calculate_volume_per_sensor()
+
+
+    def thermal_storage_usable(self)-> bool:
+        """
+        Check that the thermal storage component has been configured and is ready to use.
+
+        Returns:
+            bool: True if the thermal storage is usable, False otherwise.
+        """
+        return self.sensor_volumes is not None
 
 
     def _calculate_volume_per_sensor(self) -> dict:
@@ -150,7 +169,14 @@ class ThermalStorage (BasicComponent):
 
         Returns:
             float: Minimum energy content of the thermal storage in Wh
+        Raises:
+            ValueError: If the thermal storage is not usable or the sensor values are not set
         """
+        if self.thermal_storage_usable() is False:
+            raise ValueError(
+                "Thermal storage is not usable. "
+                "Please prepare the thermal storage first."
+                )
 
         medium_parameter = get_medium_parameter(medium = self.medium)
 
@@ -177,7 +203,15 @@ class ThermalStorage (BasicComponent):
 
         Returns:
             float: Maximum energy content of the thermal storage in Wh
+        Raises:
+            ValueError: If the thermal storage is not usable or the sensor values are not set
         """
+        if self.thermal_storage_usable() is False:
+            raise ValueError(
+                "Thermal storage is not usable. "
+                "Please prepare the thermal storage first."
+                )
+
         medium_parameter = get_medium_parameter(medium = self.medium)
 
         total_energy_calculator = 0
@@ -207,22 +241,29 @@ class ThermalStorage (BasicComponent):
         Args:
             sensor_values (dict): Sensor values in the thermal storage \
                 with the sensor names as keys
+        Raises:
+            ValueError: If the thermal storage is not usable or the sensor values are not set
         """
+        if self.thermal_storage_usable() is False:
+            raise ValueError(
+                "Thermal storage is not usable. "
+                "Please prepare the thermal storage first."
+                )
 
         self.sensor_values = TemperatureSensorValues(
             sensor_1=temperature_values[self.sensor_config.sensor_1_name],
-            sensor_2=temperature_values[self.sensor_config.sensor_1_name],
-            sensor_3=temperature_values[self.sensor_config.sensor_1_name],
+            sensor_2=temperature_values[self.sensor_config.sensor_2_name],
+            sensor_3=temperature_values[self.sensor_config.sensor_3_name],
             sensor_4=temperature_values[self.sensor_config.sensor_4_name]
             if self.sensor_config.sensor_4_name is not None else None,
             sensor_5=temperature_values[self.sensor_config.sensor_5_name]
             if self.sensor_config.sensor_5_name is not None else None)
 
-    def check_temperatur_of_highest_sensor(self,
-                                           df:DataFrame,
-                                           sensor_name:str,
-                                           temperature_limits:TemperatureLimits,
-                                           )-> Series:
+    def _check_temperatur_of_highest_sensor(self,
+                                            df:DataFrame,
+                                            sensor_name:str,
+                                            temperature_limits:TemperatureLimits,
+                                            )-> Series:
         """
         Function to check if the temperature of the highest sensor is too low, \
             so there is no energy left
@@ -269,7 +310,14 @@ class ThermalStorage (BasicComponent):
         Returns:
             Union[float, DataFrame]: State of charge of the thermal storage in percent (0-100) 
                 / DataFrame with the state of charge if the input is a DataFrame
+        Raises:
+            ValueError: If the thermal storage is not usable or the sensor values are not set
         """
+        if self.thermal_storage_usable() is False:
+            raise ValueError(
+                "Thermal storage is not usable. "
+                "Please prepare the thermal storage first."
+                )
 
         if input_data is None:
             input_data = self.sensor_values
@@ -311,7 +359,7 @@ class ThermalStorage (BasicComponent):
 
         df["state_of_charge"] = (df["state_of_charge"] / self.volume * 100).clip(lower=0)
 
-        df["state_of_charge"]  = self.check_temperatur_of_highest_sensor(
+        df["state_of_charge"]  = self._check_temperatur_of_highest_sensor(
             df = df,
             sensor_name=self.sensor_config.sensor_1_name,
             temperature_limits=sensor_limits[self.sensor_config.sensor_1_name]
@@ -319,7 +367,7 @@ class ThermalStorage (BasicComponent):
 
         if isinstance(input_data, (dict, TemperatureSensorValues)):
             return round(df["state_of_charge"].values[0],2)
-        
+
         return df.filter(["state_of_charge"]).round(2)
 
     def get_energy_content(self,
@@ -333,7 +381,16 @@ class ThermalStorage (BasicComponent):
 
         Returns:
             float: Energy content of the thermal storage in Wh
+        
+        Raises:
+            ValueError: If the thermal storage is not usable or the sensor values are not set
         """
+        if self.thermal_storage_usable() is False:
+            raise ValueError(
+                "Thermal storage is not usable. "
+                "Please prepare the thermal storage first."
+                )
+
         if state_of_charge is None:
             if self.sensor_values is None:
                 raise ValueError("Sensor values are not set. Please set the sensor values first")
@@ -359,9 +416,19 @@ class ThermalStorage (BasicComponent):
         Returns:
             ThermalStorage: Instance of the ThermalStorage class with the prepared configuration
         """
-        config_static = self.static_config
-        config_coponent = self.component_config
-        medium_value = config_coponent.config.get("medium")
+
+        if self.component_config.staticdata is None:
+            logger.error("Static data of the thermal storage is missing in the configuration. "
+                         "Please check the configuration.")
+            return
+        if len(self.static_data.root.keys()) < len(self.component_config.staticdata.root.keys()):
+            logger.error("Static data of the thermal storage is not complete. "
+                         "Please check the configuration.")
+            return
+
+        medium_value = self.get_component_static_data(
+            component_id="medium"
+        )
         if medium_value is None:
             error_msg = "No medium of the thermal storage specified in the configuration, \
                 using default medium 'water'"
@@ -374,15 +441,19 @@ class ThermalStorage (BasicComponent):
             logger.error(error_msg)
             raise ValueError(error_msg) from None
 
-        for data in config_static.attributes:
-            if data.id == "volume":
-                self.volume:float = data.value
+        self.volume:float = self.get_component_static_data(
+            component_id="volume",
+            unit="LTR"
+        )
         if self.volume is None:
             error_msg = "No volume of the thermal storage specified in the configuration."
             logger.error(error_msg)
             raise KeyError(error_msg) from None
 
-        sensor_config = config_coponent.config.get("sensor_config")
+        sensor_config = self.get_component_static_data(
+            component_id="sensor_config"
+        )
+
         if sensor_config is None:
             error_msg = "No sensor configuration of the thermal storage specified \
                 in the configuration."
@@ -404,15 +475,19 @@ class ThermalStorage (BasicComponent):
         """
         config = self.component_config
         try:
-            input_config = InputModel.model_validate(config.inputs)
+            input_config = InputModel.model_validate(
+                config.inputs.root if isinstance(config.inputs, IOModell)
+                else config.inputs)
         except ValidationError:
             error_msg = "Invalid input configuration for the thermal storage"
             logger.error(error_msg)
             raise
 
         try:
-            output_config = OutputModel.model_validate(config.outputs)
-        except ValidationError :
+            output_config = OutputModel.model_validate(
+                config.outputs.root if isinstance(config.outputs, IOModell)
+                else config.outputs)
+        except ValidationError:
             error_msg = "Invalid output configuration for the thermal storage"
             logger.error(error_msg)
             raise
@@ -463,16 +538,38 @@ class ThermalStorage (BasicComponent):
 
 
     def prepare_start_thermal_storage(
-        self
+        self,
+        static_data: Optional[list[StaticDataEntityModel]] = None,
         ):
         """
         Function to prepare the start of the service, \
             including the loading configuration of the service \
                 and preparing the thermal storage.
+        It is possible to pass static data for the thermal storage, \
+            which will be used to set the static data of the thermal storage. \
+                (For a update of the static data)
+        Args:
+            static_data (Optional[list[StaticDataEntityModel]]): Static data for the thermal storage
         """
 
+        if static_data is not None:
+
+            self.set_component_static_data(
+                static_data=static_data,
+                static_config=self.component_config.staticdata
+            )
+
+
         self._prepare_thermal_storage()
+
+        if self.sensor_config is None:
+            logger.error("No sensor configuration found in the thermal storage configuration. "
+                         "Could not prepare the thermal storage. "
+                         "Please check the configuration.")
+            return
 
         self._prepare_i_o_config()
 
         self._check_input_configuration()
+
+        self.sensor_volumes = self._calculate_volume_per_sensor()

@@ -39,11 +39,11 @@ Common configuration elements used across multiple components can be placed in:
 
 Defines how inputs and outputs of a component are mapped to specific entities and attributes.
 
-The expected format for each input or output within the `controller_components` configuration is:
+The expected format for each input or output (`$INPUT_OR_OUTPUT_VARIABLE`) within the controller components (`controller_components`) configuration is:
 
 ```json
 {
-  "input_or_output_variable": {
+  "$INPUT_OR_OUTPUT_VARIABLE": {
     "entity": "entity_id",
     "attribute": "attribute_id"
   }

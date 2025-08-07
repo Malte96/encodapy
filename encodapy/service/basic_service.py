@@ -102,6 +102,14 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             if getattr(interfaces, "mqtt", False):
                 self.prepare_mqtt_connection()
 
+        # Load the static data from the configuration, \
+            # maybe it is needed for the preparation of components
+        self.staticdata = self.reload_static_data(
+            method=DataQueryTypes.CALIBRATION,
+            staticdata=[]
+        )
+
+        # Prepare the individual start of the service
         self.prepare_start()
 
     def prepare_start(self):
@@ -117,8 +125,10 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         logger.debug("There is nothing else to prepare for the start of the service.")
 
-    async def reload_static_data(
-        self, method: DataQueryTypes, staticdata: list
+    def reload_static_data(
+        self,
+        method: DataQueryTypes,
+        staticdata: list
     ) -> list:
         """
         Function to reload the static data
@@ -155,7 +165,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             if static_entity.interface == Interfaces.MQTT:
                 logger.warning("interface MQTT for staticdata not supported")
 
-            await sleep(0.01)
         return staticdata
 
     async def get_data(self, method: DataQueryTypes) -> InputDataModel:
@@ -246,7 +255,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             await sleep(0.01)
 
         if self.reload_staticdata or self.staticdata is None:
-            self.staticdata = await self.reload_static_data(
+            self.staticdata = self.reload_static_data(
                 method=method, staticdata=[]
             )
 

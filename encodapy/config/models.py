@@ -19,7 +19,7 @@ from encodapy.config.types import (
 )
 from encodapy.utils.error_handling import ConfigError, InterfaceNotActive
 from encodapy.utils.units import DataUnits, TimeUnits
-
+from encodapy.components.components_basic_config import ControllerComponentModel
 
 class InterfaceModel(BaseModel):
     """Base class for the interfaces
@@ -133,30 +133,6 @@ class OutputModel(BaseModel):
     id_interface: str
     attributes: list[AttributeModel]
     commands: list[CommandModel]
-
-
-class ControllerComponentModel(BaseModel):
-    """
-    Model for the configuration of the controller components.
-    Contains:
-    - active: Whether the component is active or not
-    - id: The id of the component
-    - type: The type of the component (e.g. thermal storage, heat pump, etc. / \
-        needs to be defined for individual components)
-    - inputs: The inputs of the component as a dictionary with IOAllocationModel \
-        for the individual inputs
-    - outputs: The outputs of the component as a dictionary with IOAllocationModel \
-        for the individual outputs
-    - config: The configuration of the component as a dictionary
-    
-    """
-
-    active: bool = True
-    id: str
-    type: str
-    inputs: dict
-    outputs: dict
-    config: dict
 
 
 class TimeSettingsCalculationModel(BaseModel):

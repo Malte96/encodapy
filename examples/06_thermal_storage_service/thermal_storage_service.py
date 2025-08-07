@@ -5,7 +5,6 @@ Author: Martin Altenburger
 """
 from datetime import datetime, timezone
 from loguru import logger
-
 from encodapy.components import ThermalStorage
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
@@ -35,15 +34,19 @@ class ThermalStorageService(ControllerBasicService):
         """
 
         self.thermal_storage = ThermalStorage(
-            config=self.config,
-            component_id="thermal_storage"
+            config=self.config.controller_components,
+            component_id="thermal_storage",
+            static_data=self.staticdata
             )
+
 
     async def calculation(self,
                           data: InputDataModel
                           ):
         """
         Function to do the calculation
+        # It is possible to update the static data of the thermal storage component with rerunning the \
+            # `prepare_start_thermal_storage` method with new static data
         Args:
             data (InputDataModel): Input data with the measured values for the calculation
         """
@@ -53,7 +56,7 @@ class ThermalStorageService(ControllerBasicService):
         for input_key, input_config in self.thermal_storage.io_model.input.__dict__.items():
             if input_config is None:
                 continue
-            input_temperatures[input_key] = self.thermal_storage.get_input_values(
+            input_temperatures[input_key] = self.thermal_storage.get_component_input(
                 input_entities=data.input_entities,
                 input_config=input_config)
 

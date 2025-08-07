@@ -6,6 +6,7 @@ Author: Maximilian Beyer
 
 import json
 import os
+import re
 import time
 from datetime import datetime
 from typing import Optional, Union
@@ -562,54 +563,43 @@ class MqttConnection:
         """
         Function to extract data from the payload as needed.
         """
-        # Check if the payload is None or empty
         if payload is None or payload == "":
             return None
 
-        # Check if the payload is a JSON string and try to parse it
-        if isinstance(payload, str):
-            try:
-                payload = json.loads(payload)
-            except json.JSONDecodeError:
-                # If the payload is not a valid JSON but a string, split first string part as value
-                # (workaround for cases where payload is a string from number and unit, e.g. 22 °C)
-                # Added strip() to remove leading/trailing spaces (e.g., " 6552.0 h")
-                payload = payload.strip().split(" ")[0]
+        # If the payload is not a string (maybe from other source), return it directly
+        if not isinstance(payload, str):
+            return payload
 
-        # If the payload is a valid JSON string or dict, extract the value from it if possible
-        if isinstance(payload, dict):
-            # Ensure case-insensitive key check
-            if "value" in {k.lower() for k in payload.keys()}:
-                # Search for actual key that is (case-insensitive) "value" and extract its value
-                for k in payload.keys():
-                    if k.lower() == "value":
-                        value = payload[k]
-                        break
-                else:
-                    raise ValueError(
-                        f"Invalid payload format: 'value' key not found in payload {payload}"
-                    )
-            else:
-                raise ValueError(
-                    f"Invalid payload format: 'value' key not found in payload {payload}"
-                )
-        # If the payload itself is a number, boolean or string, use it directly
-        elif isinstance(payload, (float, int, str, bool)):
-            value = payload
-        else:
-            raise ValueError(f"Invalid payload format: {type(payload)}")
-
-        # if remaining value is bool, return it
-        if isinstance(value, bool):
-            return value
-
-        # else try to convert it to float
+        # Try to parse JSON (automatically handles int, float, bool, dicts, lists)
         try:
-            return float(value)
-        except ValueError as exc:
-            raise ValueError(
-                f"Invalid data type for payload value: {type(value)}"
-            ) from exc
+            parsed = json.loads(payload)
+            # If the payload is a valid dict, try to extract a value from it
+            if isinstance(parsed, dict):
+                # Ensure case-insensitive key check and return value of first found "value" key
+                value = next((parsed[k] for k in parsed if k.lower() == "value"), None)
+                if value is not None:
+                    return value
+            return parsed
+        except json.JSONDecodeError:
+            pass
+        
+        # If the payload is a string that starts with a number, try to extract it
+        # This handles cases like "22.5 °C" or "6552.0 h" where we want to extract the number
+        # and ignore the unit (if any).
+        # The regex matches an optional leading '-' for negative numbers, followed by digits,
+        # optionally with a decimal point and more digits.
+        match = re.match(r"^\s*(-?\d+(\.\d+)?)", payload)
+        if match:
+            num_str = match.group(1)
+            if "." in num_str:
+                return float(num_str)
+            return int(num_str)
+
+        # if nothing else worked, return the payload as string
+        logger.warning(
+            f"Payload '{payload}' could not be parsed automatically, returning it as string."
+        )
+        return payload
 
     def _get_last_timestamp_for_mqtt_output(
         self, output_entity: OutputModel

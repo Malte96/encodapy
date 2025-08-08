@@ -258,6 +258,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             self.staticdata = self.reload_static_data(
                 method=method, staticdata=[]
             )
+            self.prepare_start()
 
         return InputDataModel(
             input_entities=input_data,

@@ -66,6 +66,7 @@ class ThermalStorageService(ControllerBasicService):
         logger.debug("Energy Storage Level: " + str(storage__level))
 
         storage__energy = self.thermal_storage.get_energy_content(storage__level)
+        logger.debug("Energy of the Storage: " + str(storage__energy))
 
         components = []
 

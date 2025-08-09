@@ -298,10 +298,13 @@ class MqttConnection:
                 payload = payload.to_json()
             elif isinstance(payload, (str, float, int, bool)):
                 payload = str(payload)
+            elif payload is None:
+                pass
             else:
                 logger.warning(
                     f"Unsupported payload type: {type(payload)}, set it to None"
                 )
+
         except TypeError as e:
             logger.warning(f"Failed to convert payload: {e}, set it to None")
 
@@ -374,9 +377,15 @@ class MqttConnection:
                 # try to parse the payload as JSON
                 try:
                     payload = json.loads(payload)
-                    self._extract_attributes_from_payload_and_update_store(
-                        entity=entity_id, payload=payload, timestamp=current_time
-                    )
+                    if isinstance(payload, dict):
+                        self._extract_attributes_from_payload_and_update_store(
+                            entity_id=entity_id, payload=payload, timestamp=current_time
+                        )
+                    else:
+                        logger.warning(
+                            f"Unexpected payload format for topic {message.topic} from "
+                            f"entity {entity_id}: {payload}"
+                        )
                 except json.JSONDecodeError:
                     logger.error(
                         f"Failed to decode JSON payload for topic {message.topic}: {payload}"
@@ -385,7 +394,7 @@ class MqttConnection:
 
     def _extract_attributes_from_payload_and_update_store(
         self,
-        entity: Union[InputModel, OutputModel],
+        entity_id: str,
         payload: dict,
         timestamp: datetime = datetime.now(),
     ) -> None:
@@ -406,7 +415,7 @@ class MqttConnection:
             # search in the message store for a subtopic that matches the key and entity
             for topic, item in self.mqtt_message_store.items():
                 # check if the item in the message store is from the entity
-                if item["entity_id"] != entity.id:
+                if item["entity_id"] != entity_id:
                     continue
 
                 # get subtopic (last part of the topic), which could reference the attribute.id_interface
@@ -521,6 +530,51 @@ class MqttConnection:
             )
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
+    def _extract_payload_value(
+        self, payload
+    ) -> Union[str, float, int, bool, dict, list, DataFrame, None]:
+        """
+        Function to extract data from the payload as needed.
+        # TODO MB: How to use pd.read_json here for Dataframes? https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_json.html#pandas.read_json
+        """
+        if payload is None or payload == "":
+            return None
+
+        # If the payload is not a string (maybe from other source), return it directly
+        if not isinstance(payload, str):
+            return payload
+
+        # Try to parse JSON (automatically handles int, float, bool, dicts, lists)
+        try:
+            parsed = json.loads(payload)
+            # If the payload is a valid dict, try to extract a value from it
+            if isinstance(parsed, dict):
+                # Ensure case-insensitive key check and return value of first found "value" key
+                value = next((parsed[k] for k in parsed if k.lower() == "value"), None)
+                if value is not None:
+                    return value
+            return parsed
+        except json.JSONDecodeError:
+            pass
+
+        # If the payload is a string that starts with a number, try to extract it
+        # This handles cases like "22.5 °C" or "6552.0 h" where we want to extract the number
+        # and ignore the unit (if any).
+        # The regex matches an optional leading '-' for negative numbers, followed by digits,
+        # optionally with a decimal point and more digits.
+        match = re.match(r"^\s*(-?\d+(\.\d+)?)", payload)
+        if match:
+            num_str = match.group(1)
+            if "." in num_str:
+                return float(num_str)
+            return int(num_str)
+
+        # if nothing else worked, return the payload as string
+        logger.warning(
+            f"Payload '{payload}' could not be parsed automatically, returning it as string."
+        )
+        return payload
+
     def send_data_to_mqtt(
         self,
         output_entity: OutputModel,
@@ -556,50 +610,6 @@ class MqttConnection:
             )
             payload = attribute.value
             self.publish(topic, payload)
-
-    def _extract_payload_value(
-        self, payload
-    ) -> Union[str, float, int, bool, dict, list, DataFrame, None]:
-        """
-        Function to extract data from the payload as needed.
-        """
-        if payload is None or payload == "":
-            return None
-
-        # If the payload is not a string (maybe from other source), return it directly
-        if not isinstance(payload, str):
-            return payload
-
-        # Try to parse JSON (automatically handles int, float, bool, dicts, lists)
-        try:
-            parsed = json.loads(payload)
-            # If the payload is a valid dict, try to extract a value from it
-            if isinstance(parsed, dict):
-                # Ensure case-insensitive key check and return value of first found "value" key
-                value = next((parsed[k] for k in parsed if k.lower() == "value"), None)
-                if value is not None:
-                    return value
-            return parsed
-        except json.JSONDecodeError:
-            pass
-        
-        # If the payload is a string that starts with a number, try to extract it
-        # This handles cases like "22.5 °C" or "6552.0 h" where we want to extract the number
-        # and ignore the unit (if any).
-        # The regex matches an optional leading '-' for negative numbers, followed by digits,
-        # optionally with a decimal point and more digits.
-        match = re.match(r"^\s*(-?\d+(\.\d+)?)", payload)
-        if match:
-            num_str = match.group(1)
-            if "." in num_str:
-                return float(num_str)
-            return int(num_str)
-
-        # if nothing else worked, return the payload as string
-        logger.warning(
-            f"Payload '{payload}' could not be parsed automatically, returning it as string."
-        )
-        return payload
 
     def _get_last_timestamp_for_mqtt_output(
         self, output_entity: OutputModel

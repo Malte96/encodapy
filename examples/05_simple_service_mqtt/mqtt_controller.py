@@ -9,6 +9,7 @@ from typing import Union
 
 from loguru import logger
 
+from encodapy.config.models import ControllerComponentModel
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
     DataTransferComponentModel,
@@ -16,7 +17,6 @@ from encodapy.utils.models import (
     InputDataEntityModel,
     InputDataModel,
 )
-from encodapy.config.models import ControllerComponentModel
 
 
 class MQTTController(ControllerBasicService):

@@ -418,7 +418,7 @@ class MqttConnection:
                 if item["entity_id"] != entity_id:
                     continue
 
-                # get subtopic (last part of the topic), which could reference the attribute.id_interface
+                # get last part of the topic, which could reference the attribute.id_interface
                 subtopic = topic.split("/")[-1] if "/" in topic else topic
 
                 # if subtopic matches key in the payload from entity, update the message store

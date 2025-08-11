@@ -14,13 +14,12 @@ from filip.models.base import DataType
 
 from encodapy.config.types import (
     AttributeTypes,
-    ControllerComponents,
     Interfaces,
     TimerangeTypes,
 )
 from encodapy.utils.error_handling import ConfigError, InterfaceNotActive
 from encodapy.utils.units import DataUnits, TimeUnits
-
+from encodapy.components.components_basic_config import ControllerComponentModel
 
 class InterfaceModel(BaseModel):
     """Base class for the interfaces
@@ -134,24 +133,6 @@ class OutputModel(BaseModel):
     id_interface: str
     attributes: list[AttributeModel]
     commands: list[CommandModel]
-
-
-class ControllerComponentModel(BaseModel):
-    """
-    Model for the configuration of the controller components.
-    TODO: - Improve the model
-    """
-
-    active: bool = True
-    id: str
-    type: Union[
-        ControllerComponents, str
-    ]
-    #TODO: How to reference the component types?
-    #TODO: How to reference the input/output models?
-    inputs: dict
-    outputs: dict
-    config: dict
 
 
 class TimeSettingsCalculationModel(BaseModel):

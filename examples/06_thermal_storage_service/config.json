@@ -1,0 +1,168 @@
+{
+    "name": "thermal_storage_service",
+    "interfaces":{
+        "mqtt": false,
+        "fiware": true,
+        "file": false
+    },
+    "inputs": [
+        {
+            "id": "thermal_storage",
+            "interface": "fiware",
+            "id_interface": "urn:thermal_storage:01",
+            "attributes": [
+                {
+                    "id": "temperature_1", 
+                    "id_interface":"temperature__1",
+                    "type": "value"
+                },
+                {
+                    "id": "temperature_2", 
+                    "id_interface":"temperature__2",
+                    "type": "value"
+                },
+                {
+                    "id": "temperature_3", 
+                    "id_interface":"temperature__3",
+                    "type": "value"
+                },
+                {
+                    "id": "temperature_4", 
+                    "id_interface":"temperature__4",
+                    "type": "value"
+                },
+                {
+                    "id": "temperature_5", 
+                    "id_interface":"temperature__5",
+                    "type": "value"
+                }
+            ]
+        }
+    ],
+    "outputs": [
+        {
+            "id": "thermal_storage",
+            "interface": "fiware",
+            "id_interface": "urn:thermal_storage:01",
+            "attributes": [
+                {
+                    "id": "storage__level", 
+                    "id_interface":"storage__level"
+                },
+                {
+                    "id": "storage__energy", 
+                    "id_interface":"storage__energy"
+                }
+            ],
+            "commands":[]
+        }
+    ],
+    "staticdata": [
+        {
+            "id": "thermal_storage",
+            "interface": "fiware",
+            "id_interface": "urn:thermal_storage:01",
+            "attributes": [
+                    {"id": "volume", 
+                    "id_interface":"volume",
+                    "type": "value"
+                    }
+            ]
+        },
+        {
+            "id": "thermal_storage",
+            "interface": "fiware",
+            "id_interface": "urn:thermal_storage:01",
+            "attributes": [
+                    {"id": "medium", 
+                    "id_interface":"medium",
+                    "type": "value"
+                    }
+            ]
+        },
+        {
+            "id": "thermal_storage",
+            "interface": "fiware",
+            "id_interface": "urn:thermal_storage:01",
+            "attributes": [
+                    {"id": "sensor_config", 
+                    "id_interface":"sensor_config",
+                    "type": "value"
+                    }
+            ]
+        }
+    ],
+    "controller_components": [
+        {
+            "id": "thermal_storage",
+            "type": "thermal_storage",
+            "inputs": {
+                "temperature_1": {
+                    "entity" : "thermal_storage",
+                    "attribute": "temperature_1"
+                }, 
+                "temperature_2": {
+                    "entity" : "thermal_storage",
+                    "attribute": "temperature_2"
+                }, 
+                "temperature_3": {
+                    "entity" : "thermal_storage",
+                    "attribute": "temperature_3"
+                }, 
+                "temperature_4": {
+                    "entity" : "thermal_storage",
+                    "attribute": "temperature_4"
+                }, 
+                "temperature_5": {
+                    "entity" : "thermal_storage",
+                    "attribute": "temperature_5"
+                }
+            },
+            "outputs":{
+                "storage__level": {
+                    "entity" : "thermal_storage",
+                    "attribute": "storage__level"
+                },
+                "storage__energy": {
+                    "entity" : "thermal_storage",
+                    "attribute": "storage__energy"
+                }
+            },
+            "staticdata": {
+                "volume": {
+                    "entity" : "thermal_storage",
+                    "attribute": "volume"
+                },
+                "medium": {
+                    "entity" : "thermal_storage",
+                    "attribute": "medium"
+                },
+                "sensor_config": {
+                    "entity" : "thermal_storage",
+                    "attribute": "sensor_config"
+                }
+            },
+            "config": {
+            }
+        }
+    ],
+    "controller_settings": {
+        "time_settings":
+        {
+            "calculation":
+            {
+                "timerange":1,
+                "timerange_unit":"minute",
+                "sampling_time":1,
+                "sampling_time_unit":"minute"
+            },
+            "calibration":
+            {
+                "timerange":5,
+                "timerange_unit":"minute",
+                "sampling_time":10,
+                "sampling_time_unit":"minute"
+            }
+        }
+    }
+}

@@ -102,10 +102,9 @@ class InputDataModel(BaseModel):
     Model for the input data of the system controller.
 
     Contains:
-    - input_entitys: List of the input data entitys as InputDataEntityModel
-    - output_entitys: List of the output data entitys as OutputDataEntityModel
-    - context_entitys: List of the context data entitys as InputDataEntityModel\
-        (a extra ContextDataEntityModel is not nessesary, may be in future?)
+    - input_entities: List of the input data entities as InputDataEntityModel
+    - output_entities: List of the output data entities as OutputDataEntityModel
+    - static_entities: List of the static data entities as StaticDataEntityModel
     """
 
     input_entities: list[InputDataEntityModel]

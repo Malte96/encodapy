@@ -7,7 +7,6 @@ import os
 from asyncio import sleep
 from datetime import datetime
 from typing import Union
-
 from loguru import logger
 
 from encodapy.config import (
@@ -17,7 +16,7 @@ from encodapy.config import (
     DataQueryTypes,
     DefaultEnvVariables,
     Interfaces,
-    OutputModel,
+    OutputModel
 )
 from encodapy.service.communication import (
     FileConnection,
@@ -32,7 +31,7 @@ from encodapy.utils.models import (
     InputDataModel,
     OutputDataEntityModel,
     OutputDataModel,
-    StaticDataEntityModel,
+    StaticDataEntityModel
 )
 from encodapy.utils.units import get_time_unit_seconds
 
@@ -44,14 +43,11 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
     """
 
-    def __init__(
-        self,
-    ) -> None:
+    def __init__(self) -> None:
         FiwareConnection.__init__(self)
         FileConnection.__init__(self)
         MqttConnection.__init__(self)
 
-        self.config = None
         self.logger = LoggerControl()
 
         self.reload_staticdata = False
@@ -106,6 +102,14 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             if getattr(interfaces, "mqtt", False):
                 self.prepare_mqtt_connection()
 
+        # Load the static data from the configuration, \
+            # maybe it is needed for the preparation of components
+        self.staticdata = self.reload_static_data(
+            method=DataQueryTypes.CALIBRATION,
+            staticdata=[]
+        )
+
+        # Prepare the individual start of the service
         self.prepare_start()
 
     def prepare_start(self):
@@ -121,8 +125,10 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         logger.debug("There is nothing else to prepare for the start of the service.")
 
-    async def reload_static_data(
-        self, method: DataQueryTypes, staticdata: list
+    def reload_static_data(
+        self,
+        method: DataQueryTypes,
+        staticdata: list
     ) -> list:
         """
         Function to reload the static data
@@ -159,7 +165,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             if static_entity.interface == Interfaces.MQTT:
                 logger.warning("interface MQTT for staticdata not supported")
 
-            await sleep(0.01)
         return staticdata
 
     async def get_data(self, method: DataQueryTypes) -> InputDataModel:
@@ -204,7 +209,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_latest_timestamps.append(output_latest_timestamp)
                 logger.info("File interface, output_latest_timestamp is not defined.")
 
-            elif output_entity.interface == Interfaces.MQTT: #TODO MB: How to handle MQTT interface?
+            elif (
+                output_entity.interface == Interfaces.MQTT
+            ):  # TODO MB: How to handle MQTT interface?
                 entity_timestamps, output_latest_timestamp = (
                     self._get_last_timestamp_for_mqtt_output(output_entity)
                 )
@@ -248,7 +255,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             await sleep(0.01)
 
         if self.reload_staticdata or self.staticdata is None:
-            self.staticdata = await self.reload_static_data(
+            self.staticdata = self.reload_static_data(
                 method=method, staticdata=[]
             )
 

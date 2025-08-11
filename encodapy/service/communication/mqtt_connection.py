@@ -280,7 +280,16 @@ class MqttConnection:
         self.mqtt_client.publish(topic, payload)
         logger.debug(f"Published to topic {topic}: {payload}")
 
-    def prepare_payload_for_publish(self, payload) -> Union[str, None]:
+    def prepare_payload_for_publish(self,
+                                    payload: Union[str,
+                                                   float,
+                                                   int,
+                                                   bool,
+                                                   dict,
+                                                   list,
+                                                   DataFrame,
+                                                   None]
+                                    ) -> Union[str, None]:
         """
         Function to prepare the payload for publishing.
 
@@ -288,8 +297,6 @@ class MqttConnection:
         If the payload is a string, float, int or bool, it is converted to a string.
         If the payload is None or an unsupported type, it is set to None.
         """
-
-        payload = None
 
         try:
             if isinstance(payload, (dict, list)):
@@ -304,9 +311,11 @@ class MqttConnection:
                 logger.warning(
                     f"Unsupported payload type: {type(payload)}, set it to None"
                 )
+                payload = None
 
         except TypeError as e:
             logger.warning(f"Failed to convert payload: {e}, set it to None")
+            payload = None
 
         return payload
 
@@ -418,7 +427,8 @@ class MqttConnection:
                 if item["entity_id"] != entity_id:
                     continue
 
-                # get subtopic (last part of the topic), which could reference the attribute.id_interface
+                # get subtopic (last part of the topic),
+                # which could reference the attribute.id_interface
                 subtopic = topic.split("/")[-1] if "/" in topic else topic
 
                 # if subtopic matches key in the payload from entity, update the message store

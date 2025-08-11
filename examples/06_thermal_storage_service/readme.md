@@ -43,3 +43,5 @@ The following temperature sensors are required (optional) as inputs, which are u
 The outputs are:
 - The storage charge in percent (0 - 100): `storage__level`
 - The storage energy content in Wh: `storage__energy`
+
+- If the environment variable `RELOAD_STATICDATA` is set to `True`, the `calibration()` function will adjust the static configuration data in each calibration cycle.

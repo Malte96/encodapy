@@ -54,7 +54,7 @@ class ControllerComponentModel(BaseModel):
     staticdata: Optional[IOModell] = None
     config: dict
 
-# Union[str, float, int, bool, dict, List, DataFrame, None]
+
 class ControllerComponentStaticDataAttribute(BaseModel):
     """
     Model for the static data attributes of the controller component.

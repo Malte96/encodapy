@@ -152,12 +152,16 @@
             "calculation":
             {
                 "timerange":1,
-                "timerange_unit":"minute"
+                "timerange_unit":"minute",
+                "sampling_time":1,
+                "sampling_time_unit":"minute"
             },
             "calibration":
             {
-                "timerange":24,
-                "timerange_unit":"hour"
+                "timerange":5,
+                "timerange_unit":"minute",
+                "sampling_time":10,
+                "sampling_time_unit":"minute"
             }
         }
     }

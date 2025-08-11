@@ -13,7 +13,6 @@ from encodapy.utils.models import (
     DataTransferComponentModel
     )
 
-
 class ThermalStorageService(ControllerBasicService):
     """
     Class for a thermal storage calculation service
@@ -45,8 +44,7 @@ class ThermalStorageService(ControllerBasicService):
                           ):
         """
         Function to do the calculation
-        # It is possible to update the static data of the thermal storage component with rerunning the \
-            # `prepare_start_thermal_storage` method with new static data
+
         Args:
             data (InputDataModel): Input data with the measured values for the calculation
         """
@@ -88,3 +86,20 @@ class ThermalStorageService(ControllerBasicService):
             ))
 
         return DataTransferModel(components=components)
+
+
+    async def calibration(self,
+                          data: InputDataModel):
+        """
+        Function to do the calibration of the thermal storage service. 
+        This function prepares the thermal storage component with the static data, \
+            if this is reloaded.
+        It is possible to update the static data of the thermal storage component with \
+            rerunning the `prepare_start_thermal_storage` method with new static data.
+
+        Args:
+            data (InputDataModel): InputDataModel for the thermal storage component
+        """
+        if self.reload_staticdata:
+            logger.debug("Reloading static data for thermal storage")
+            self.thermal_storage.prepare_start_thermal_storage(static_data=data.static_entities)

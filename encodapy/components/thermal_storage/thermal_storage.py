@@ -2,7 +2,6 @@
 Simple Method to caluculate the energy in a the thermal storage
 Author: Martin Altenburger
 """
-import json
 from typing import Union, Optional
 from pandas import DataFrame, Series
 import numpy as np

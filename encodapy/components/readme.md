@@ -28,16 +28,30 @@ This module provides a structured way to define and manage components for use wi
 
 ## Component Configuration
 
-Component configuration must be customized per use case. It is recommended to validate the configuration during component initialization.
+Component configuration must be customized per use case. It is recommended to validate the configuration during component initialization. This structure is formalized and can be validated using Pydantic.
 
 ### Shared Configuration Elements
 
 Common configuration elements used across multiple components can be placed in:  
 `encodapy.components.components_basic_config`
 
+#### `ControllerComponentModel`
+This is a model for configuring components that form part of the general configuration of a service.
+
+#### `IOModell`
+Root-Modell to describe the structur of the Inputs, Outputs and static data (`$INPUT_OR_OUTPUT_VARIABLE`) of a component as a dictionary of `IOAllocationModel`, like:
+```json
+
+  "inputs": {
+    "$INPUT_OR_OUTPUT_VARIABLE_1": IOAllocationModel,
+    "$INPUT_OR_OUTPUT_VARIABLE_2": IOAllocationModel
+  }
+
+```
+
 #### `IOAllocationModel`
 
-Defines how inputs and outputs of a component are mapped to specific entities and attributes.
+Defines how inputs, outputs and static data of a component are mapped to specific entities and attributes.
 
 The expected format for each input or output (`$INPUT_OR_OUTPUT_VARIABLE`) within the controller components (`controller_components`) configuration is:
 
@@ -49,8 +63,12 @@ The expected format for each input or output (`$INPUT_OR_OUTPUT_VARIABLE`) withi
   }
 }
 ```
+#### `ControllerComponentStaticData`
+A model for storing the static data of a component as a dict of `ControllerComponentStaticDataAttribute` in a Pydantic root model.
 
-This structure is formalized and can be validated using Pydantic.
+#### `ControllerComponentStaticDataAttribute`
+Model for the static data attributes of the controller component, is part if the `ControllerComponentStaticData`-Model.
+
 
 ### Example Configuration
 

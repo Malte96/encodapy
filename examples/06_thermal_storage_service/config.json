@@ -3,7 +3,7 @@
     "interfaces":{
         "mqtt": false,
         "fiware": true,
-        "file": false
+        "file": true
     },
     "inputs": [
         {
@@ -60,7 +60,7 @@
     "staticdata": [
         {
             "id": "thermal_storage",
-            "interface": "fiware",
+            "interface": "file",
             "id_interface": "urn:thermal_storage:01",
             "attributes": [
                     {"id": "volume", 

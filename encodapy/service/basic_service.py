@@ -67,7 +67,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         )
 
         self.config = ConfigModel.from_json(file_path=config_path)
-
+               
         if self.config.interfaces.fiware:
             self.load_fiware_params()
 
@@ -141,6 +141,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         if len(self.config.staticdata) == 0:
             return []
 
+        logger.debug(self.config.staticdata)
         for static_entity in self.config.staticdata:
             if static_entity.interface == Interfaces.FIWARE:
                 staticdata.append(
@@ -562,12 +563,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             logger.debug("Start the Prozess")
             start_time = datetime.now()
 
-            # we have to check the input type, if we need something from the config
             if self.config.interfaces.fiware:
                 self.update_authentication()
-
-            if self.config.interfaces.file:
-                logger.debug("Maybe we have to set the start_time for the file here")
 
             data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
 

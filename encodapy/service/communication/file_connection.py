@@ -20,7 +20,7 @@ from encodapy.config import (
     FileExtensionTypes,
     InputModel,
     OutputModel,
-    StaticDataModel,
+    StaticDataModel
 )
 from encodapy.utils.models import (
     InputDataAttributeModel,
@@ -53,6 +53,9 @@ class FileConnection:
         )
         self.file_params["TIME_FORMAT_FILE"] = os.environ.get(
             "TIME_FORMAT_FILE", DefaultEnvVariables.TIME_FORMAT_FILE.value
+        )
+        self.file_params["PATH_OF_STATIC_DATA"] = os.environ.get(
+            "PATH_OF_STATIC_DATA", DefaultEnvVariables.PATH_OF_STATIC_DATA.value
         )
 
     def _get_last_timestamp_for_file_output(
@@ -142,6 +145,9 @@ class FileConnection:
             to the platform is not available
 
         """
+        # TODO: Implement method handling for file interface
+        _ = method  # Acknowledge unused parameter
+
         # attributes_timeseries = {}
         attributes_values = []
         path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
@@ -206,6 +212,8 @@ class FileConnection:
             to the platform is not available
 
         """
+        # TODO: Implement method handling for file interface
+        _ = method  # Acknowledge unused parameter
 
         # attributes_timeseries = {}
         attributes_values = []
@@ -270,34 +278,37 @@ class FileConnection:
 
         """
 
+        static_data_path = self.file_params["PATH_OF_STATIC_DATA"]
+
         attributes_values = []
 
+        try:
+            #read data from json file and timestamp
+            with open(static_data_path, encoding="utf-8") as f:
+                data = json.load(f)
+        except FileNotFoundError:
+            logger.error(f"Error: File not found ({static_data_path})")
+            # TODO: What to do if the file is not found?
+            return None
+
         for attribute in entity.attributes:
+            logger.debug(attribute)
+            for item in data['staticdata']:
+                if item['attributes']['id'] == attribute.id:
+                    value = item['attributes']['value']
 
-            if attribute.type == AttributeTypes.TIMESERIES:
-                raise NotSupportedError("Timeseries not supported for static data")
-                #TODO: Implement the timeseries
-
-            if attribute.type == AttributeTypes.VALUE:
-
-                attributes_values.append(
-                    InputDataAttributeModel(
-                        id=attribute.id,
-                        data=attribute.value,
-                        data_type=AttributeTypes.VALUE,
-                        data_available=True,
-                        latest_timestamp_input=None,
-                    )
-                )
-
-            else:
-                # Not supported attribute type - should not happen
-                raise NotSupportedError(
-                    f"Attribute type {attribute.type} for attribute {attribute.id}"
-                    f"of entity {entity.id} not supported"
-                )
+                    attributes_values.append(
+                            InputDataAttributeModel(
+                                id=attribute.id,
+                                data=value,
+                                data_type=AttributeTypes.VALUE,
+                                data_available=True,
+                                latest_timestamp_input=None,
+                                )
+                            )
 
         return StaticDataEntityModel(id=entity.id, attributes=attributes_values)
+
 
     def send_data_to_json_file(
         self,

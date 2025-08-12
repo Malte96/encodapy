@@ -562,12 +562,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             logger.debug("Start the Prozess")
             start_time = datetime.now()
 
-            # we have to check the input type, if we need something from the config
             if self.config.interfaces.fiware:
                 self.update_authentication()
-
-            if self.config.interfaces.file:
-                logger.debug("Maybe we have to set the start_time for the file here")
 
             data_input = await self.get_data(method=DataQueryTypes.CALCULATION)
 

@@ -20,7 +20,7 @@ Data exchange with the data platform of the N5GEH / FIWARE platform using the fo
 ## File
 Data exchange with via local file.
 - Read input data from a file (Note: only `.csv` and `.json` is supported currently)
-    - Read values for the actual (simulation) time of configured input from file
+    - Read Input values for the actual (simulation) time of configured input from file
     - csv characteristics:
         - Name column of time = "Time"
         - csv separator = ";"
@@ -32,6 +32,11 @@ Data exchange with via local file.
         - key of timestamp = "time"
         - key name (specific input) in `.json` must be the like `${Attribute-id_interface}` from the config (Important: the IDs of the attributes `id_interface` over the the interface "file" must therefore be unique)
         - An example of this input is attached as [inputs_json-file_interface_example.json](./inputs_json-file_interface_example.json), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
+- Read static data from a local file (Note: only `.json` is supported currently)
+    - json characteristics:
+         - json object contains a list of dicts
+         - key name (specific static data) in `.json` must be the like `${staticdata-id}` from the config (Important: the IDs of the attributes `id` over the the interface "file" must therefore be unique)
+         - An example of this static data is attached as [static_data.json](./static_data.json), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
 - Write data to a results file (`.json`)
     - send results of the service to file (for each entity) and timestemp
     - An example of this outputs is attached as [outputs_dhw_calculation_example.json](./outputs_dhw_calculation_example.json), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)

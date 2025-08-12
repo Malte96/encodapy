@@ -5,9 +5,9 @@ from typing import Union, Optional, List, Dict
 from pandas import DataFrame
 from pydantic import ValidationError
 from loguru import logger
-from encodapy.components.components_basic_config import ControllerComponentModel
 from encodapy.utils.models import InputDataEntityModel, StaticDataEntityModel
 from encodapy.components.components_basic_config import (
+    ControllerComponentModel,
     IOAllocationModel,
     IOModell,
     ControllerComponentStaticData,

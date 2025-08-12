@@ -30,7 +30,9 @@ class ThermalStorage(BasicComponent):
 
     Args:
         sensor_config (ThermalStorageTemperatureSensors): \
-            Configuration of the temperature sensors in the thermal storage
+            Configuration of the temperature sensors in the thermal storage,
+            Calculation method
+        statc data of the ThermalStorage
         component_id (str): ID of the thermal storage component
     
     
@@ -55,6 +57,7 @@ class ThermalStorage(BasicComponent):
         self.io_model: Optional[ThermalStorageIO] = None
         self.sensor_values: Optional[TemperatureSensorValues] = None
         self.sensor_volumes: Optional[dict] = None
+        self.calculation_method: Optional[dict] = None
 
         # Prepare the thermal storage
         self.prepare_start_thermal_storage()
@@ -466,6 +469,16 @@ class ThermalStorage(BasicComponent):
             logger.error(error_msg)
             raise
 
+        self.calculation_method = self.component_config.config.get("calculation_method") 
+        if self.calculation_method is None:
+            warning_msg = "No calculation method for storage energy is defined. calculation_method = 0 is used"
+            logger.warning(warning_msg)
+        if self.calculation_method < 0 or self.calculation_method > 1:
+            error_msg = "Invalid calculation method is configured. Use 0 or 1"
+            logger.error(error_msg)
+            raise
+        
+
     def _prepare_i_o_config(self
                             ):
         """
@@ -506,6 +519,7 @@ class ThermalStorage(BasicComponent):
             Warning: If the input configuration does not match the sensor configuration,\
                 but is not critical
         """
+
         # pylint problems see: https://github.com/pylint-dev/pylint/issues/4899
         if (self.sensor_config.sensor_4_name is not None
             and self.io_model.input.temperature_4 is None): # pylint: disable=no-member
@@ -566,7 +580,7 @@ class ThermalStorage(BasicComponent):
                          "Could not prepare the thermal storage. "
                          "Please check the configuration.")
             return
-
+        
         self._prepare_i_o_config()
 
         self._check_input_configuration()

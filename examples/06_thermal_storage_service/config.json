@@ -143,8 +143,10 @@
                 }
             },
             "config": {
-            }
+                "calculation_method" : 12
+                }
         }
+        
     ],
     "controller_settings": {
         "time_settings":

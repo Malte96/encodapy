@@ -31,7 +31,7 @@ class ThermalStorageService(ControllerBasicService):
         This function loads the thermal storage configuration \
             and initializes the thermal storage component.
         """
-
+        logger.debug(self.config.controller_components)
         self.thermal_storage = ThermalStorage(
             config=self.config.controller_components,
             component_id="thermal_storage",

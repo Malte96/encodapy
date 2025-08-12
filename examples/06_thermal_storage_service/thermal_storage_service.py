@@ -5,7 +5,7 @@ Author: Martin Altenburger
 """
 from datetime import datetime, timezone
 from loguru import logger
-from encodapy.components import ThermalStorage
+from encodapy.components.thermal_storage import ThermalStorage
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
     InputDataModel,

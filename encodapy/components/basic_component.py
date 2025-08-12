@@ -78,7 +78,7 @@ class BasicComponent:
         input_entities: list[InputDataEntityModel],
         input_config: IOAllocationModel,
         return_unit: Optional[bool] = False,
-    ) -> Union[float, int, str, bool]:
+    ) -> Union[str, float, int, bool, Dict, List, DataFrame, None]:
         """
         Function to get the value of the input data for a spesific input configuration \
             of a component of the controller (or a inividual one).

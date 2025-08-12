@@ -57,8 +57,8 @@
     "staticdata": [],
     "controller_components": [
         {
-            "id": "heat_controller",
-            "type": "heat_controller",
+            "id": "mqtt_controller",
+            "type": "BasicComponent",
             "inputs": {
                 "temperature_measured": {
                     "entity" : "TRNSYS-Outputs",

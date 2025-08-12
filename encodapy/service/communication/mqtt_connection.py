@@ -635,8 +635,6 @@ class MqttConnection:
                 - OutputDataEntityModel with timestamps for the attributes
                 - the latest timestamp of the output entity for the attribute
                 with the oldest value (None if no timestamp is available)
-        TODO:
-            - Just here for compatibility with the old code, should be removed in the future
         """
 
         timestamps: list = []

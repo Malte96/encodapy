@@ -67,7 +67,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         )
 
         self.config = ConfigModel.from_json(file_path=config_path)
-               
+
         if self.config.interfaces.fiware:
             self.load_fiware_params()
 
@@ -141,7 +141,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         if len(self.config.staticdata) == 0:
             return []
 
-        logger.debug(self.config.staticdata)
         for static_entity in self.config.staticdata:
             if static_entity.interface == Interfaces.FIWARE:
                 staticdata.append(

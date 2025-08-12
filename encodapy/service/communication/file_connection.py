@@ -20,8 +20,7 @@ from encodapy.config import (
     FileExtensionTypes,
     InputModel,
     OutputModel,
-    StaticDataModel,
-    ConfigModel,
+    StaticDataModel
 )
 from encodapy.utils.models import (
     InputDataAttributeModel,
@@ -146,6 +145,9 @@ class FileConnection:
             to the platform is not available
 
         """
+        # TODO: Implement method handling for file interface
+        _ = method  # Acknowledge unused parameter
+
         # attributes_timeseries = {}
         attributes_values = []
         path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
@@ -210,6 +212,8 @@ class FileConnection:
             to the platform is not available
 
         """
+        # TODO: Implement method handling for file interface
+        _ = method  # Acknowledge unused parameter
 
         # attributes_timeseries = {}
         attributes_values = []
@@ -275,9 +279,9 @@ class FileConnection:
         """
 
         static_data_path = self.file_params["PATH_OF_STATIC_DATA"]
-        
+
         attributes_values = []
-        
+
         try:
             #read data from json file and timestamp
             with open(static_data_path, encoding="utf-8") as f:
@@ -286,8 +290,8 @@ class FileConnection:
             logger.error(f"Error: File not found ({static_data_path})")
             # TODO: What to do if the file is not found?
             return None
-        
-        for attribute in entity.attributes:   
+
+        for attribute in entity.attributes:
             logger.debug(attribute)
             for item in data['staticdata']:
                 if item['attributes']['id'] == attribute.id:
@@ -302,8 +306,7 @@ class FileConnection:
                                 latest_timestamp_input=None,
                                 )
                             )
-                logger.debug(attributes_values)  
-        
+
         return StaticDataEntityModel(id=entity.id, attributes=attributes_values)
 
 

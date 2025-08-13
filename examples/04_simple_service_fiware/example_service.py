@@ -11,13 +11,16 @@ from typing import Union
 
 from loguru import logger
 
-from encodapy.config.models import ControllerComponentModel
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
     DataTransferComponentModel,
     DataTransferModel,
     InputDataEntityModel,
     InputDataModel,
+)
+from encodapy.components.components_basic_config import (
+    ControllerComponentModel,
+    IOAllocationModel
 )
 
 
@@ -99,7 +102,7 @@ class ExampleService(ControllerBasicService):
     def get_input_values(
         self,
         input_entities: list[InputDataEntityModel],
-        input_config: dict,
+        input_config: IOAllocationModel,
     ) -> Union[float, int, str, bool]:
         """
         Function to get the values of the input data
@@ -112,11 +115,15 @@ class ExampleService(ControllerBasicService):
             Union[float, int, str, bool]: The value of the input data
         """
         for input_data in input_entities:
-            if input_data.id == input_config["entity"]:
+
+            if input_data.id == input_config.entity:
+
                 for attribute in input_data.attributes:
-                    if attribute.id == input_config["attribute"]:
+
+                    if attribute.id == input_config.attribute:
                         return attribute.data
-        raise ValueError(f"Input data {input_config['entity']} not found")
+
+        raise ValueError(f"Input data {input_config.entity} not found")
 
     async def calculation(self, data: InputDataModel):
         """
@@ -126,6 +133,7 @@ class ExampleService(ControllerBasicService):
         """
 
         inputs = {}
+
         for input_key, input_config in self.heater_config.inputs.root.items():
             inputs[input_key] = self.get_input_values(
                 input_entities=data.input_entities, input_config=input_config
@@ -141,10 +149,8 @@ class ExampleService(ControllerBasicService):
         return DataTransferModel(
             components=[
                 DataTransferComponentModel(
-                    entity_id=self.heater_config.outputs["heater_status"]["entity"],
-                    attribute_id=self.heater_config.outputs["heater_status"][
-                        "attribute"
-                    ],
+                    entity_id=self.heater_config.outputs.root["heater_status"].entity,
+                    attribute_id=self.heater_config.outputs.root["heater_status"].attribute,
                     value=heater_status,
                     timestamp=datetime.now(timezone.utc),
                 )

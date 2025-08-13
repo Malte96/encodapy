@@ -96,7 +96,7 @@ class MQTTController(ControllerBasicService):
             input_key,
             input_config,
         ) in self.controller.component_config.inputs.root.items():
-            inputs[input_key] = self.controller.get_component_input(
+            inputs[input_key], _ = self.controller.get_component_input(
                 input_entities=data.input_entities, input_config=input_config
             )
 

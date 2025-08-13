@@ -70,13 +70,13 @@ When a message is received:
 
 ### Example Topics and Payloads
 
-| Topic                               | Payload                                      | Meaning                                      |
-|-------------------------------------|----------------------------------------------|----------------------------------------------|
-| `project/thermal_storage/t_sen_bot` | `22.5 °C`                                    | Temperature value as number, unit is ignored |
-| `project/thermal_storage/t_sen_set` | `{"value": 45}`                              | Setpoint as JSON                             |
-| `PB/status`                         | `0`                                          | Status as integer                            |
-| `system-controller/pb_heat_on`      | `{"value": 1}`                               | Heating status as JSON                       |
-| `project/thermal_storage`           | `{"t_sen_bot": 22.5, "t_sen_set": 45}`       | multiple attribute values from an entity     |
+| Topic                         | Payload                                  | Meaning                                      |
+|-------------------------------|------------------------------------------|----------------------------------------------|
+| `thermal_storage/t_sen_bot`   | `22.5 °C`                                | Temperature value as number, unit is ignored |
+| `thermal_storage/t_sen_set`   | `{"value": 45}`                          | Setpoint as JSON                             |
+| `thermal_storage`             | `{"t_sen_bot": 22.5, "t_sen_set": 45}`   | multiple attribute values from an entity     |
+| `boiler/status`               | `0`                                      | Heater status as integer                     |
+| `controller/pb_heat_on`       | `{"value": 1}`                           | recommended heater status as JSON            |
 
 ### Notes for Custom Services
 

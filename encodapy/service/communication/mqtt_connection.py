@@ -352,10 +352,6 @@ class MqttConnection:
             if self.mqtt_message_store[message.topic]["attribute_id"] is None:
                 # get the entity from the message store
                 entity_id = self.mqtt_message_store[message.topic]["entity_id"]
-                logger.debug(
-                    f"MQTT message was received at topic from entity {entity_id}, "
-                    "try to scan payload for attributes."
-                )
                 # try to parse the payload as JSON
                 try:
                     payload = json.loads(payload)
@@ -410,7 +406,8 @@ class MqttConnection:
                     item["payload"] = value
                     item["timestamp"] = timestamp
                     logger.debug(
-                        f"Updated MQTT message store for topic {topic} with value: {value}"
+                        f"Updated MQTT message store for topic {topic} with value: {value} "
+                        f"and timestamp: {timestamp}"
                     )
                     continue
 

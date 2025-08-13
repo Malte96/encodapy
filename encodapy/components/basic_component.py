@@ -15,7 +15,7 @@ from encodapy.components.components_basic_config import (
     IOAllocationModel,
     IOModell,
 )
-from encodapy.utils.models import InputDataEntityModel, StaticDataEntityModel
+from encodapy.utils.models import DataUnits, InputDataEntityModel, StaticDataEntityModel
 
 
 class BasicComponent:
@@ -77,8 +77,10 @@ class BasicComponent:
         self,
         input_entities: list[InputDataEntityModel],
         input_config: IOAllocationModel,
-        return_unit: Optional[bool] = False,
-    ) -> Union[str, float, int, bool, Dict, List, DataFrame, None]:
+    ) -> tuple[
+        Union[str, float, int, bool, Dict, List, DataFrame, None],
+        Union[DataUnits, None],
+    ]:
         """
         Function to get the value of the input data for a spesific input configuration \
             of a component of the controller (or a inividual one).
@@ -86,20 +88,15 @@ class BasicComponent:
         Args:
             input_entities (list[InputDataEntityModel]): Data of input entities
             input_config (IOAllocationModel): Configuration of the input
-            return_unit (Optional[bool]): Flag to indicate if the unit \
-                of the input data should be returned
 
         Returns:
-            Union[float, int, str, bool]: The value of the input data
         """
 
         for input_data in input_entities:
             if input_data.id == input_config.entity:
                 for attribute in input_data.attributes:
                     if attribute.id == input_config.attribute:
-                        if return_unit:
-                            return attribute.data, attribute.unit
-                        return attribute.data
+                        return attribute.data, attribute.unit
 
         raise ValueError(f"Input data {input_config.entity} not found")
 
@@ -129,7 +126,6 @@ class BasicComponent:
                 datapoint_value, datapoint_unit = self.get_component_input(
                     input_entities=static_data,
                     input_config=static_config.root[static_config_item],
-                    return_unit=True,
                 )
                 static_config_data[static_config_item] = (
                     ControllerComponentStaticDataAttribute(
@@ -138,7 +134,8 @@ class BasicComponent:
                 )
         elif isinstance(static_config, IOAllocationModel):
             datapoint_value, datapoint_unit = self.get_component_input(
-                input_entities=static_data, input_config=static_config, return_unit=True
+                input_entities=static_data,
+                input_config=static_config,
             )
             static_config_data[static_config.entity] = (
                 ControllerComponentStaticDataAttribute(

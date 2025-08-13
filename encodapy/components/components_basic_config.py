@@ -4,9 +4,9 @@ Author: Martin Altenburger
 """
 
 from typing import Dict, List, Optional, Union
-
 from pandas import DataFrame
 from pydantic import BaseModel, ConfigDict, Field, RootModel
+from encodapy.utils.units import DataUnits
 
 
 class IOAllocationModel(BaseModel):
@@ -72,7 +72,7 @@ class ControllerComponentStaticDataAttribute(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     value: Union[str, float, int, bool, dict, List, DataFrame, None]
-    unit: Optional[str] = None
+    unit: Optional[DataUnits] = None
 
 
 class ControllerComponentStaticData(  # pylint: disable=too-few-public-methods

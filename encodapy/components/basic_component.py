@@ -75,7 +75,7 @@ class BasicComponent:
 
     def get_component_input(
         self,
-        input_entities: list[InputDataEntityModel],
+        input_entities: Union[list[InputDataEntityModel], list[StaticDataEntityModel]],
         input_config: IOAllocationModel,
     ) -> tuple[
         Union[str, float, int, bool, Dict, List, DataFrame, None],
@@ -110,16 +110,20 @@ class BasicComponent:
             of a component of the controller (or a inividual one).
 
         Args:
-            static_data (list[InputDataEntityModel]): Data of static entities
-            static_config (dict): Configuration of the static data
+            static_data (Union[list[StaticDataEntityModel], None]): Data of static entities
+            static_config (Union[IOAllocationModel, IOModell, None]): \
+                Configuration of the static data
 
         """
 
         if static_data is None or static_config is None:
+            logger.warning("The component's static data could not be set: "
+                           "either static_data or static_config is None.")
             return
             # Do not overwrite the static data if not data is available or no static config is given
 
         static_config_data = {}
+        number_static_datapoints = 0
 
         if isinstance(static_config, IOModell):
             for static_config_item in static_config.root.keys():
@@ -132,6 +136,7 @@ class BasicComponent:
                         value=datapoint_value, unit=datapoint_unit
                     )
                 )
+                number_static_datapoints += 1
         elif isinstance(static_config, IOAllocationModel):
             datapoint_value, datapoint_unit = self.get_component_input(
                 input_entities=static_data,
@@ -142,16 +147,19 @@ class BasicComponent:
                     value=datapoint_value, unit=datapoint_unit
                 )
             )
+            number_static_datapoints += 1
+        else:
+            raise ValueError("Unsupported static config type")
         try:
-            static_data = ControllerComponentStaticData.model_validate(
+            static_data_model = ControllerComponentStaticData.model_validate(
                 static_config_data
             )
         except ValidationError as error:
-            logger.error(f"Error in static data configuration: {error}")
+            logger.error(f"Error in static data configuration: {error}"
+                         " Could not validate and set the static data model")
+            return
 
-        static_config_available = len(static_data.root.keys()) == len(
-            self.component_config.staticdata.root.keys()
-        )
+        static_config_available = len(static_data_model.root.keys()) == number_static_datapoints
 
         if not static_config_available:
             logger.error(
@@ -159,10 +167,12 @@ class BasicComponent:
                 "Please check the configuration."
             )
             return
-        self.static_data = static_data
+        self.static_data = static_data_model
 
     def get_component_static_data(
-        self, component_id: str, unit: Optional[str] = None
+        self,
+        component_id: str,
+        unit: Optional[DataUnits] = None
     ) -> Union[str, float, int, bool, Dict, List, DataFrame, None]:
         """
         Function to get the static data of a component by its ID \

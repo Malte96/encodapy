@@ -7,7 +7,6 @@ Author: Maximilian Beyer
 import json
 import os
 import re
-import time
 from datetime import datetime
 from typing import Optional, Union
 
@@ -116,14 +115,15 @@ class MqttConnection:
 
     def prepare_mqtt_message_store(self) -> None:
         """
-        Function to prepare the MQTT message store for all in- and outputs and set the default
-        values for all attributes of the entities in the config.
+        Function to prepare the MQTT message store for all input entities and their attributes.
+        Sets the optional default values for all attributes of the entities in the config.
+        The Topic structure is defined as follows:
+        <topic_prefix>/<entity_id(_interface)>/<attribute_id(_interface)>
 
         Format of the message store:
         {
             "topic": {
                 "entity_id": "entity_id",
-                "entity_type": "input/output",
                 "attribute_id": "attribute_id",
                 "payload": value,
                 "timestamp": datetime.now(),
@@ -134,34 +134,21 @@ class MqttConnection:
             logger.warning("MQTT message store is not empty and will be overwritten.")
             self.mqtt_message_store.clear()
 
-        # check if the config is set
         if self.config is None:
             raise ConfigError(
                 "ConfigModel is not set. Please set the config before using the MQTT connection."
             )
 
-        # set the message store with default values for all mqtt entities and their attributes
-        for entity in self.config.inputs + self.config.outputs:
+        for entity in self.config.inputs:
             if entity.interface == Interfaces.MQTT:
                 # add the entity itself to the message store
                 topic = self.assemble_topic_parts(
                     [self.mqtt_params["topic_prefix"], entity.id_interface]
                 )
 
-                if entity in self.config.inputs:
-                    entity_type = "input"
-                elif entity in self.config.outputs:
-                    entity_type = "output"
-                else:
-                    raise ValueError(
-                        f"Entity {entity.id} is neither an input nor an output. "
-                        "This should not happen."
-                    )
-
                 self._add_item_to_mqtt_message_store(
                     topic=topic,
                     entity_id=entity.id,
-                    entity_type=entity_type,
                 )
 
                 # iterate over all attributes of the entity and add them to the message store
@@ -183,14 +170,9 @@ class MqttConnection:
                     self._add_item_to_mqtt_message_store(
                         topic=topic,
                         entity_id=entity.id,
-                        entity_type=entity_type,
                         attribute_id=attribute.id,
                         payload=default_value,
                     )
-
-                    # wait 0.1 seconds to avoid flooding the MQTT broker with messages
-                    # (especially if there are many attributes)
-                    time.sleep(1)
 
     def assemble_topic_parts(self, parts: list[str | None]) -> str:
         """
@@ -204,7 +186,7 @@ class MqttConnection:
             str: The correctly formatted topic.
 
         Raises:
-            ValueError: If the resulting topic is not correctly formatted.
+            ValueError: If the list of parts is empty.
         """
         if not parts:
             raise ValueError("The list of parts cannot be empty.")
@@ -223,31 +205,30 @@ class MqttConnection:
         *,
         topic: str,
         entity_id: str,
-        entity_type: str,
         attribute_id: Optional[str] = None,
         payload=None,
         timestamp: Optional[datetime] = None,
     ) -> None:
         """
         Function to add an item to the MQTT message store.
-        If the topic already exists, it will be overwritten.
+
+        If the topic already exists, it will be overwritten and logs a warning.
+
         Args:
             topic (str): The topic to add the item to.
             entity_id (str): The ID of the entity.
-            entity_type (str): The type of the entity (input/output).
             attribute_id (Optional[str]): The ID of the attribute (if applicable).
             payload: The default value of the message (if applicable).
             timestamp (Optional[datetime]): The initial timestamp of the message (if applicable).
         """
         if topic in self.mqtt_message_store:
             logger.warning(
-                f"Topic {topic} from {entity_id} already exists in message store, "
+                f"Topic {topic} from entity {entity_id} already exists in message store, "
                 "overwriting it. This should not happen, check your configuration."
             )
 
         self.mqtt_message_store[topic] = {
             "entity_id": entity_id,
-            "entity_type": entity_type,
             "attribute_id": attribute_id,
             "payload": payload,
             "timestamp": timestamp,
@@ -273,23 +254,13 @@ class MqttConnection:
                 "MQTT client is not prepared. Call prepare_mqtt_connection() first."
             )
 
-        # prepare the payload for publishing
         payload = self.prepare_payload_for_publish(payload)
-
-        # publish the message to the topic
         self.mqtt_client.publish(topic, payload)
         logger.debug(f"Published to topic {topic}: {payload}")
 
-    def prepare_payload_for_publish(self,
-                                    payload: Union[str,
-                                                   float,
-                                                   int,
-                                                   bool,
-                                                   dict,
-                                                   list,
-                                                   DataFrame,
-                                                   None]
-                                    ) -> Union[str, None]:
+    def prepare_payload_for_publish(
+        self, payload: Union[str, float, int, bool, dict, list, DataFrame, None]
+    ) -> Union[str, None]:
         """
         Function to prepare the payload for publishing.
 
@@ -297,7 +268,6 @@ class MqttConnection:
         If the payload is a string, float, int or bool, it is converted to a string.
         If the payload is None or an unsupported type, it is set to None.
         """
-
         try:
             if isinstance(payload, (dict, list)):
                 payload = json.dumps(payload)
@@ -319,16 +289,6 @@ class MqttConnection:
 
         return payload
 
-    def subscribe(self, topic) -> None:
-        """
-        Function to subscribe to a topic
-        """
-        if not self.mqtt_client:
-            raise NotSupportedError(
-                "MQTT client is not prepared. Call prepare_mqtt_connection() first."
-            )
-        self.mqtt_client.subscribe(topic)
-
     def subscribe_to_message_store_topics(self) -> None:
         """
         Function to subscribe to all topics in the message store.
@@ -342,16 +302,29 @@ class MqttConnection:
             self.subscribe(topic)
             logger.debug(f"Subscribed to topic: {topic}")
 
+    def subscribe(self, topic) -> None:
+        """
+        Function to subscribe to a topic
+        """
+        if not self.mqtt_client:
+            raise NotSupportedError(
+                "MQTT client is not prepared. Call prepare_mqtt_connection() first."
+            )
+        self.mqtt_client.subscribe(topic)
+
     def on_message(self, _, __, message):
         """
-        Callback function for received messages, stores the decoded message with its timestamp
-        in the message store.
+        Callback function for received messages.
+
+        Stores the decoded message payload with its timestamp in the message store.
+        If the message is from an entity, the payload is scanned for attributes and
+        their values are stored in the message store, too.
         """
         if not hasattr(self, "mqtt_message_store"):
             raise NotSupportedError(
                 "MQTT message store is not initialized. Call prepare_mqtt_connection() first."
             )
-        # save the time from receiving the message
+
         current_time = datetime.now()
         logger.debug(
             f"MQTT connection received message on {message.topic} at {current_time}"
@@ -412,6 +385,7 @@ class MqttConnection:
         This is called when a message is received on a topic that corresponds to an entity.
 
         Args:
+            entity_id (str): The ID of the entity the message is related to.
             payload (dict): The payload received from the MQTT broker.
             timestamp (datetime): The timestamp when the message was received.
         """
@@ -467,7 +441,7 @@ class MqttConnection:
 
     def get_data_from_mqtt(
         self,
-        method: DataQueryTypes,
+        method: DataQueryTypes,  # pylint: disable=unused-argument
         entity: InputModel,
     ) -> InputDataEntityModel:
         """
@@ -476,6 +450,7 @@ class MqttConnection:
         If the topic is found, it extracts the data from the message payload.
         If the topic is not found or the payload is not in the expected format,
         it sets the data to None and marks it as unavailable.
+
 
         Args:
             method (DataQueryTypes): The method is currently not used.
@@ -592,7 +567,7 @@ class MqttConnection:
         # output_commands: list[CommandModel],
     ) -> None:
         """
-        Function to send the output data to MQTT (publish the data to the MQTT broker)
+        Function to send the output data to MQTT (publish the data to the MQTT broker).
 
         Args:
             - output_entity: OutputModel with the output entity
@@ -625,7 +600,7 @@ class MqttConnection:
         self, output_entity: OutputModel
     ) -> tuple[OutputDataEntityModel, Union[datetime, None]]:
         """
-        Function to get the latest timestamps of the output entity from a MQTT message, if exists
+        Function to get the latest timestamps of the output entity from a MQTT message, if exists.
 
         Args:
             output_entity (OutputModel): Output entity
@@ -636,7 +611,6 @@ class MqttConnection:
                 - the latest timestamp of the output entity for the attribute
                 with the oldest value (None if no timestamp is available)
         """
-
         timestamps: list = []
         timestamp_latest_output = None
 

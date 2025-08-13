@@ -14,6 +14,9 @@ authors = [
 packages = [
     { include = "encodapy" }
 ]
+include = [
+    "encodapy/py.typed"
+]
 
 [tool.poetry.dependencies]
 python = ">=3.9,<3.13"

@@ -7,6 +7,7 @@ import os
 from asyncio import sleep
 from datetime import datetime
 from typing import Union
+
 from loguru import logger
 
 from encodapy.config import (
@@ -16,7 +17,7 @@ from encodapy.config import (
     DataQueryTypes,
     DefaultEnvVariables,
     Interfaces,
-    OutputModel
+    OutputModel,
 )
 from encodapy.service.communication import (
     FileConnection,
@@ -31,7 +32,7 @@ from encodapy.utils.models import (
     InputDataModel,
     OutputDataEntityModel,
     OutputDataModel,
-    StaticDataEntityModel
+    StaticDataEntityModel,
 )
 from encodapy.utils.units import get_time_unit_seconds
 
@@ -103,10 +104,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 self.prepare_mqtt_connection()
 
         # Load the static data from the configuration, \
-            # maybe it is needed for the preparation of components
+        # maybe it is needed for the preparation of components
         self.staticdata = self.reload_static_data(
-            method=DataQueryTypes.CALIBRATION,
-            staticdata=[]
+            method=DataQueryTypes.CALIBRATION, staticdata=[]
         )
 
         # Prepare the individual start of the service
@@ -125,11 +125,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         logger.debug("There is nothing else to prepare for the start of the service.")
 
-    def reload_static_data(
-        self,
-        method: DataQueryTypes,
-        staticdata: list
-    ) -> list:
+    def reload_static_data(self, method: DataQueryTypes, staticdata: list) -> list:
         """
         Function to reload the static data
         Args:
@@ -209,15 +205,12 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 output_latest_timestamps.append(output_latest_timestamp)
                 logger.info("File interface, output_latest_timestamp is not defined.")
 
-            elif (
-                output_entity.interface == Interfaces.MQTT
-            ):  # TODO MB: How to handle MQTT interface?
+            elif output_entity.interface == Interfaces.MQTT:
                 entity_timestamps, output_latest_timestamp = (
                     self._get_last_timestamp_for_mqtt_output(output_entity)
                 )
                 output_timestamps.append(entity_timestamps)
                 output_latest_timestamps.append(output_latest_timestamp)
-                logger.info("MQTT interface, output_latest_timestamp is not defined.")
 
             await sleep(0.01)
 
@@ -255,9 +248,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             await sleep(0.01)
 
         if self.reload_staticdata or self.staticdata is None:
-            self.staticdata = self.reload_static_data(
-                method=method, staticdata=[]
-            )
+            self.staticdata = self.reload_static_data(method=method, staticdata=[])
 
         return InputDataModel(
             input_entities=input_data,

@@ -23,6 +23,7 @@ from encodapy.utils.mediums import(
     get_medium_parameter)
 from encodapy.utils.models import StaticDataEntityModel
 from encodapy.config.models import ControllerComponentModel
+from encodapy.utils.units import DataUnits
 
 class ThermalStorage(BasicComponent):
     """
@@ -537,7 +538,7 @@ class ThermalStorage(BasicComponent):
 
         self.volume:float = self.get_component_static_data(
             component_id="volume",
-            unit="LTR"
+            unit=DataUnits("LTR")
         )
         if self.volume is None:
             error_msg = "No volume of the thermal storage specified in the configuration."

@@ -54,7 +54,7 @@ class ThermalStorageService(ControllerBasicService):
         for input_key, input_config in self.thermal_storage.io_model.input.__dict__.items():
             if input_config is None:
                 continue
-            input_temperatures[input_key] = self.thermal_storage.get_component_input(
+            input_temperatures[input_key], _unit = self.thermal_storage.get_component_input(
                 input_entities=data.input_entities,
                 input_config=input_config)
 

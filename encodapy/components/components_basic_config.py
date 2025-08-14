@@ -2,27 +2,31 @@
 Basic configuration for the components in the Encodapy framework.
 Author: Martin Altenburger
 """
-from typing import Dict, Optional, Union, List
+
+from typing import Dict, List, Optional, Union
 from pandas import DataFrame
-from pydantic import BaseModel, Field, RootModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, RootModel
+from encodapy.utils.units import DataUnits
+
 
 class IOAllocationModel(BaseModel):
     """
     Model for the input or output allocation.
-    
+
     Contains:
         `entity`: ID of the entity to which the input or output is allocated
         `attribute`: ID of the attribute to which the input or output is allocated
     """
+
     entity: str = Field(
-        ...,
-        description="ID of the entity to which the input or output is allocated")
+        ..., description="ID of the entity to which the input or output is allocated"
+    )
     attribute: str = Field(
-        ...,
-        description="ID of the attribute to which the input or output is allocated")
+        ..., description="ID of the attribute to which the input or output is allocated"
+    )
 
 
-class IOModell((RootModel[Dict[str, IOAllocationModel]])): #pylint: disable=too-few-public-methods
+class IOModell((RootModel[Dict[str, IOAllocationModel]])):  # pylint: disable=too-few-public-methods
     """
     Model for the input, staticdata and output of a component.
     """
@@ -64,13 +68,16 @@ class ControllerComponentStaticDataAttribute(BaseModel):
             (string, float, int, boolean, dictionary, list, DataFrame, or None)
         unit: Optional unit of the static data attribute, if applicable
     """
+
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     value: Union[str, float, int, bool, dict, List, DataFrame, None]
-    unit: Optional[str] = None
+    unit: Optional[DataUnits] = None
 
-class ControllerComponentStaticData( #pylint: disable=too-few-public-methods
-    RootModel[Dict[str, ControllerComponentStaticDataAttribute]]):
+
+class ControllerComponentStaticData(  # pylint: disable=too-few-public-methods
+    RootModel[Dict[str, ControllerComponentStaticDataAttribute]]
+):
     """
     Model for the static data of the controller.
     

@@ -67,7 +67,7 @@
                     "id": "storage__energy", 
                     "id_interface":"storage__energy",
                     "type": "value",
-                    "unit": "KWH" 
+                    "unit": "WHR" 
                 }
             ],
             "commands":[]

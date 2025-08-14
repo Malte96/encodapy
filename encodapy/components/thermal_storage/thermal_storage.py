@@ -543,11 +543,11 @@ class ThermalStorage(BasicComponent):
             max_temperature_of_element = self._get_sensor_limits(sensor).maximal_temperature
 
 
-            Energy_of_element = volume_of_storage_elemnt * self.rho_H2O(temperature_of_storage_element) * heat_capacity / 1000 * (temperature_of_storage_element - reference_temperature)/3600 
+            Energy_of_element = volume_of_storage_elemnt * self.rho_H2O(temperature_of_storage_element) * heat_capacity * 1000 * (temperature_of_storage_element - reference_temperature)/3600 
             Energy_current = Energy_current + Energy_of_element
-            Max_energy_of_element = volume_of_storage_elemnt * self.rho_H2O(max_temperature_of_element) * heat_capacity / 1000 * (max_temperature_of_element - reference_temperature)/3600 
+            Max_energy_of_element = volume_of_storage_elemnt * self.rho_H2O(max_temperature_of_element) * heat_capacity * 1000 * (max_temperature_of_element - reference_temperature)/3600 
             Energy_max = Energy_max + Max_energy_of_element
-        Energy_min = self.volume * self.rho_H2O(min_temperature) * heat_capacity  / 1000 * (min_temperature - reference_temperature)/3600 
+        Energy_min = self.volume * self.rho_H2O(min_temperature) * heat_capacity  * 1000 * (min_temperature - reference_temperature)/3600 
         
 
         E_pot_storage = Energy_max - Energy_min
@@ -556,7 +556,7 @@ class ThermalStorage(BasicComponent):
         loading = E_storage / E_pot_storage
 
         storage_level = loading
-        storage_energy = E_storage * 1000 # in kWh
+        storage_energy = E_storage 
         
         return storage_energy, storage_level      
 

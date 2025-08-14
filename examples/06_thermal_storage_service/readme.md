@@ -24,17 +24,19 @@ For a local use of the fiware plattform, youn can use the following docker-compo
 
 The service uses measurement values from temperature sensors to calculate the thermal energy and state of charge of a thermal storage tank. To achieve this, three to five temperature sensors in the storage could be used.
 
-As example, there are two calulation methods available. The selection is made in the config file(Controller_Components -> config) 
-- {"config":  "calculation_method" : 0 or 1 }
-
-
 The outputs are:
 - The storage charge in percent (0 - 100): `storage__level`
 - The storage energy content in Wh: `storage__energy`
 
 - If the environment variable `RELOAD_STATICDATA` is set to `True`, the `calibration()` function will adjust the static configuration data in each calibration cycle.
 
-### Informations about first Caluculation method (0)
+There are two calulation methods available. The selection is made in the config file (Controller_Components -> config):
+```
+{"config":  "calculation_method" : "static_limits" / "connection_limits" }
+```
+
+
+### Informations about caluculation method "static_limits"
 The service requires a specific configuration defined by a Pydantic base model and contains:
 - The configuration of the temperature sensors `ThermalStorageTemperatureSensors`:
     - Between three and five sensors could be used.
@@ -51,7 +53,7 @@ The following temperature sensors are required (optional) as inputs, which are u
 - `temperature_4` (optional)
 - `temperature_5` (optional)
 
-### Informations about firsecond Caluculation method (1)
+### Informations about caluculation method "connection_limits"
 The service requires a specific configuration defined by a Pydantic base model and contains:
 - The configuration of the temperature sensors `ThermalStorageAndPipeTemperatureSensors`:
     - Between three and five sensors for the storage could be used.

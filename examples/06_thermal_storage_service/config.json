@@ -167,7 +167,7 @@
                 }
             },
             "config": {
-                "calculation_method" : 1
+                "calculation_method" : "connection_limits"
                 }
         }
         

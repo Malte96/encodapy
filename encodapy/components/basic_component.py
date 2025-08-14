@@ -71,7 +71,7 @@ class BasicComponent:
         for component in config:
             if component.id == component_id:
                 return component
-            raise ValueError("No thermal storage configuration found")
+            raise ValueError(f"No configuration for component {component_id} found")
 
     def get_component_input(self,
                             input_entities: list[InputDataEntityModel],

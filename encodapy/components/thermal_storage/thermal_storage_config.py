@@ -3,6 +3,7 @@ Description: Configuration models for the thermal storage component
 Author: Martin Altenburger
 """
 from typing import Optional
+from enum import Enum
 from pydantic import BaseModel, Field
 from pydantic.functional_validators import model_validator
 from encodapy.components.components_basic_config import IOAllocationModel
@@ -101,7 +102,7 @@ class ThermalStorageTemperatureSensors(BaseModel):
     sensor_5_limits: Optional[TemperatureLimits] = Field(
         None,
         description= "Temperature limits of the sensor 5 in the thermal storage")
-    
+
     sensor_in_name: Optional[str] = Field(
         None,
         description="Input for the return temperature into the thermal storage (consumer)")
@@ -201,7 +202,7 @@ class TemperatureSensorAndPipeConnectionValues(TemperatureSensorValues):
     sensor_out: float = Field(
         ...,
         description= "Flow Temperature out of the thermal storage in °C")
-    
+
     @model_validator(mode="after")
     def check_additional_parameters(self) -> "TemperatureSensorAndPipeConnectionValues":
         """Check if the additional sensors for in/out are defined.
@@ -209,13 +210,16 @@ class TemperatureSensorAndPipeConnectionValues(TemperatureSensorValues):
         Raises:
             ValueError: if parameters are not defined in the config
         Returns:
-            Error: The config for the thermal storage calculation method 1 is noct correct. Check the Config.
+            Error: The config for the thermal storage calculation method 1 is noct correct. \
+                Check the Config.
         """
 
         if self.sensor_in is None :
-            raise ValueError(f"If the calculation_method 1 for the storage energy is used, the input/return temperature have to be defined in config")
+            raise ValueError("If the calculation_method 1 for the storage energy is used, "
+                             "the input/return temperature have to be defined in config.")
         if self.sensor_out is None :
-            raise ValueError(f"If the calculation_method 1 for the storage energy is used, the output/flow temperature have to be defined in config")
+            raise ValueError("If the calculation_method 1 for the storage energy is used, "
+                             "the output/flow temperature have to be defined in config.")
         return self
 
 class InputModel(BaseModel):
@@ -224,13 +228,14 @@ class InputModel(BaseModel):
     in the thermal storage.
     
     Contains:
-        `temperature_1`: IOAllocationModel = first temperature sensor
-        `temperature_2`: IOAllocationModel = second temperature sensor
-        `temperature_3`: IOAllocationModel = third temperature sensor
-        `temperature_4`: Optional[IOAllocationModel] = fourth temperature sensor (optional)
-        `temperature_5`: Optional[IOAllocationModel] = fifth temperature sensor (optional)
-        `temperature_in`: Optional[IOAllocationModel] = consumer return temperature sensor (optional)
-        `temperature_out`: Optional[IOAllocationModel] = consumer flow temperature sensor (optional)
+        `temperature_1` (IOAllocationModel): first temperature sensor
+        `temperature_2` (IOAllocationModel): second temperature sensor
+        `temperature_3` (IOAllocationModel): third temperature sensor
+        `temperature_4` (Optional[IOAllocationModel]): fourth temperature sensor (optional)
+        `temperature_5` (Optional[IOAllocationModel]): fifth temperature sensor (optional)
+        `temperature_in` (Optional[IOAllocationModel]): consumer return temperature sensor \
+            (optional)
+        `temperature_out` (Optional[IOAllocationModel]): consumer flow temperature sensor (optional)
     """
     temperature_1: IOAllocationModel = Field(
         ...,
@@ -286,3 +291,14 @@ class ThermalStorageIO(BaseModel):
     output: OutputModel = Field(
         ...,
         description="Output configuration for the thermal storage service")
+
+class ThermalStorageCalculationMethods(Enum):
+    """
+    Enum for the calculation methods of the thermal storage service.
+    
+    Contains:
+        - STATIC_LIMITS: Static limits given by the configuration
+        - RETURN_LIMITS: Uses the temperature sensors from the in- and outflow as limits
+    """
+    STATIC_LIMITS = "static_limits"
+    CONNECTION_LIMITS = "connection_limits"

@@ -33,3 +33,8 @@ To create your own custom service, you have to overwrite two functions of the [C
 For the models of the inputs and outputs, see [02_datatransfer](./../02_datatransfer/).
 
 For the possible payloads, see [03_interfaces](./../03_interfaces/).
+
+## Usage
+- To use it, the `.env` file must be created and an MQTT broker with the data in the `.env` file must be available so that a connection can be established.
+- The service is started by executing [`main.py`](./main.py) from the current path.
+- New data can be sent by running the script [`storage_dummy.py`](./storage_dummy.py).

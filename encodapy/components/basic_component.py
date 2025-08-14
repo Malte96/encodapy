@@ -116,9 +116,13 @@ class BasicComponent:
 
         """
 
-        if static_data is None or static_config is None:
+        if static_config is None:
+            logger.debug("No static config provided, skipping static data setup.")
+            return
+
+        if static_data is None:
             logger.warning("The component's static data could not be set: "
-                           "either static_data or static_config is None.")
+                           "static_data is None.")
             return
             # Do not overwrite the static data if not data is available or no static config is given
 

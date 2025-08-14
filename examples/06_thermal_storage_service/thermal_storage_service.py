@@ -31,7 +31,7 @@ class ThermalStorageService(ControllerBasicService):
         This function loads the thermal storage configuration \
             and initializes the thermal storage component.
         """
-        logger.debug(self.config.controller_components)
+        
         self.thermal_storage = ThermalStorage(
             config=self.config.controller_components,
             component_id="thermal_storage",
@@ -57,14 +57,23 @@ class ThermalStorageService(ControllerBasicService):
             input_temperatures[input_key] = self.thermal_storage.get_component_input(
                 input_entities=data.input_entities,
                 input_config=input_config)
+         
 
         self.thermal_storage.set_temperature_values(temperature_values=input_temperatures)
 
-        storage__level = self.thermal_storage.calculate_state_of_charge()
-        logger.debug("Energy Storage Level: " + str(storage__level))
+        if self.thermal_storage.calculation_method is None or self.thermal_storage.calculation_method == 0:
+            # 1st calculation method
+            storage__level = self.thermal_storage.calculate_state_of_charge()
+            logger.debug("Energy Storage Level: " + str(storage__level))
 
-        storage__energy = self.thermal_storage.get_energy_content(storage__level)
-        logger.debug("Energy of the Storage: " + str(storage__energy))
+            storage__energy = self.thermal_storage.get_energy_content(storage__level)
+            logger.debug("Energy of the Storage: " + str(storage__energy))
+        else:
+             # 2nd calculation method
+             storage__energy, storage__level = self.thermal_storage.calculate_current_storage_energy_by_reference(input_data=input_temperatures)
+             logger.debug(f'Calculation of the energy level in the storage ({round(storage__level*100,2)} %).')
+             logger.debug(f'Calculation of the energy in the storage ({round(storage__energy,2)} kWh).')
+          
 
         components = []
 

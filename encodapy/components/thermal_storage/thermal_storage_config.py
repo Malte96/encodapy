@@ -60,47 +60,54 @@ class ThermalStorageTemperatureSensors(BaseModel):
 
     sensor_1_name: str = Field(
         ...,
-        description= "Name of the sensor 1 in the termal storage")
+        description= "Name of the sensor 1 in the thermal storage")
     sensor_1_height: float = Field(
         ...,
-        description= "Height of the sensor 1 in the termal storage in percent")
+        description= "Height of the sensor 1 in the thermal storage in percent")
     sensor_1_limits: TemperatureLimits
 
     sensor_2_name: str = Field(
         ...,
-        description= "Name of the sensor 2 in the termal storage")
+        description= "Name of the sensor 2 in the thermal storage")
     sensor_2_height: float = Field(
         ...,
-        description= "Height of the sensor 2 in the termal storage in percent")
+        description= "Height of the sensor 2 in the thermal storage in percent")
     sensor_2_limits: TemperatureLimits
 
     sensor_3_name: str = Field(
         ...,
-        description= "Name of the sensor 3 in the termal storage")
+        description= "Name of the sensor 3 in the thermal storage")
     sensor_3_height: float = Field(
         ...,
-        description= "Height of the sensor 3 in the termal storage in percent")
+        description= "Height of the sensor 3 in the thermal storage in percent")
     sensor_3_limits: TemperatureLimits
 
     sensor_4_name: Optional[str] = Field(
         None,
-        description="Name of the sensor 4 in the termal storage")
+        description="Name of the sensor 4 in the thermal storage")
     sensor_4_height: Optional[float] = Field(
         None,
-        description= "Height of the sensor 4 in the termal storage in percent")
+        description= "Height of the sensor 4 in the thermal storage in percent")
     sensor_4_limits: Optional[TemperatureLimits] = Field(
         None,
-        description= "Temperature limits of the sensor 4 in the termal storage")
+        description= "Temperature limits of the sensor 4 in the thermal storage")
 
     sensor_5_name: Optional[str] = Field(
         None,
-        description="Name of the sensor 5 in the termal storage")
+        description="Name of the sensor 5 in the thermal storage")
     sensor_5_height: Optional[float] = Field(
         None,
-        description="Height of the sensor 5 in the termal storage in percent")
+        description="Height of the sensor 5 in the thermal storage in percent")
     sensor_5_limits: Optional[TemperatureLimits] = Field(
         None,
-        description= "Temperature limits of the sensor 5 in the termal storage")
+        description= "Temperature limits of the sensor 5 in the thermal storage")
+    
+    sensor_in_name: Optional[str] = Field(
+        None,
+        description="Input for the return temperature into the thermal storage (consumer)")
+    sensor_out_name: Optional[str] = Field(
+        None,
+        description="Input for the flow temperature from the thermal storage (consumer)")
 
     @model_validator(mode="after")
     def check_timerange_parameters(self) -> "ThermalStorageTemperatureSensors":
@@ -178,6 +185,39 @@ class TemperatureSensorValues(BaseModel):
         None,
         description= "Temperature value of the sensor 5 in the thermal storage in °C")
 
+class TemperatureSensorAndPipeConnectionValues(TemperatureSensorValues):
+    """
+    Model for the temperature sensor values, based on TemperatureSensorValues with additional 
+    temperaturesensors for the flow and return temperature of an connected pipe
+    
+    Contains additional Sensors:
+        `sensor_in` (float): return Temperature into the thermal storage in °C
+        `sensor_out` (float): flow Temperature out of the thermal storage in °C
+    """
+
+    sensor_in: float = Field(
+        ...,
+        description= "Return Temperature into the thermal storage in °C")
+    sensor_out: float = Field(
+        ...,
+        description= "Flow Temperature out of the thermal storage in °C")
+    
+    @model_validator(mode="after")
+    def check_additional_parameters(self) -> "TemperatureSensorAndPipeConnectionValues":
+        """Check if the additional sensors for in/out are defined.
+
+        Raises:
+            ValueError: if parameters are not defined in the config
+        Returns:
+            Error: The config for the thermal storage calculation method 1 is noct correct. Check the Config.
+        """
+
+        if self.sensor_in is None :
+            raise ValueError(f"If the calculation_method 1 for the storage energy is used, the input/return temperature have to be defined in config")
+        if self.sensor_out is None :
+            raise ValueError(f"If the calculation_method 1 for the storage energy is used, the output/flow temperature have to be defined in config")
+        return self
+
 class InputModel(BaseModel):
     """
     Model for the input of the thermal storage service, containing the temperature sensors
@@ -189,6 +229,8 @@ class InputModel(BaseModel):
         `temperature_3`: IOAllocationModel = third temperature sensor
         `temperature_4`: Optional[IOAllocationModel] = fourth temperature sensor (optional)
         `temperature_5`: Optional[IOAllocationModel] = fifth temperature sensor (optional)
+        `temperature_in`: Optional[IOAllocationModel] = consumer return temperature sensor (optional)
+        `temperature_out`: Optional[IOAllocationModel] = consumer flow temperature sensor (optional)
     """
     temperature_1: IOAllocationModel = Field(
         ...,
@@ -205,6 +247,12 @@ class InputModel(BaseModel):
     temperature_5: Optional[IOAllocationModel] = Field(
         None,
         description="Input for the temperature of sensor 5 in the thermal storage")
+    temperature_in: Optional[IOAllocationModel] = Field(
+        None,
+        description="Input for the return temperature into the thermal storage (consumer)")
+    temperature_out: Optional[IOAllocationModel] = Field(
+        None,
+        description="Input for the flow temperature from the thermal storage (consumer)")
 
 class OutputModel(BaseModel):
     """

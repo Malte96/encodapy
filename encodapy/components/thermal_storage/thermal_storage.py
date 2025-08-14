@@ -11,6 +11,7 @@ from encodapy.components.thermal_storage.thermal_storage_config import (
     ThermalStorageTemperatureSensors,
     TemperatureLimits,
     TemperatureSensorValues,
+    TemperatureSensorAndPipeConnectionValues,
     InputModel,
     OutputModel,
     ThermalStorageIO)
@@ -55,7 +56,7 @@ class ThermalStorage(BasicComponent):
         self.volume: Optional[float] = None
         # Variables for the calcuation
         self.io_model: Optional[ThermalStorageIO] = None
-        self.sensor_values: Optional[TemperatureSensorValues] = None
+        self.sensor_values: Optional[TemperatureSensorValues| TemperatureSensorAndPipeConnectionValues] = None
         self.sensor_volumes: Optional[dict] = None
         self.calculation_method: Optional[dict] = None
 
@@ -87,7 +88,7 @@ class ThermalStorage(BasicComponent):
 
         old_height = 0
         for field_name, value in self.sensor_config:
-
+ 
             if "name" in field_name and value is not None:
                 sensor_names.append(value)
 
@@ -102,7 +103,7 @@ class ThermalStorage(BasicComponent):
                 new_height = (sensor_heights[index] + sensor_heights[index+1])/2
 
             sensor_volumes[sensor] = (new_height - old_height)/100 * self.volume
-
+            
             old_height = new_height
 
 
@@ -251,7 +252,7 @@ class ThermalStorage(BasicComponent):
                 "Thermal storage is not usable. "
                 "Please prepare the thermal storage first."
                 )
-
+        
         self.sensor_values = TemperatureSensorValues(
             sensor_1=temperature_values[self.sensor_config.sensor_1_name],
             sensor_2=temperature_values[self.sensor_config.sensor_2_name],
@@ -260,6 +261,7 @@ class ThermalStorage(BasicComponent):
             if self.sensor_config.sensor_4_name is not None else None,
             sensor_5=temperature_values[self.sensor_config.sensor_5_name]
             if self.sensor_config.sensor_5_name is not None else None)
+        
 
     def _check_temperatur_of_highest_sensor(self,
                                             df:DataFrame,
@@ -292,6 +294,18 @@ class ThermalStorage(BasicComponent):
                      df["state_of_charge"]))
 
         return df["state_of_charge"]
+    
+    #density of water (linear) in kg/l
+    def rho_H2O(self, temperature : float):
+        if temperature <= 0.0:
+            logger.error("Attention! Temperature to low! Today we have ice cream! ;)")
+            return -1000.0
+        elif temperature > 99.0:
+            logger.error("Attention! Temperature to hight! There is steam!")
+            return -1000.0
+        else :
+            roh = -0.0026*temperature + 1.0025
+            return roh
 
     def calculate_state_of_charge(self,
                                   input_data: Optional[Union[dict,
@@ -464,6 +478,7 @@ class ThermalStorage(BasicComponent):
 
         try:
             self.sensor_config = ThermalStorageTemperatureSensors.model_validate(sensor_config)
+
         except ValidationError:
             error_msg = "Invalid sensor configuration in the thermal storage"
             logger.error(error_msg)
@@ -477,7 +492,73 @@ class ThermalStorage(BasicComponent):
             error_msg = "Invalid calculation method is configured. Use 0 or 1"
             logger.error(error_msg)
             raise
+
+    def calculate_current_storage_energy_by_reference(self,
+                                  input_data: Optional[Union[dict,
+                                                             DataFrame,
+                                                             TemperatureSensorValues
+                                                             ]] = None
+                                  )-> Union[float, DataFrame]:
+            
+        """Function to calculate the energy and loading state of a storage regarding to the consumption circuit
+        - 1..5 temperature sensors (variabel)
+        - referencetemperature is 10°C
+
+        Args:
+        - Data Input (sensor values and Input of return temperature)  
+
+        Returns:
+            _type_: _description_
+        """
+
+        if self.thermal_storage_usable() is False:
+            raise ValueError(
+                "Thermal storage is not usable. "
+                "Please prepare the thermal storage first."
+                )
+
+
+        #calculate Energy(to reference temperature) in storage
+        Energy_current = 0.0
+        Energy_max = 0.0
+        Energy_min = 0.0
+        reference_temperature = 10.
+        min_temperature = input_data["temperature_in"]
+        #medium parameter
+        medium_parameter = get_medium_parameter(medium = self.medium)
+        heat_capacity = medium_parameter.cp
+
+        #rho_const = medium_parameter.rho      # -> use function rho_H20(temp)
+
+        sensors = {}
+        i=1
+        for field_name, value in self.sensor_config:
+            if (str(i)+"_name") in field_name and value is not None:
+                sensors[("sensor_"+str(i))] = self._get_sensor_volume(value)
+                i=i+1
+    
+        for sensor, temperature in self.sensor_values:
+            temperature_of_storage_element = temperature
+            volume_of_storage_elemnt = sensors[sensor]
+            max_temperature_of_element = self._get_sensor_limits(sensor).maximal_temperature
+
+
+            Energy_of_element = volume_of_storage_elemnt * self.rho_H2O(temperature_of_storage_element) * heat_capacity / 1000 * (temperature_of_storage_element - reference_temperature)/3600 
+            Energy_current = Energy_current + Energy_of_element
+            Max_energy_of_element = volume_of_storage_elemnt * self.rho_H2O(max_temperature_of_element) * heat_capacity / 1000 * (max_temperature_of_element - reference_temperature)/3600 
+            Energy_max = Energy_max + Max_energy_of_element
+        Energy_min = self.volume * self.rho_H2O(min_temperature) * heat_capacity  / 1000 * (min_temperature - reference_temperature)/3600 
         
+
+        E_pot_storage = Energy_max - Energy_min
+        E_storage = Energy_current - Energy_min
+
+        loading = E_storage / E_pot_storage
+
+        storage_level = loading
+        storage_energy = E_storage * 1000 # in kWh
+        
+        return storage_energy, storage_level      
 
     def _prepare_i_o_config(self
                             ):

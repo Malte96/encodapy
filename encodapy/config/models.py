@@ -401,3 +401,39 @@ class ConfigModel(BaseModel):
         check_interface_active(self.outputs)
 
         return self
+
+class StaticDataFileAttribute(BaseModel):
+    """
+    Model for static data file attributes.
+    
+    Contains:
+        id (str): The unique identifier for the attribute.
+        value (Union[str, float, int, bool, Dict, List, DataFrame, None]): \
+            The value of the attribute.
+        metadata (Union[dict[str, str], None]): Metadata dictionary or None.
+    """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    id: str
+    value: Union[str, float, int, bool, Dict, List, DataFrame, None]
+    metadata: Optional[Dict] = None
+
+class StaticDataFileEntity(BaseModel):
+    """
+    Model for static data file entities.
+
+    Contains:
+        id (str): The unique identifier for the entity.
+        attributes (list[StaticDataFileAttribute]): The attributes of the entity.
+    """
+    id: str
+    attributes: list[StaticDataFileAttribute]
+
+class StaticDataFile(BaseModel):
+    """
+    Model for static data files.
+
+    Contains:
+        staticdata (list[StaticDataFileEntity]): The static data entities.
+    """
+    staticdata: list[StaticDataFileEntity]

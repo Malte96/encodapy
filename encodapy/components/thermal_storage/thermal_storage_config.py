@@ -130,9 +130,9 @@ class ThermalStorageTemperatureSensors(BaseModel):
         """
 
         if self.load_connection_sensor_out is None:
-            raise ValidationError("The load connection sensor outflow must have a name.")
+            raise ComponentValidationError("The load connection sensor outflow must have a name.")
         if self.load_connection_sensor_in is None:
-            raise ValidationError("The load connection sensor inflow must have a name.")
+            raise ComponentValidationError("The load connection sensor inflow must have a name.")
 
 
 class TemperatureSensorValues(BaseModel):
@@ -163,9 +163,9 @@ class TemperatureSensorValues(BaseModel):
         Check the connection sensors for availability.
         """
         if self.load_temperature_in is None:
-            raise ValidationError("The load connection sensor inflow must be available.")
+            raise ComponentValidationError("The load connection sensor inflow must be available.")
         if self.load_temperature_out is None:
-            raise ValidationError("The load connection sensor outflow must be available.")
+            raise ComponentValidationError("The load connection sensor outflow must be available.")
 
 class InputModel(BaseModel):
     """
@@ -250,8 +250,9 @@ class InputModel(BaseModel):
             if key.startswith("temperature") and value is None:
                 previous_key = False
             if key.startswith("temperature") and value is not None and previous_key is False:
-                raise ComponentValidationError(f"Temperature sensor {key} is configured, but the previous "
-                                    "sensor is not configured. Please check the configuration.")
+                raise ComponentValidationError(f"Temperature sensor {key} is configured, "
+                                               "but the previous sensor is not configured. "
+                                               "Please check the configuration.")
         return self
 
     def check_load_connection_sensors(self) -> None:

@@ -49,7 +49,7 @@ def get_medium_parameter(
     if temperature is None:
         return MEDIUM_VALUES[medium]
 
-    if medium is not Medium.WATER:
+    if medium is Medium.WATER:
         if temperature <= 0.1:
             logger.error("Attention! Temperature to low!")
             values = MediumParameters(cp = None, rho = None)

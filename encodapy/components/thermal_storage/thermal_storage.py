@@ -211,12 +211,16 @@ class ThermalStorage(BasicComponent):
             raise ValueError("Medium is not set.")
         if self.sensor_volumes is None:
             raise ValueError("Sensor volumes are not set.")
+        if self.sensor_values is None:
+            raise ValueError("Sensor values are not set.")
 
         nominal_energy = 0
 
         for index, _ in enumerate(self.sensor_config.storage_sensors):
-            medium_parameter = get_medium_parameter(medium = self.medium)
-            #TODO add temperature: self.sensor_values.storage_sensors[index]  # pylint: disable=E1136
+            medium_parameter = get_medium_parameter(
+                medium = self.medium,
+                temperature=self.sensor_values.storage_sensors[index]) # pylint: disable=E1136
+
             sensor_limits = self._get_sensor_limits(sensor_id=index)
 
             if energy_type is ThermalStorageEnergyTypes.NOMINAL:
@@ -232,9 +236,6 @@ class ThermalStorage(BasicComponent):
                             - sensor_limits.reference_temperature)
 
             elif energy_type is ThermalStorageEnergyTypes.CURRENT:
-                if self.sensor_values is None:
-                    raise ValueError("Sensor values are not set.")
-
                 temperature_difference = (self.sensor_values.storage_sensors[index]  # pylint: disable=E1136
                             - sensor_limits.minimal_temperature)
 

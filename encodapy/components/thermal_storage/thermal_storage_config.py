@@ -43,76 +43,59 @@ class TemperatureLimits(BaseModel):
 
         return self
 
+class StorageSensorConfig(BaseModel):
+    """
+    Configuration for the storage sensor in the thermal storage
+
+    Contains:
+        `name`: Name of the sensor in the thermal storage
+        `height`: Height of the sensor in percent (0=top, 100=bottom)
+        `limits`: Temperature limits for the sensor
+    """
+    # name: str = Field(..., description="Name of the sensor in the thermal storage")
+    height: float = Field(..., ge=0, le=100,
+                          description="Height of the sensor in percent (0=top, 100=bottom)")
+    limits: TemperatureLimits
+
+class ConnectionSensorConfig(BaseModel):
+    """
+    Configuration for the connection sensor in the thermal storage
+    
+    Contains:
+        `name`: Name of the thermal sensor on the connection (heat demand)
+    """
+    name: str = Field(...,
+                      description="Name of the thermal sensor on the connection (heat demand)")
+
 class ThermalStorageTemperatureSensors(BaseModel):
     """
-    Configuration of the temperature sensors in the termal 
-    storage (between 3 and 5 sensors (x = 1...5)), contains:
-        - `sensor_x_name`: Name of the sensor
-        - `sensor_x_height`: height of the sensor in percent
-        - `sensor_x_limits`: Temperature limits of the sensor
-        
-    Sensor 1 should be the upper sensor in the termal storage and the 
-    height is given in percent from the top to the down of the termal storage, 
-    so the height of sensor 1 should be the smalest value.
+    Configuration for the temperature sensors in the thermal storage
     
-    Raises:
-        ValueError: if the sensors are not set correctly
+    Contains:
+        `storage_sensors`: List of temperature sensors in the thermal storage
+        `load_connection_sensor_out`: Thermal sensor on the load connection \
+            outflow from thermal storage
+        `load_connection_sensor_in`: Thermal sensor on the load connection \
+            inflow to thermal storage
     """
 
-    sensor_1_name: str = Field(
+    storage_sensors: list[StorageSensorConfig] = Field(
         ...,
-        description= "Name of the sensor 1 in the thermal storage")
-    sensor_1_height: float = Field(
-        ...,
-        description= "Height of the sensor 1 in the thermal storage in percent")
-    sensor_1_limits: TemperatureLimits
-
-    sensor_2_name: str = Field(
-        ...,
-        description= "Name of the sensor 2 in the thermal storage")
-    sensor_2_height: float = Field(
-        ...,
-        description= "Height of the sensor 2 in the thermal storage in percent")
-    sensor_2_limits: TemperatureLimits
-
-    sensor_3_name: str = Field(
-        ...,
-        description= "Name of the sensor 3 in the thermal storage")
-    sensor_3_height: float = Field(
-        ...,
-        description= "Height of the sensor 3 in the thermal storage in percent")
-    sensor_3_limits: TemperatureLimits
-
-    sensor_4_name: Optional[str] = Field(
+        description="List of temperature sensors (3–10 sensors)")
+    load_connection_sensor_out: Optional[ConnectionSensorConfig] = Field(
         None,
-        description="Name of the sensor 4 in the thermal storage")
-    sensor_4_height: Optional[float] = Field(
+        description="Thermal sensor on the load connection, outflow from thermal storage")
+    load_connection_sensor_in: Optional[ConnectionSensorConfig] = Field(
         None,
-        description= "Height of the sensor 4 in the thermal storage in percent")
-    sensor_4_limits: Optional[TemperatureLimits] = Field(
-        None,
-        description= "Temperature limits of the sensor 4 in the thermal storage")
-
-    sensor_5_name: Optional[str] = Field(
-        None,
-        description="Name of the sensor 5 in the thermal storage")
-    sensor_5_height: Optional[float] = Field(
-        None,
-        description="Height of the sensor 5 in the thermal storage in percent")
-    sensor_5_limits: Optional[TemperatureLimits] = Field(
-        None,
-        description= "Temperature limits of the sensor 5 in the thermal storage")
-
-    sensor_in_name: Optional[str] = Field(
-        None,
-        description="Input for the return temperature into the thermal storage (consumer)")
-    sensor_out_name: Optional[str] = Field(
-        None,
-        description="Input for the flow temperature from the thermal storage (consumer)")
+        description="Thermal sensor on the load connection, inflow to thermal storage")
 
     @model_validator(mode="after")
-    def check_timerange_parameters(self) -> "ThermalStorageTemperatureSensors":
-        """Check the timerange parameters.
+    def check_storage_tank_sensors(self) -> "ThermalStorageTemperatureSensors":
+        """Check the storage tank sensors:
+            - At least 3 sensors are required
+            - No more than 10 sensors are allowed
+            - Sensor heights must be between 0 and 100 percent
+            - Sensor heights must be in ascending order
 
         Raises:
             ValueError: if the sensors are not set correctly
@@ -121,41 +104,35 @@ class ThermalStorageTemperatureSensors(BaseModel):
             ThermalStorageTemperatureSensors: The model with the validated parameters
         """
 
-        if (self.sensor_1_height > self.sensor_2_height
-            or self.sensor_2_height > self.sensor_3_height):
-            raise ValueError("Sensor 1 should be the upper sensor in the termal storage "
-                             "and the height is given in percent from the top to the down "
-                             "of the termal storage, "
-                             "so the height of sensor 1 should be the smalest value."
-            )
+        if len(self.storage_sensors) < 3:
+            raise ValueError("At least 3 storage sensors are required.")
+        if len(self.storage_sensors) > 10:
+            raise ValueError("No more than 10 storage sensors are allowed.")
+
+        storage_sensor_height_ref = 0.0
+        for storage_sensor in self.storage_sensors: # pylint: disable=E1133
+            if storage_sensor.height < 0.0 or storage_sensor.height > 100.0:
+                raise ValueError("Height of the sensor must be between 0 and 100 percent.")
+            if storage_sensor.height < storage_sensor_height_ref:
+                raise ValueError("Sensor heights must be in ascending order.")
+            storage_sensor_height_ref = storage_sensor.height
 
         return self
 
-    @model_validator(mode="after")
-    def check_optional_fields(self) -> "ThermalStorageTemperatureSensors":
-        """Check the optional fields of the model. If sensor 4 or 5 is set, \
-            the height and the limits for this sensor must also be set.
+    def check_connection_sensors(self) -> None:
+        """
+        TODO use this
+        Check the connection sensors:
+            - If they are needed, they must have a name
 
         Raises:
-            ValueError: if the optional fields are set incorrectly
-
-        Returns:
-            ThermalStorageTemperatureSensors: The model with the validated parameters
+            ValueError: if the connection sensors are not set correctly
         """
 
-        if self.sensor_4_name is not None:
-            if self.sensor_4_height is None:
-                raise ValueError("If sensor 4 is set, the height must also be set")
-            if self.sensor_4_limits is None:
-                raise ValueError("If sensor 4 is set, the limits must also be set")
-
-        if self.sensor_5_name is not None:
-            if self.sensor_5_height is None:
-                raise ValueError("If sensor 5 is set, the height must also be set")
-            if self.sensor_5_limits is None:
-                raise ValueError("If sensor 5 is set, the limits must also be set")
-
-        return self
+        if self.load_connection_sensor_out is None:
+            raise ValueError("The load connection sensor outflow must have a name.")
+        if self.load_connection_sensor_in is None:
+            raise ValueError("The load connection sensor inflow must have a name.")
 
 
 class TemperatureSensorValues(BaseModel):
@@ -163,64 +140,32 @@ class TemperatureSensorValues(BaseModel):
     Model for the temperature sensor values in the thermal storage
     
     Contains:
-        `sensor_1` (float): Temperature value of the sensor 1 in the thermal storage in °C
-        `sensor_2` (float): Temperature value of the sensor 2 in the thermal storage in °C
-        `sensor_3` (float): Temperature value of the sensor 3 in the thermal storage in °C
-        `sensor_4` (float, optional): Temperature value of the sensor 4 in the thermal storage in °C
-        `sensor_5` (float, optional): Temperature value of the sensor 5 in the thermal storage in °C
+        `storage_sensors` (list[float]): \
+            Temperature values of the storage sensors in the thermal storage
+        `load_temperature_in` (Optional[float]): \
+            Temperature value of the load connection sensor inflow
+        `load_temperature_out` (Optional[float]): \
+            Temperature value of the load connection sensor outflow
     """
 
-    sensor_1: float = Field(
+    storage_sensors: list[float] = Field(
         ...,
-        description= "Temperature value of the sensor 1 in the thermal storage in °C")
-    sensor_2: float = Field(
+        description="Temperature values of the storage sensors in the thermal storage in °C")
+    load_temperature_in: Optional[float] = Field(
         ...,
-        description= "Temperature value of the sensor 2 in the thermal storage in °C")
-    sensor_3: float = Field(
+        description="Temperature value of the load connection sensor inflow in °C")
+    load_temperature_out: Optional[float] = Field(
         ...,
-        description= "Temperature value of the sensor 3 in the thermal storage in °C")
-    sensor_4: Optional[float] = Field(
-        None,
-        description= "Temperature value of the sensor 4 in the thermal storage in °C")
-    sensor_5: Optional[float] = Field(
-        None,
-        description= "Temperature value of the sensor 5 in the thermal storage in °C")
+        description="Temperature value of the load connection sensor outflow in °C")
 
-class TemperatureSensorAndPipeConnectionValues(TemperatureSensorValues):
-    """
-    Model for the temperature sensor values, based on TemperatureSensorValues with additional 
-    temperaturesensors for the flow and return temperature of an connected pipe
-    
-    Contains additional Sensors:
-        `sensor_in` (float): return Temperature into the thermal storage in °C
-        `sensor_out` (float): flow Temperature out of the thermal storage in °C
-    """
-
-    sensor_in: float = Field(
-        ...,
-        description= "Return Temperature into the thermal storage in °C")
-    sensor_out: float = Field(
-        ...,
-        description= "Flow Temperature out of the thermal storage in °C")
-
-    @model_validator(mode="after")
-    def check_additional_parameters(self) -> "TemperatureSensorAndPipeConnectionValues":
-        """Check if the additional sensors for in/out are defined.
-
-        Raises:
-            ValueError: if parameters are not defined in the config
-        Returns:
-            Error: The config for the thermal storage calculation method 1 is noct correct. \
-                Check the Config.
+    def check_connection_sensors(self):
         """
-
-        if self.sensor_in is None :
-            raise ValueError("If the calculation_method 1 for the storage energy is used, "
-                             "the input/return temperature have to be defined in config.")
-        if self.sensor_out is None :
-            raise ValueError("If the calculation_method 1 for the storage energy is used, "
-                             "the output/flow temperature have to be defined in config.")
-        return self
+        Check the connection sensors for availability.
+        """
+        if self.load_temperature_in is None:
+            raise ValueError("The load connection sensor inflow must be available.")
+        if self.load_temperature_out is None:
+            raise ValueError("The load connection sensor outflow must be available.")
 
 class InputModel(BaseModel):
     """
@@ -233,31 +178,64 @@ class InputModel(BaseModel):
         `temperature_3` (IOAllocationModel): third temperature sensor
         `temperature_4` (Optional[IOAllocationModel]): fourth temperature sensor (optional)
         `temperature_5` (Optional[IOAllocationModel]): fifth temperature sensor (optional)
+        `temperature_6` (Optional[IOAllocationModel]): sixth temperature sensor (optional)
+        `temperature_7` (Optional[IOAllocationModel]): seventh temperature sensor (optional)
+        `temperature_8` (Optional[IOAllocationModel]): eighth temperature sensor (optional)
+        `temperature_9` (Optional[IOAllocationModel]): ninth temperature sensor (optional)
+        `temperature_10` (Optional[IOAllocationModel]): tenth temperature sensor (optional)
         `temperature_in` (Optional[IOAllocationModel]): consumer return temperature sensor \
             (optional)
-        `temperature_out` (Optional[IOAllocationModel]): consumer flow temperature sensor (optional)
+        `temperature_out` (Optional[IOAllocationModel]): consumer flow temperature sensor \
+            (optional)
     """
     temperature_1: IOAllocationModel = Field(
         ...,
-        description="Input for the temperature of sensor 1 in the thermal storage")
+        description="Input for the temperature of sensor 1 in the thermal storage"
+    )
     temperature_2: IOAllocationModel = Field(
         ...,
-        description="Input for the temperature of sensor 2 in the thermal storage")
+        description="Input for the temperature of sensor 2 in the thermal storage"
+    )
     temperature_3: IOAllocationModel = Field(
         ...,
-        description="Input for the temperature of sensor 3 in the thermal storage")
+        description="Input for the temperature of sensor 3 in the thermal storage"
+    )
     temperature_4: Optional[IOAllocationModel] = Field(
         None,
-        description="Input for the temperature of sensor 4 in the thermal storage")
+        description="Input for the temperature of sensor 4 in the thermal storage"
+    )
     temperature_5: Optional[IOAllocationModel] = Field(
         None,
-        description="Input for the temperature of sensor 5 in the thermal storage")
-    temperature_in: Optional[IOAllocationModel] = Field(
+        description="Input for the temperature of sensor 5 in the thermal storage"
+    )
+    temperature_6: Optional[IOAllocationModel] = Field(
         None,
-        description="Input for the return temperature into the thermal storage (consumer)")
-    temperature_out: Optional[IOAllocationModel] = Field(
+        description="Input for the temperature of sensor 6 in the thermal storage"
+    )
+    temperature_7: Optional[IOAllocationModel] = Field(
         None,
-        description="Input for the flow temperature from the thermal storage (consumer)")
+        description="Input for the temperature of sensor 7 in the thermal storage"
+    )
+    temperature_8: Optional[IOAllocationModel] = Field(
+        None,
+        description="Input for the temperature of sensor 8 in the thermal storage"
+    )
+    temperature_9: Optional[IOAllocationModel] = Field(
+        None,
+        description="Input for the temperature of sensor 9 in the thermal storage"
+    )
+    temperature_10: Optional[IOAllocationModel] = Field(
+        None,
+        description="Input for the temperature of sensor 10 in the thermal storage"
+    )
+    load_temperature_in: Optional[IOAllocationModel] = Field(
+        None,
+        description="Input for the return temperature into the thermal storage (consumer)"
+    )
+    load_temperature_out: Optional[IOAllocationModel] = Field(
+        None,
+        description="Input for the flow temperature from the thermal storage (consumer)"
+    )
 
 class OutputModel(BaseModel):
     """
@@ -302,3 +280,22 @@ class ThermalStorageCalculationMethods(Enum):
     """
     STATIC_LIMITS = "static_limits"
     CONNECTION_LIMITS = "connection_limits"
+
+class ThermalStorageEnergyTypes(Enum):
+    """
+    Enum for the energy types of the thermal storage service.
+    
+    Contains:
+        Nominal ("nominal"): Nominal energy of the thermal storage \
+            between the temperature limits
+        Minimal ("minimal"): Minimal energy of the thermal storage \
+            at the lower temperature limit
+        Maximal ("maximal"): Maximal energy of the thermal storage \
+            at the upper temperature limit
+        Current ("current"): Current energy of the thermal storage \
+            based on the current temperatures
+    """
+    NOMINAL = "nominal"
+    MINIMAL = "minimal"
+    MAXIMAL = "maximal"
+    CURRENT = "current"

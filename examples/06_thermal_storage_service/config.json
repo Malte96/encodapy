@@ -133,11 +133,11 @@
                     "entity" : "thermal_storage",
                     "attribute": "temperature_5"
                 }, 
-                "temperature_in": {
+                "load_temperature_in": {
                     "entity" : "thermal_storage",
                     "attribute": "temperature_in"
                 }, 
-                "temperature_out": {
+                "load_temperature_out": {
                     "entity" : "thermal_storage",
                     "attribute": "temperature_out"
                 }

@@ -6,7 +6,7 @@ from typing import Optional
 from enum import Enum
 from pydantic import BaseModel, Field
 from pydantic.functional_validators import model_validator
-from encodapy.components.components_basic_config import IOAllocationModel
+from encodapy.components.components_basic_config import IOAllocationModel, ComponentValidationError
 
 class TemperatureLimits(BaseModel):
     """
@@ -130,9 +130,9 @@ class ThermalStorageTemperatureSensors(BaseModel):
         """
 
         if self.load_connection_sensor_out is None:
-            raise ValueError("The load connection sensor outflow must have a name.")
+            raise ValidationError("The load connection sensor outflow must have a name.")
         if self.load_connection_sensor_in is None:
-            raise ValueError("The load connection sensor inflow must have a name.")
+            raise ValidationError("The load connection sensor inflow must have a name.")
 
 
 class TemperatureSensorValues(BaseModel):
@@ -163,15 +163,18 @@ class TemperatureSensorValues(BaseModel):
         Check the connection sensors for availability.
         """
         if self.load_temperature_in is None:
-            raise ValueError("The load connection sensor inflow must be available.")
+            raise ValidationError("The load connection sensor inflow must be available.")
         if self.load_temperature_out is None:
-            raise ValueError("The load connection sensor outflow must be available.")
+            raise ValidationError("The load connection sensor outflow must be available.")
 
 class InputModel(BaseModel):
     """
     Model for the input of the thermal storage service, containing the temperature sensors
     in the thermal storage.
-    
+
+    The temperature sensors need to be set from 1 to 10, \
+        no sensors are allowed to be missing between the others.
+
     Contains:
         `temperature_1` (IOAllocationModel): first temperature sensor
         `temperature_2` (IOAllocationModel): second temperature sensor
@@ -236,6 +239,42 @@ class InputModel(BaseModel):
         None,
         description="Input for the flow temperature from the thermal storage (consumer)"
     )
+
+    @model_validator(mode="after")
+    def check_storage_temperature_sensors(self) -> "InputModel":
+        """
+        Check that the storage sensors are configured.
+        """
+        previous_key = True
+        for key, value in self.__dict__.items():
+            if key.startswith("temperature") and value is None:
+                previous_key = False
+            if key.startswith("temperature") and value is not None and previous_key is False:
+                raise ComponentValidationError(f"Temperature sensor {key} is configured, but the previous "
+                                    "sensor is not configured. Please check the configuration.")
+        return self
+
+    def check_load_connection_sensors(self) -> None:
+        """
+        Check if the load connection sensors are set
+        
+        Raises:
+            ValueError: If any of the load connection sensors are not configured.
+        """
+        if self.load_temperature_in is None:
+            raise ComponentValidationError("Load temperature inflow sensor is not configured.")
+        if self.load_temperature_out is None:
+            raise ComponentValidationError("Load temperature outflow sensor is not configured.")
+
+    def get_number_storage_sensors(self) -> int:
+        """
+        Get the number of storage sensors configured in the thermal storage.
+
+        Returns:
+            int: Number of storage sensors configured.
+        """
+        return sum(1 for key, value in self.__dict__.items()
+                   if key.startswith("temperature") and value is not None)
 
 class OutputModel(BaseModel):
     """

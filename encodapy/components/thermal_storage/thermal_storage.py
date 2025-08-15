@@ -15,7 +15,7 @@ from encodapy.components.thermal_storage.thermal_storage_config import (
     ThermalStorageCalculationMethods,
     ThermalStorageEnergyTypes)
 from encodapy.components.basic_component import BasicComponent
-from encodapy.components.components_basic_config import IOModell
+from encodapy.components.components_basic_config import IOModell, ComponentValidationError
 from encodapy.utils.mediums import(
     Medium,
     get_medium_parameter)
@@ -58,7 +58,8 @@ class ThermalStorage(BasicComponent):
         self.io_model: Optional[ThermalStorageIO] = None
         self.sensor_values: Optional[TemperatureSensorValues] = None
         self.sensor_volumes: Optional[dict] = None
-        self.calculation_method: ThermalStorageCalculationMethods = ThermalStorageCalculationMethods.STATIC_LIMITS
+        self.calculation_method: ThermalStorageCalculationMethods = (
+            ThermalStorageCalculationMethods.STATIC_LIMITS)
 
         # Prepare the thermal storage
         self.prepare_start_thermal_storage()
@@ -512,45 +513,31 @@ class ThermalStorage(BasicComponent):
 
     def _check_input_configuration(self):
         """
-        TODO: das passt nicht mehr!!
         Function to check the input configuration of the service \
             in comparison to the sensor configuration.
         The inputs needs to match the sensor configuration.
         Raises:
-            KeyError: If the input configuration does not match the sensor configuration
-            Warning: If the input configuration does not match the sensor configuration,\
-                but is not critical
+            ValidationError: If the input configuration does not match the sensor configuration
         """
-        return
 
-        # pylint problems see: https://github.com/pylint-dev/pylint/issues/4899
-        if (self.sensor_config.sensor_4_name is not None
-            and self.io_model.input.temperature_4 is None): # pylint: disable=no-member
-            error_msg = ("Input configuration does not match sensor configuration: "
-                         "Sensor 4 is defined in the sensor configuration, "
-                         "but not in the input configuration.")
-            logger.error(error_msg)
-            raise KeyError(error_msg)
-        if (self.sensor_config.sensor_5_name is not None
-            and self.io_model.input.temperature_5 is None): # pylint: disable=no-member
-            error_msg = ("Input configuration does not match sensor configuration: "
-                         "Sensor 5 is defined in the sensor configuration, "
-                         "but not in the input configuration.")
-            logger.error(error_msg)
-            raise KeyError(error_msg)
+        if self.sensor_config is None:
+            raise KeyError("No sensor configuration found in the thermal storage configuration.")
+        if self.io_model is None:
+            raise KeyError("No I/O model found in the thermal storage configuration.")
 
-        if (self.sensor_config.sensor_4_name is None
-            and self.io_model.input.temperature_4 is not None): # pylint: disable=no-member
-            logger.warning("Input configuration does not match sensor configuration: "
-                           "Sensor 4 is defined in the input configuration, "
-                           "but not in the sensor configuration."
-                           "The sensor will not be used in the calculation.")
-        if (self.sensor_config.sensor_5_name is None
-            and self.io_model.input.temperature_5 is not None): # pylint: disable=no-member
-            logger.warning("Input configuration does not match sensor configuration: "
-                           "Sensor 5 is defined in the input configuration, "
-                           "but not in the sensor configuration."
-                           "The sensor will not be used in the calculation.")
+        # Check if there are all inputs avaiable
+        if self.calculation_method is ThermalStorageCalculationMethods.CONNECTION_LIMITS:
+            self.io_model.input.check_load_connection_sensors() # pylint: disable=no-member
+
+        # Check if all inputs are configured in the sensor configuration
+        if (self.io_model.input.get_number_storage_sensors() # pylint: disable=no-member
+            != len(self.sensor_config.storage_sensors)):
+            raise ComponentValidationError(
+                "Input configuration does not match sensor configuration."
+                "Number of storage temperature sensors in config "
+                f"({len(self.sensor_config.storage_sensors)}) "
+                "is not the same like the number of inputs "
+                f"({self.io_model.input.get_number_storage_sensors()})") # pylint: disable=no-member
 
 
     def prepare_start_thermal_storage(
@@ -594,4 +581,3 @@ class ThermalStorage(BasicComponent):
         """
         Run the thermal storage component.
         """
-        pass

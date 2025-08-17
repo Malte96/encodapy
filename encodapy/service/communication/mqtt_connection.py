@@ -55,8 +55,8 @@ class MqttConnection:
         or use the default values from the DefaultEnvVariables class.
         """
         # the IP of the broker
-        self.mqtt_params["broker"] = os.environ.get(
-            "MQTT_BROKER", DefaultEnvVariables.MQTT_BROKER.value
+        self.mqtt_params["host"] = os.environ.get(
+            "MQTT_HOST", DefaultEnvVariables.MQTT_HOST.value
         )
         # the port of the broker
         self.mqtt_params["port"] = int(
@@ -90,17 +90,17 @@ class MqttConnection:
 
         # set username and password for the MQTT client
         self.mqtt_client.username_pw_set(
-            self.mqtt_params["username"], self.mqtt_params["password"]
+            username=self.mqtt_params["username"], password=self.mqtt_params["password"]
         )
 
         # try to connect to the MQTT broker
         try:
             self.mqtt_client.connect(
-                self.mqtt_params["broker"], self.mqtt_params["port"]
+                host=self.mqtt_params["host"], port=self.mqtt_params["port"]
             )
         except Exception as e:
             raise ConfigError(
-                f"Could not connect to MQTT broker {self.mqtt_params['broker']}:"
+                f"Could not connect to MQTT broker {self.mqtt_params['host']}:"
                 f"{self.mqtt_params['port']} with given login information - {e}"
             ) from e
 

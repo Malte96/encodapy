@@ -9,14 +9,14 @@ import time
 import paho.mqtt.client as mqtt
 from paho.mqtt.enums import CallbackAPIVersion
 
-MQTT_BROKER = os.environ.get("MQTT_BROKER", "localhost")
+MQTT_HOST = os.environ.get("MQTT_HOST", "localhost")
 MQTT_PORT = int(os.environ.get("MQTT_PORT", 1883))
 MQTT_TOPIC_PREFIX = os.environ.get("MQTT_TOPIC_PREFIX", "")
 
 if __name__ == "__main__":
     client = mqtt.Client(callback_api_version=CallbackAPIVersion.VERSION2)
 
-    client.connect(MQTT_BROKER, MQTT_PORT, 60)
+    client.connect(MQTT_HOST, MQTT_PORT, 60)
 
     # 1. Send "22.5 °C" as plain string to thermal_storage/t_sen_bot
     topic1 = f"{MQTT_TOPIC_PREFIX}thermal_storage/t_sen_bot"

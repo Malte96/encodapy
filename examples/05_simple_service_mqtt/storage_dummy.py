@@ -19,26 +19,26 @@ if __name__ == "__main__":
     client.connect(MQTT_HOST, MQTT_PORT, 60)
 
     # 1. Send "22.5 °C" as plain string to thermal_storage/t_sen_bot
-    topic1 = f"{MQTT_TOPIC_PREFIX}thermal_storage/t_sen_bot"
-    payload1 = "22.5 °C"
-    client.publish(topic1, payload1)
-    print(f"Published to {topic1}: {payload1}")
+    TOPIC1 = f"{MQTT_TOPIC_PREFIX}thermal_storage/t_sen_bot"
+    PAYLOAD1 = "22.5 °C"
+    client.publish(TOPIC1, PAYLOAD1)
+    print(f"Published to {TOPIC1}: {PAYLOAD1}")
 
     time.sleep(10)
 
-    # 2. Send {"value": 20} as JSON to thermal_storage/t_sen_set
-    topic2 = f"{MQTT_TOPIC_PREFIX}thermal_storage/t_sen_set"
-    payload2 = json.dumps({"value": 20})
-    client.publish(topic2, payload2)
-    print(f"Published to {topic2}: {payload2}")
+    # 2. Send {"VALUE": 20} (value is not case-sensitive) as JSON to thermal_storage/t_sen_set
+    TOPIC2 = f"{MQTT_TOPIC_PREFIX}thermal_storage/t_sen_set"
+    PAYLOAD2 = json.dumps({"VALUE": 20})
+    client.publish(TOPIC2, PAYLOAD2)
+    print(f"Published to {TOPIC2}: {PAYLOAD2}")
 
     time.sleep(10)
 
     # 3. Send {"t_sen_bot": 22.5, "t_sen_set": "45"} as JSON to thermal_storage,
     # even different value types are possible (Number as string will be converted automatically)
-    topic3 = f"{MQTT_TOPIC_PREFIX}thermal_storage"
-    payload3 = json.dumps({"t_sen_bot": 22.5, "t_sen_set": "45"})
-    client.publish(topic3, payload3)
-    print(f"Published to {topic3}: {payload3}")
+    TOPIC3 = f"{MQTT_TOPIC_PREFIX}thermal_storage"
+    PAYLOAD3 = json.dumps({"t_sen_bot": 22.5, "t_sen_set": "45 °C"})
+    client.publish(TOPIC3, PAYLOAD3)
+    print(f"Published to {TOPIC3}: {PAYLOAD3}")
 
     client.disconnect()

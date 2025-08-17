@@ -75,8 +75,8 @@ class MqttConnection:
             "MQTT_TOPIC_PREFIX", DefaultEnvVariables.MQTT_TOPIC_PREFIX.value
         )
 
-        if not self.mqtt_params["broker"] or not self.mqtt_params["port"]:
-            raise ConfigError("MQTT broker and port must be set")
+        if not self.mqtt_params["host"] or not self.mqtt_params["port"]:
+            raise ConfigError("MQTT host and port must be set")
 
     def prepare_mqtt_connection(self) -> None:
         """

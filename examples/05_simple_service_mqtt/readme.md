@@ -12,7 +12,7 @@ As an example of a simple service using Encodapy with a MQTT interface, a heatin
 To run the example, you could optionally add a `.env` file with the following content (if you do not add your own, the here written standard values will be used):
 
 ```env
-MQTT_BROKER="localhost"  # URL of the MQTT Broker
+MQTT_HOST="localhost"    # URL of the MQTT Broker
 MQTT_PORT=1883           # Port of the MQTT Broker
 MQTT_USERNAME=""         # if required
 MQTT_PASSWORD=""         # if required
@@ -35,6 +35,7 @@ For the models of the inputs and outputs, see [02_datatransfer](./../02_datatran
 For the possible payloads, see [03_interfaces](./../03_interfaces/).
 
 ## Usage
+
 - To use it, the `.env` file must be created and an MQTT broker with the data in the `.env` file must be available so that a connection can be established.
 - The service is started by executing [`main.py`](./main.py) from the current path.
 - New data can be sent by running the script [`storage_dummy.py`](./storage_dummy.py).

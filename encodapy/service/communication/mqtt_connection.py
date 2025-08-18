@@ -55,8 +55,8 @@ class MqttConnection:
         or use the default values from the DefaultEnvVariables class.
         """
         # the IP of the broker
-        self.mqtt_params["broker"] = os.environ.get(
-            "MQTT_BROKER", DefaultEnvVariables.MQTT_BROKER.value
+        self.mqtt_params["host"] = os.environ.get(
+            "MQTT_HOST", DefaultEnvVariables.MQTT_HOST.value
         )
         # the port of the broker
         self.mqtt_params["port"] = int(
@@ -75,8 +75,8 @@ class MqttConnection:
             "MQTT_TOPIC_PREFIX", DefaultEnvVariables.MQTT_TOPIC_PREFIX.value
         )
 
-        if not self.mqtt_params["broker"] or not self.mqtt_params["port"]:
-            raise ConfigError("MQTT broker and port must be set")
+        if not self.mqtt_params["host"] or not self.mqtt_params["port"]:
+            raise ConfigError("MQTT host and port must be set")
 
     def prepare_mqtt_connection(self) -> None:
         """
@@ -90,17 +90,17 @@ class MqttConnection:
 
         # set username and password for the MQTT client
         self.mqtt_client.username_pw_set(
-            self.mqtt_params["username"], self.mqtt_params["password"]
+            username=self.mqtt_params["username"], password=self.mqtt_params["password"]
         )
 
         # try to connect to the MQTT broker
         try:
             self.mqtt_client.connect(
-                self.mqtt_params["broker"], self.mqtt_params["port"]
+                host=self.mqtt_params["host"], port=self.mqtt_params["port"]
             )
         except Exception as e:
             raise ConfigError(
-                f"Could not connect to MQTT broker {self.mqtt_params['broker']}:"
+                f"Could not connect to MQTT broker {self.mqtt_params['host']}:"
                 f"{self.mqtt_params['port']} with given login information - {e}"
             ) from e
 
@@ -517,8 +517,8 @@ class MqttConnection:
     ) -> Union[str, float, int, bool, dict, list, DataFrame, None]:
         """
         Function to extract data from the payload as needed.
-        TODO MB: How to use pd.read_json here for Dataframes? 
-        https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_json.html#pandas.read_json
+        # TODO MB: How to use pd.read_json here for Dataframes?
+        # https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.read_json.html
         """
         if payload is None or payload == "":
             return None

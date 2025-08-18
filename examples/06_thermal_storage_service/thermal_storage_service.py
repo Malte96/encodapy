@@ -4,6 +4,7 @@ Description: This module contains the definition of a service to calculate \
 Author: Martin Altenburger
 """
 from datetime import datetime, timezone
+from enum import Enum
 from loguru import logger
 from encodapy.components.thermal_storage import ThermalStorage
 from encodapy.service import ControllerBasicService
@@ -12,6 +13,29 @@ from encodapy.utils.models import (
     DataTransferModel,
     DataTransferComponentModel
     )
+
+class ThermalStorageResults(Enum):
+    """
+    Definition of the thermal storage results
+    TODO: welche Varianten brauchen wir?
+    
+    Contains:
+        `STORAGE_ENERGY` ("storage__energy"): The energy stored in the thermal storage
+        `STORAGE_LEVEL` ("storage__level"): The current level of the thermal storage
+        `STORAGE_LOADING_POTENTIAL` ("storage__loading_potential"): \
+            The potential for loading energy into the thermal storage
+    """
+    STORAGE_ENERGY = "storage__energy"
+    STORAGE_LEVEL = "storage__level"
+    STORAGE_LOADING_POTENTIAL = "storage__loading_potential"
+
+class ThermalStorageCalculations(Enum):
+    """
+    Definition of the names of the thermal storage calculations
+    """
+    STORAGE_ENERGY = "get_storage_energy_current"
+    STORAGE_LEVEL = "calculate_state_of_charge"
+    STORAGE_LOADING_POTENTIAL = "get_storage_loading_potential" #TODO is missing
 
 class ThermalStorageService(ControllerBasicService):
     """
@@ -61,6 +85,17 @@ class ThermalStorageService(ControllerBasicService):
 
         components = []
 
+        for output_datapoint_name, output_datapoint_config in self.thermal_storage.io_model.output.__dict__.items():
+            print(output_datapoint_name, output_datapoint_config)
+            if output_datapoint_config is None:
+                continue
+            result_name = ThermalStorageResults(output_datapoint_name)
+            print(result_name)
+            # function_name = ThermalStorageCalculations(result_name).value
+            # print(function_name)
+            #TODO hier die Verknüpfung aus dem Intranet: https://intranet.tu-dresden.de/spaces/teamGEWV/pages/456884657/2025-08-12+Besprechungsnotizen
+            # results = globals()[function_name]()
+            # [getattr(CONTROL_COMPONENTS_CLASSES, CONTROL_COMPONENTS(component["type"]).name, None).value]
 
         # pylint problems see: https://github.com/pylint-dev/pylint/issues/4899
         if self.thermal_storage.io_model.output.storage__level is not None:  # pylint: disable=no-member

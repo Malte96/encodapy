@@ -3,9 +3,11 @@ Description: This module contains the definition of a service to calculate \
     the energy in a thermal storage based on the temperature sensors.
 Author: Martin Altenburger
 """
+from typing import Optional
 from datetime import datetime, timezone
 from enum import Enum
 from loguru import logger
+from encodapy.components.components_basic_config import IOAllocationModel
 from encodapy.components.thermal_storage import ThermalStorage
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
@@ -14,10 +16,9 @@ from encodapy.utils.models import (
     DataTransferComponentModel
     )
 
-class ThermalStorageResults(Enum):
+class ThermalStorageCalculations(Enum):
     """
-    Definition of the thermal storage results
-    TODO: welche Varianten brauchen wir?
+    Definition of the names of the thermal storage results & functions for the calculations
     
     Contains:
         `STORAGE_ENERGY` ("storage__energy"): The energy stored in the thermal storage
@@ -25,17 +26,48 @@ class ThermalStorageResults(Enum):
         `STORAGE_LOADING_POTENTIAL` ("storage__loading_potential"): \
             The potential for loading energy into the thermal storage
     """
-    STORAGE_ENERGY = "storage__energy"
-    STORAGE_LEVEL = "storage__level"
-    STORAGE_LOADING_POTENTIAL = "storage__loading_potential"
+    STORAGE_ENERGY = ("storage__energy", "get_storage_energy_current")
+    STORAGE_LEVEL = ("storage__level", "calculate_state_of_charge")
+    #TODO is missing
+    STORAGE_LOADING_POTENTIAL = ("storage__loading_potential", "get_storage_loading_potential")
 
-class ThermalStorageCalculations(Enum):
-    """
-    Definition of the names of the thermal storage calculations
-    """
-    STORAGE_ENERGY = "get_storage_energy_current"
-    STORAGE_LEVEL = "calculate_state_of_charge"
-    STORAGE_LOADING_POTENTIAL = "get_storage_loading_potential" #TODO is missing
+    def __init__(self, result, calculation):
+        self._result = result
+        self._calculation = calculation
+
+    @classmethod
+    def from_result(cls, result:str):
+        """
+        Create a ThermalStorageCalculations member from a result name.
+
+        Args:
+            result (str): The result name to match.
+
+        Raises:
+            ValueError: If the result name is not found.
+
+        Returns:
+            ThermalStorageCalculations: The matching enum member.
+        """
+        for member in cls:
+            if member.result == result:
+                return member
+        logger.error(f"Result '{result}' not found in ThermalStorageCalculations")
+        return None
+
+    @property
+    def result(self):
+        """
+        Returns the result name of the thermal storage calculation.
+        """
+        return self._result
+
+    @property
+    def calculation(self):
+        """
+        Returns the calculation function name of the thermal storage calculation.
+        """
+        return self._calculation
 
 class ThermalStorageService(ControllerBasicService):
     """
@@ -78,41 +110,39 @@ class ThermalStorageService(ControllerBasicService):
 
         self.thermal_storage.set_temperature_values(input_entities=data.input_entities)
 
-        storage__energy = self.thermal_storage.get_storage_energy_current()
-        storage__level = self.thermal_storage.calculate_state_of_charge()
-        logger.debug("Energy Storage Level: " + str(storage__level) + " %")
-        logger.debug("Energy of the Storage: " + str(storage__energy) + " Wh")
-
         components = []
 
-        for output_datapoint_name, output_datapoint_config in self.thermal_storage.io_model.output.__dict__.items():
+        for output_datapoint_name, _ in self.thermal_storage.io_model.output.model_fields.items():
+
+            output_datapoint_config: Optional[IOAllocationModel] = getattr(
+                self.thermal_storage.io_model.output,
+                output_datapoint_name)
+
             print(output_datapoint_name, output_datapoint_config)
             if output_datapoint_config is None:
                 continue
-            result_name = ThermalStorageResults(output_datapoint_name)
-            print(result_name)
-            # function_name = ThermalStorageCalculations(result_name).value
-            # print(function_name)
-            #TODO hier die Verknüpfung aus dem Intranet: https://intranet.tu-dresden.de/spaces/teamGEWV/pages/456884657/2025-08-12+Besprechungsnotizen
-            # results = globals()[function_name]()
-            # [getattr(CONTROL_COMPONENTS_CLASSES, CONTROL_COMPONENTS(component["type"]).name, None).value]
 
-        # pylint problems see: https://github.com/pylint-dev/pylint/issues/4899
-        if self.thermal_storage.io_model.output.storage__level is not None:  # pylint: disable=no-member
+            calculation_function = ThermalStorageCalculations.from_result(output_datapoint_name)
+
+            if calculation_function is None:
+                continue
+
+            result = getattr(self.thermal_storage, calculation_function.calculation)()
+            # in Klasse mit self
+
             components.append(DataTransferComponentModel(
-                entity_id=self.thermal_storage.io_model.output.storage__level.entity,  # pylint: disable=no-member
-                attribute_id=self.thermal_storage.io_model.output.storage__level.attribute,  # pylint: disable=no-member
-                value=storage__level,
+                entity_id=output_datapoint_config.entity,  # pylint: disable=no-member
+                attribute_id=output_datapoint_config.attribute,  # pylint: disable=no-member
+                value=result,
                 timestamp=datetime.now(timezone.utc)
             ))
+            # TODO was ist mit der unit?
+            logger.debug(f"Calculated {output_datapoint_name}: {result}")
 
-        if self.thermal_storage.io_model.output.storage__energy is not None:  # pylint: disable=no-member
-            components.append(DataTransferComponentModel(
-                entity_id=self.thermal_storage.io_model.output.storage__energy.entity,  # pylint: disable=no-member
-                attribute_id=self.thermal_storage.io_model.output.storage__energy.attribute,  # pylint: disable=no-member
-                value=storage__energy,
-                timestamp=datetime.now(timezone.utc)
-            ))
+            #TODO hier die Verknüpfung aus dem Intranet:
+            # https://intranet.tu-dresden.de/spaces/teamGEWV/pages/456884657/2025-08-12+Besprechungsnotizen
+
+        print(components)
 
         return DataTransferModel(components=components)
 

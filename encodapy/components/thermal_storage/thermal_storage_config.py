@@ -287,6 +287,8 @@ class OutputModel(BaseModel):
             (0-100) (optional)
         `storage__energy`: Optional[IOAllocationModel] = Output for storage energy in kWh \
             (optional)
+        `storage__loading_potential`: Optional[IOAllocationModel] = \
+            Output for storage loading potential in Wh (optional)
     """
     storage__level: Optional[IOAllocationModel] = Field(
         None,
@@ -294,6 +296,9 @@ class OutputModel(BaseModel):
     storage__energy: Optional[IOAllocationModel] = Field(
         None,
         description="Output for storage energy in Wh")
+    storage__loading_potential: Optional[IOAllocationModel] = Field(
+        None,
+        description="Output for storage loading potential in Wh")
 
 class ThermalStorageIO(BaseModel):
     """

@@ -28,7 +28,6 @@ class ThermalStorageCalculations(Enum):
     """
     STORAGE_ENERGY = ("storage__energy", "get_storage_energy_current")
     STORAGE_LEVEL = ("storage__level", "calculate_state_of_charge")
-    #TODO is missing
     STORAGE_LOADING_POTENTIAL = ("storage__loading_potential", "get_storage_loading_potential")
 
     def __init__(self, result, calculation):
@@ -118,7 +117,6 @@ class ThermalStorageService(ControllerBasicService):
                 self.thermal_storage.io_model.output,
                 output_datapoint_name)
 
-            print(output_datapoint_name, output_datapoint_config)
             if output_datapoint_config is None:
                 continue
 
@@ -127,17 +125,18 @@ class ThermalStorageService(ControllerBasicService):
             if calculation_function is None:
                 continue
 
-            result = getattr(self.thermal_storage, calculation_function.calculation)()
+            result_value, result_unit = getattr(self.thermal_storage, calculation_function.calculation)()
             # in Klasse mit self
 
             components.append(DataTransferComponentModel(
-                entity_id=output_datapoint_config.entity,  # pylint: disable=no-member
-                attribute_id=output_datapoint_config.attribute,  # pylint: disable=no-member
-                value=result,
+                entity_id=output_datapoint_config.entity,
+                attribute_id=output_datapoint_config.attribute,
+                value=result_value,
+                unit=result_unit,
                 timestamp=datetime.now(timezone.utc)
             ))
             # TODO was ist mit der unit?
-            logger.debug(f"Calculated {output_datapoint_name}: {result}")
+            logger.debug(f"Calculated {output_datapoint_name}: {result_value} {result_unit}")
 
             #TODO hier die Verknüpfung aus dem Intranet:
             # https://intranet.tu-dresden.de/spaces/teamGEWV/pages/456884657/2025-08-12+Besprechungsnotizen

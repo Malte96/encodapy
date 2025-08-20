@@ -68,6 +68,12 @@
                     "id_interface":"storage__energy",
                     "type": "value",
                     "unit": "WHR" 
+                },
+                {
+                    "id": "storage__loading_potential", 
+                    "id_interface":"storage__loading_potential",
+                    "type": "value",
+                    "unit": "WHR" 
                 }
             ],
             "commands":[]
@@ -150,6 +156,10 @@
                 "storage__energy": {
                     "entity" : "thermal_storage",
                     "attribute": "storage__energy"
+                },
+                "storage__loading_potential": {
+                    "entity" : "thermal_storage",
+                    "attribute": "storage__loading_potential"
                 }
             },
             "staticdata": {

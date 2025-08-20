@@ -2,6 +2,7 @@
 Simple Method to caluculate the energy in a the thermal storage
 Author: Martin Altenburger, Paul Seidel
 """
+from ast import Tuple
 from typing import Union, Optional
 from loguru import logger
 from pydantic import ValidationError
@@ -251,48 +252,61 @@ class ThermalStorage(BasicComponent):
         return round(nominal_energy, 2)
 
     def get_storage_energy_nominal(self
-                                   ) -> float:
+                                   ) -> tuple[float, DataUnits]:
         """
         Function to calculate the nominal energy content of the thermal storage
 
         Returns:
-            float: Nominal energy content of the thermal storage in Wh
+            tuple[float, DataUnits]: Nominal energy content of the thermal storage in Wh
         """
 
-        return self.get_storage_energy_content(ThermalStorageEnergyTypes.NOMINAL)
+        return self.get_storage_energy_content(ThermalStorageEnergyTypes.NOMINAL), DataUnits.WHR
 
-    def get_storage_energy_minimum(self) -> float:
+    def get_storage_energy_minimum(self) -> tuple[float, DataUnits]:
         """
         Function to get the minimum energy content of the thermal storage
 
         Returns:
-            float: Minimum energy content of the thermal storage in Wh
+            tuple[float, DataUnits]: Minimum energy content of the thermal storage in Wh
         Raises:
             ValueError: If the thermal storage is not usable or the sensor values are not set
         """
-        return self.get_storage_energy_content(ThermalStorageEnergyTypes.MINIMAL)
+        return self.get_storage_energy_content(ThermalStorageEnergyTypes.MINIMAL), DataUnits.WHR
 
-    def get_storage_energy_maximum(self) -> float:
+    def get_storage_energy_maximum(self) -> tuple[float, DataUnits]:
         """
         Function to get the maximum energy content of the thermal storage
 
         Returns:
-            float: Maximum energy content of the thermal storage in Wh
+            tuple[float, DataUnits]: Maximum energy content of the thermal storage in Wh
         Raises:
             ValueError: If the thermal storage is not usable or the sensor values are not set
         """
-        return self.get_storage_energy_content(ThermalStorageEnergyTypes.MAXIMAL)
+        return self.get_storage_energy_content(ThermalStorageEnergyTypes.MAXIMAL), DataUnits.WHR
 
-    def get_storage_energy_current(self) -> float:
+    def get_storage_energy_current(self) -> tuple[float, DataUnits]:
         """
         Function to get the current energy content of the thermal storage
 
         Returns:
-            float: Current energy content of the thermal storage in Wh
+            tuple[float, DataUnits]: Current energy content of the thermal storage in Wh
         Raises:
             ValueError: If the thermal storage is not usable or the sensor values are not set
         """
-        return self.get_storage_energy_content(ThermalStorageEnergyTypes.CURRENT)
+        return self.get_storage_energy_content(ThermalStorageEnergyTypes.CURRENT), DataUnits.WHR
+
+    def get_storage_loading_potential(self) -> tuple[float, DataUnits]:
+        """
+        Function to get the loading potential of the thermal storage, \
+            which is the difference between the nominal and current energy content.
+
+        Returns:
+            tuple[float, DataUnits]: Loading potential of the thermal storage in Wh
+        """
+        nominal_energy = self.get_storage_energy_nominal()[0]
+        current_energy = self.get_storage_energy_current()[0]
+        loading_potential = round(nominal_energy - current_energy, 2)
+        return loading_potential, DataUnits.WHR
 
     def set_temperature_values(self,
                                input_entities: list[InputDataEntityModel]
@@ -380,7 +394,7 @@ class ThermalStorage(BasicComponent):
 
         return state_of_charge
 
-    def calculate_state_of_charge(self)-> float:
+    def calculate_state_of_charge(self)-> tuple[float, DataUnits]:
         """
         Function to calculate the state of charge of the thermal storage
 
@@ -388,16 +402,16 @@ class ThermalStorage(BasicComponent):
             so the state of charge is 0.
 
         Returns:
-            float: State of charge of the thermal storage in percent (0-100)
+            tuple[float, DataUnits]: State of charge of the thermal storage in percent (0-100)
         """
 
-        state_of_charge = (self.get_storage_energy_current()
-                           / self.get_storage_energy_nominal()
+        state_of_charge = (self.get_storage_energy_current()[0]
+                           / self.get_storage_energy_nominal()[0]
                            * 100)
 
         state_of_charge = self._check_temperatur_of_highest_sensor(state_of_charge=state_of_charge)
 
-        return round(state_of_charge,2)
+        return round(state_of_charge,2), DataUnits.P1
 
     def _prepare_thermal_storage(self,
                                  )-> None:

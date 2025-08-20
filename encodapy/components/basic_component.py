@@ -15,8 +15,13 @@ from encodapy.components.components_basic_config import (
     IOAllocationModel,
     IOModell,
 )
-from encodapy.utils.models import DataUnits, InputDataEntityModel, StaticDataEntityModel
-
+from encodapy.utils.models import (
+    DataUnits,
+    InputDataEntityModel,
+    StaticDataEntityModel,
+    InputDataModel,
+    DataTransferComponentModel
+    )
 
 class BasicComponent:
     """
@@ -207,3 +212,22 @@ class BasicComponent:
             )
 
         return static_data_value
+
+    def run(self,
+            data: InputDataModel) -> list[DataTransferComponentModel]:
+        """
+        Function to run the component with the given input data. \
+            It is not implemented for basic component, needs to be overridden in subclasses.
+
+        Args:
+            data (InputDataModel): Input data for the component.
+
+        Returns:
+            list[DataTransferComponentModel]: List of data transfer components.
+        """
+        _data = data
+        logger.debug(f"Running component {self.component_config.id} "
+                     "- not implemented for basic component")
+        component_results: list[DataTransferComponentModel] = []
+
+        return component_results

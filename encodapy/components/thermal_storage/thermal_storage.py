@@ -2,8 +2,8 @@
 Simple Method to caluculate the energy in a the thermal storage
 Author: Martin Altenburger, Paul Seidel
 """
-from ast import Tuple
 from typing import Union, Optional
+from datetime import datetime, timezone
 from loguru import logger
 from pydantic import ValidationError
 from encodapy.components.thermal_storage.thermal_storage_config import (
@@ -16,13 +16,22 @@ from encodapy.components.thermal_storage.thermal_storage_config import (
     ThermalStorageCalculationMethods,
     ThermalStorageEnergyTypes)
 from encodapy.components.basic_component import BasicComponent
-from encodapy.components.components_basic_config import IOModell, ComponentValidationError
+from encodapy.components.components_basic_config import (
+    IOModell,
+    ComponentValidationError,
+    ControllerComponentModel,
+    IOAllocationModel
+)
 from encodapy.utils.mediums import(
     Medium,
     get_medium_parameter)
-from encodapy.utils.models import StaticDataEntityModel, InputDataEntityModel
-from encodapy.config.models import ControllerComponentModel
 from encodapy.utils.units import DataUnits
+from encodapy.utils.models import (
+    StaticDataEntityModel,
+    InputDataEntityModel,
+    InputDataModel,
+    DataTransferComponentModel
+    )
 
 class ThermalStorage(BasicComponent):
     """
@@ -394,7 +403,7 @@ class ThermalStorage(BasicComponent):
 
         return state_of_charge
 
-    def calculate_state_of_charge(self)-> tuple[float, DataUnits]:
+    def get_state_of_charge(self)-> tuple[float, DataUnits]:
         """
         Function to calculate the state of charge of the thermal storage
 
@@ -592,7 +601,68 @@ class ThermalStorage(BasicComponent):
 
         self.sensor_volumes = self._calculate_volume_per_sensor()
 
-    def run(self):
+    def run(self,
+            data: InputDataModel
+            )-> list[DataTransferComponentModel]:
         """
         Run the thermal storage component.
+        TODO: How to deal with the components / other results?
+        
+        Args:
+            data (InputDataModel): Input data for the thermal storage component.
+        Returns:
+            list[DataTransferComponentModel]: List of data transfer components.
         """
+        components:list[DataTransferComponentModel] = []
+
+        if self.io_model is None:
+            logger.warning("Thermal storage IO model is not set.")
+            return components
+
+        try:
+            self.set_temperature_values(input_entities=data.input_entities)
+        except ValueError as e:
+            logger.error(f"Setting temperature values failed: {e}")
+            return components
+
+        # avoid Instance of 'FieldInfo' has no 'model_fields' member : PylintE1101:no-member
+        try:
+            output_config = OutputModel.model_validate(self.io_model.output)
+
+        except ValidationError as e:
+            logger.error(f"Output configuration validation failed: {e}")
+            return components
+
+        for output_datapoint_name, output_datapoint_info in output_config.model_fields.items():
+
+            if (isinstance(output_datapoint_info.json_schema_extra, dict)
+                and "calculation" in output_datapoint_info.json_schema_extra):
+                calculation_function = output_datapoint_info.json_schema_extra["calculation"]
+                if isinstance(calculation_function, str) and calculation_function is not None:
+                    calculation_function = calculation_function.strip()
+                else:
+                    logger.warning(f"No calculation method found for {output_datapoint_name}")
+                    continue
+            else:
+                logger.warning(f"No calculation method found for {output_datapoint_name}")
+                continue
+
+            output_datapoint_config: Optional[IOAllocationModel] = getattr(
+                self.io_model.output,
+                output_datapoint_name)
+
+            if output_datapoint_config is None:
+                continue
+
+            result_value, result_unit = getattr(self, calculation_function)()
+
+            components.append(DataTransferComponentModel(
+                entity_id=output_datapoint_config.entity,
+                attribute_id=output_datapoint_config.attribute,
+                value=result_value,
+                unit=result_unit,
+                timestamp=datetime.now(timezone.utc)
+            ))
+            logger.debug(f"Calculated {output_datapoint_name}: {result_value} {result_unit}")
+
+        return components

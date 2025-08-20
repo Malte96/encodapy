@@ -281,7 +281,10 @@ class OutputModel(BaseModel):
     """
     Model for the output of the thermal storage service, containing the temperature sensors
     in the thermal storage.
-    
+
+    Each output data point is associated with a specific calculation method, \
+        which is defined in the `json_schema_extra` field as `calculation`.
+
     Contains:
         `storage__level`: Optional[IOAllocationModel] = Output for storage charge in percent \
             (0-100) (optional)
@@ -292,13 +295,16 @@ class OutputModel(BaseModel):
     """
     storage__level: Optional[IOAllocationModel] = Field(
         None,
-        description="Output for storage charge in percent (0-100)")
+        description="Output for storage charge in percent (0-100)",
+        json_schema_extra={"calculation": "get_state_of_charge"})
     storage__energy: Optional[IOAllocationModel] = Field(
         None,
-        description="Output for storage energy in Wh")
+        description="Output for storage energy in Wh",
+        json_schema_extra={"calculation": "get_storage_energy_current"})
     storage__loading_potential: Optional[IOAllocationModel] = Field(
         None,
-        description="Output for storage loading potential in Wh")
+        description="Output for storage loading potential in Wh",
+        json_schema_extra={"calculation": "get_storage_loading_potential"})
 
 class ThermalStorageIO(BaseModel):
     """

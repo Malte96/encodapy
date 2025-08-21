@@ -21,8 +21,9 @@ This module provides a structured way to define and manage components for use wi
 ### Available Components
 
 - `ThermalStorage`: Thermal storage component to calculate the stored energy using temperature sensors.  
-  An example can be found under:  
-  [`examples/06_thermal_storage_service`](../../examples/06_thermal_storage_service/)
+  An example can be found under: [`examples/06_thermal_storage_service`](../../examples/06_thermal_storage_service/)
+- `TwoPointController`: Two-Point-Controller component for the steering of the loading process of a thermal storage or other processes.  
+  An example can be found under: [`examples/07_component_runner`](../../examples/07_component_runner/)
 
 ---
 
@@ -79,28 +80,63 @@ An example of how a Pydantic model can be used to validate the configuration of 
 
 ## Implementing a New Component
 
-### Each New Component
+### Infos for the New Component
 
 - Inherits from `BasicComponent`
 - Automatically gains:
   - Configuration parsing
   - Input discovery logic (to be triggered by the service)
+  - A function to run the component and calculates all the outputs mentioned in the configuration.
 
-### Example Constructor
+- Each component needs the same structure in a module called `*.new_component`:
+  - `new_component.py`: The Python module that initialises the class `NewComponent`.
+  - `new_component_config.py`: The Python module containing all the necessary configurations.
 
-When implementing a new component, begin by initializing the base class:
+  Make sure the names follow this convention if you want to use the component runner.
 
-```python
-def __init__(self,
-             config: Union[ControllerComponentModel, list[ControllerComponentModel]],
-             component_id: str
-             ) -> None:
 
-    super().__init__(config=config,
-                     component_id=component_id)
 
-    # Component-specific initialization logic
-```
+### Details to create a New Component
 
-**Important**: The `component_id` must match a key in the provided configuration.  
-If not, the component will raise a `ValueError` during initialization.
+- When implementing a new component, begin by initializing the base class:
+
+  ```python
+  def __init__(self,
+              config: Union[ControllerComponentModel, list[ControllerComponentModel]],
+              component_id: str
+              ) -> None:
+
+      # Add the necessary instance variables here (you need to store the input data in the component)
+      # example: self.variable: Optional[float]
+
+      super().__init__(config=config,
+                      component_id=component_id)
+
+      # Component-specific initialization logic
+  ```
+
+  **Important**: The `component_id` must match a key in the provided configuration. If not, the component will raise a `ValueError` during initialization.
+
+- The Configuration(`new_component_config.py`) needs as a minimum:
+  - `NewComponentInputModel(InputModel)`: A definition of the input datapoints
+  - `NewComponentOutputModel(OutputModel)`: A definition of the possible output datapoints / results  
+    This BaseModell needs to contain a `Field`-Definition with the key: `json_schema_extra={"calculation": "$funtion_name_to_get_the_result"}`:
+    ```python
+    from pydantic import Field
+    from encodapy.components.components_basic_config import (
+      IOAllocationModel,
+      OutputModel
+    )
+    class TwoPointControllerOutputModel(OutputModel):
+
+      result: IOAllocationModel = Field(
+          ...,
+          description="Result of the new component",
+          json_schema_extra={"calculation": "$funtion_name_to_get_the_result"}
+      )
+    ```
+- If the new component requires preparation before the first run, this should be added to the `prepare_component()` function.
+- The new component requires:
+  - a function to set the necessary inputs. For this, you have to use the function `set_input_values(input_entities: list[InputDataEntityModel])`.
+  - the functions to calculate the results with the same names as mentioned in `NewComponentOutputModel(OutputModel)`, using the component's internal value storage and other background functions.
+- If the new component requires calibration, you should extend the function `calibrate()`. In the basic component, this function is only used to update static data.

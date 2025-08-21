@@ -6,7 +6,12 @@ from typing import Optional
 from enum import Enum
 from pydantic import BaseModel, Field
 from pydantic.functional_validators import model_validator
-from encodapy.components.components_basic_config import IOAllocationModel, ComponentValidationError
+from encodapy.components.components_basic_config import (
+    IOAllocationModel,
+    ComponentValidationError,
+    InputModel,
+    OutputModel
+)
 
 class TemperatureLimits(BaseModel):
     """
@@ -121,7 +126,6 @@ class ThermalStorageTemperatureSensors(BaseModel):
 
     def check_connection_sensors(self) -> None:
         """
-        TODO use this
         Check the connection sensors:
             - If they are needed, they must have a name
 
@@ -167,7 +171,7 @@ class TemperatureSensorValues(BaseModel):
         if self.load_temperature_out is None:
             raise ComponentValidationError("The load connection sensor outflow must be available.")
 
-class InputModel(BaseModel):
+class ThermalStorageInputModel(InputModel):
     """
     Model for the input of the thermal storage service, containing the temperature sensors
     in the thermal storage.
@@ -241,7 +245,7 @@ class InputModel(BaseModel):
     )
 
     @model_validator(mode="after")
-    def check_storage_temperature_sensors(self) -> "InputModel":
+    def check_storage_temperature_sensors(self) -> "ThermalStorageInputModel":
         """
         Check that the storage sensors are configured.
         """
@@ -277,7 +281,7 @@ class InputModel(BaseModel):
         return sum(1 for key, value in self.__dict__.items()
                    if key.startswith("temperature") and value is not None)
 
-class OutputModel(BaseModel):
+class ThermalStorageOutputModel(OutputModel):
     """
     Model for the output of the thermal storage service, containing the temperature sensors
     in the thermal storage.
@@ -305,21 +309,6 @@ class OutputModel(BaseModel):
         None,
         description="Output for storage loading potential in Wh",
         json_schema_extra={"calculation": "get_storage_loading_potential"})
-
-class ThermalStorageIO(BaseModel):
-    """
-    Model for the input and output of the thermal storage service.
-    
-    Contains:
-        `input`: InputModel = Input configuration for the thermal storage service
-        `output`: OutputModel = Output configuration for the thermal storage service
-    """
-    input: InputModel = Field(
-        ...,
-        description="Input configuration for the thermal storage service")
-    output: OutputModel = Field(
-        ...,
-        description="Output configuration for the thermal storage service")
 
 class ThermalStorageCalculationMethods(Enum):
     """

@@ -3,24 +3,19 @@ Simple Method to caluculate the energy in a the thermal storage
 Author: Martin Altenburger, Paul Seidel
 """
 from typing import Union, Optional
-from datetime import datetime, timezone
 from loguru import logger
 from pydantic import ValidationError
 from encodapy.components.thermal_storage.thermal_storage_config import (
     ThermalStorageTemperatureSensors,
     TemperatureLimits,
     TemperatureSensorValues,
-    InputModel,
-    OutputModel,
-    ThermalStorageIO,
+    ThermalStorageInputModel,
     ThermalStorageCalculationMethods,
     ThermalStorageEnergyTypes)
 from encodapy.components.basic_component import BasicComponent
 from encodapy.components.components_basic_config import (
-    IOModell,
     ComponentValidationError,
-    ControllerComponentModel,
-    IOAllocationModel
+    ControllerComponentModel
 )
 from encodapy.utils.mediums import(
     Medium,
@@ -28,9 +23,7 @@ from encodapy.utils.mediums import(
 from encodapy.utils.units import DataUnits
 from encodapy.utils.models import (
     StaticDataEntityModel,
-    InputDataEntityModel,
-    InputDataModel,
-    DataTransferComponentModel
+    InputDataEntityModel
     )
 
 class ThermalStorage(BasicComponent):
@@ -54,41 +47,23 @@ class ThermalStorage(BasicComponent):
                  static_data: Optional[list[StaticDataEntityModel]] = None,
                  ) -> None:
 
-        super().__init__(config=config,
-                         component_id=component_id,
-                         static_data=static_data)
-
-
         # Basic initialization of the thermal storage
         # Configuration of the thermal storage
         self.sensor_config: Optional[ThermalStorageTemperatureSensors] = None
         self.medium: Optional[Medium] = None
         self.volume: Optional[float] = None
-        # Variables for the calcuation
-        self.io_model: Optional[ThermalStorageIO] = None
+        # Variables for the calculation
         self.sensor_values: Optional[TemperatureSensorValues] = None
         self.sensor_volumes: Optional[dict] = None
         self.calculation_method: ThermalStorageCalculationMethods = (
             ThermalStorageCalculationMethods.STATIC_LIMITS)
 
-        # Prepare the thermal storage
-        self.prepare_start_thermal_storage()
+        # Prepare Basic Parts / needs to be the latest part
+        super().__init__(config=config,
+                         component_id=component_id,
+                         static_data=static_data)
 
 
-    def thermal_storage_usable(self)-> bool:
-        """
-        Check that the thermal storage component has been configured and is ready to use.
-
-        Returns:
-            bool: True if the thermal storage is usable, False otherwise.
-        """
-        if self.sensor_config is None:
-            return False
-        if self.sensor_volumes is None:
-            return False
-        if self.medium is None:
-            return False
-        return True
 
     def _calculate_volume_per_sensor(self) -> dict:
         """
@@ -317,7 +292,7 @@ class ThermalStorage(BasicComponent):
         loading_potential = round(nominal_energy - current_energy, 2)
         return loading_potential, DataUnits.WHR
 
-    def set_temperature_values(self,
+    def set_input_values(self,
                                input_entities: list[InputDataEntityModel]
                                ) -> None:
         """
@@ -330,11 +305,6 @@ class ThermalStorage(BasicComponent):
                 the sensor values are not set correctly
         TODO: check the unit?
         """
-        if self.thermal_storage_usable() is False:
-            raise ValueError(
-                "Thermal storage is not usable. "
-                "Please prepare the thermal storage first."
-                )
 
         if self.io_model is None:
             raise ValueError("IO model is not set.")
@@ -420,7 +390,7 @@ class ThermalStorage(BasicComponent):
 
         state_of_charge = self._check_temperatur_of_highest_sensor(state_of_charge=state_of_charge)
 
-        return round(state_of_charge,2), DataUnits.P1
+        return round(state_of_charge,2), DataUnits.PERCENT
 
     def _prepare_thermal_storage(self,
                                  )-> None:
@@ -449,7 +419,7 @@ class ThermalStorage(BasicComponent):
                          "Please check the configuration.")
             return
 
-        medium_value = self.get_component_static_data(
+        medium_value, _ = self.get_component_static_data(
             component_id="medium"
         )
         if not isinstance(medium_value, str):
@@ -465,7 +435,7 @@ class ThermalStorage(BasicComponent):
             raise ValueError(error_msg) from None
 
 
-        volume = self.get_component_static_data(
+        volume, _ = self.get_component_static_data(
             component_id="volume",
             unit=DataUnits("MTQ")
         )
@@ -477,7 +447,7 @@ class ThermalStorage(BasicComponent):
 
         self.volume = float(volume)
 
-        sensor_config = self.get_component_static_data(
+        sensor_config, _ = self.get_component_static_data(
             component_id="sensor_config"
         )
 
@@ -496,6 +466,9 @@ class ThermalStorage(BasicComponent):
             raise
 
         try:
+            if not isinstance(self.component_config.config, dict):
+                raise KeyError("Calculation method is not set in the configuration.")
+
             self.calculation_method = ThermalStorageCalculationMethods(
                 self.component_config.config.get("calculation_method"))
 
@@ -505,35 +478,6 @@ class ThermalStorage(BasicComponent):
                          f"{ThermalStorageCalculationMethods.STATIC_LIMITS.value}")
             # default is set in init
 
-    def _prepare_i_o_config(self
-                            ):
-        """
-        Function to prepare the inputs and outputs of the service.
-        This function is called before the service is started.
-        """
-        config = self.component_config
-        try:
-            input_config = InputModel.model_validate(
-                config.inputs.root if isinstance(config.inputs, IOModell)
-                else config.inputs)
-        except ValidationError:
-            error_msg = "Invalid input configuration for the thermal storage"
-            logger.error(error_msg)
-            raise
-
-        try:
-            output_config = OutputModel.model_validate(
-                config.outputs.root if isinstance(config.outputs, IOModell)
-                else config.outputs)
-        except ValidationError:
-            error_msg = "Invalid output configuration for the thermal storage"
-            logger.error(error_msg)
-            raise
-
-        self.io_model = ThermalStorageIO(
-            input=input_config,
-            output=output_config
-            )
 
     def _check_input_configuration(self):
         """
@@ -549,43 +493,27 @@ class ThermalStorage(BasicComponent):
         if self.io_model is None:
             raise KeyError("No I/O model found in the thermal storage configuration.")
 
+        inputs = ThermalStorageInputModel.model_validate(self.io_model.input)
+
         # Check if there are all inputs avaiable
         if self.calculation_method is ThermalStorageCalculationMethods.CONNECTION_LIMITS:
-            self.io_model.input.check_load_connection_sensors() # pylint: disable=no-member
+
+            inputs.check_load_connection_sensors()
 
         # Check if all inputs are configured in the sensor configuration
-        if (self.io_model.input.get_number_storage_sensors() # pylint: disable=no-member
-            != len(self.sensor_config.storage_sensors)):
+        if inputs.get_number_storage_sensors() != len(self.sensor_config.storage_sensors):
             raise ComponentValidationError(
                 "Input configuration does not match sensor configuration."
                 "Number of storage temperature sensors in config "
                 f"({len(self.sensor_config.storage_sensors)}) "
                 "is not the same like the number of inputs "
-                f"({self.io_model.input.get_number_storage_sensors()})") # pylint: disable=no-member
+                f"({inputs.get_number_storage_sensors()})")
 
 
-    def prepare_start_thermal_storage(
-        self,
-        static_data: Optional[list[StaticDataEntityModel]] = None,
-        ):
+    def prepare_component(self):
         """
-        Function to prepare the start of the service, \
-            including the loading configuration of the service \
-                and preparing the thermal storage.
-        It is possible to pass static data for the thermal storage, \
-            which will be used to set the static data of the thermal storage. \
-                (For a update of the static data)
-        Args:
-            static_data (Optional[list[StaticDataEntityModel]]): Static data for the thermal storage
+        Function to prepare the thermal storage component for the start of the service
         """
-
-        if static_data is not None:
-
-            self.set_component_static_data(
-                static_data=static_data,
-                static_config=self.component_config.staticdata
-            )
-
 
         self._prepare_thermal_storage()
 
@@ -595,74 +523,6 @@ class ThermalStorage(BasicComponent):
                          "Please check the configuration.")
             return
 
-        self._prepare_i_o_config()
-
         self._check_input_configuration()
 
         self.sensor_volumes = self._calculate_volume_per_sensor()
-
-    def run(self,
-            data: InputDataModel
-            )-> list[DataTransferComponentModel]:
-        """
-        Run the thermal storage component.
-        TODO: How to deal with the components / other results?
-        
-        Args:
-            data (InputDataModel): Input data for the thermal storage component.
-        Returns:
-            list[DataTransferComponentModel]: List of data transfer components.
-        """
-        components:list[DataTransferComponentModel] = []
-
-        if self.io_model is None:
-            logger.warning("Thermal storage IO model is not set.")
-            return components
-
-        try:
-            self.set_temperature_values(input_entities=data.input_entities)
-        except ValueError as e:
-            logger.error(f"Setting temperature values failed: {e}")
-            return components
-
-        # avoid Instance of 'FieldInfo' has no 'model_fields' member : PylintE1101:no-member
-        try:
-            output_config = OutputModel.model_validate(self.io_model.output)
-
-        except ValidationError as e:
-            logger.error(f"Output configuration validation failed: {e}")
-            return components
-
-        for output_datapoint_name, output_datapoint_info in output_config.model_fields.items():
-
-            if (isinstance(output_datapoint_info.json_schema_extra, dict)
-                and "calculation" in output_datapoint_info.json_schema_extra):
-                calculation_function = output_datapoint_info.json_schema_extra["calculation"]
-                if isinstance(calculation_function, str) and calculation_function is not None:
-                    calculation_function = calculation_function.strip()
-                else:
-                    logger.warning(f"No calculation method found for {output_datapoint_name}")
-                    continue
-            else:
-                logger.warning(f"No calculation method found for {output_datapoint_name}")
-                continue
-
-            output_datapoint_config: Optional[IOAllocationModel] = getattr(
-                self.io_model.output,
-                output_datapoint_name)
-
-            if output_datapoint_config is None:
-                continue
-
-            result_value, result_unit = getattr(self, calculation_function)()
-
-            components.append(DataTransferComponentModel(
-                entity_id=output_datapoint_config.entity,
-                attribute_id=output_datapoint_config.attribute,
-                value=result_value,
-                unit=result_unit,
-                timestamp=datetime.now(timezone.utc)
-            ))
-            logger.debug(f"Calculated {output_datapoint_name}: {result_value} {result_unit}")
-
-        return components

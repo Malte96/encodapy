@@ -8,7 +8,7 @@ from pandas import DataFrame
 from pydantic import BaseModel, ConfigDict, Field, RootModel
 from encodapy.utils.units import DataUnits
 
-
+# Models for the Input Configuration
 class IOAllocationModel(BaseModel):
     """
     Model for the input or output allocation.
@@ -29,6 +29,12 @@ class IOAllocationModel(BaseModel):
 class IOModell((RootModel[Dict[str, IOAllocationModel]])):  # pylint: disable=too-few-public-methods
     """
     Model for the input, staticdata and output of a component.
+
+    It contains a dictionary with the key as the ID of the input, output or static data
+    and the value as the allocation model.
+    
+    There is no validation for this. 
+    It is used to create the the ComponentIOModel for each component.
     """
 
 
@@ -56,7 +62,7 @@ class ControllerComponentModel(BaseModel):
     inputs: IOModell
     outputs: IOModell
     staticdata: Optional[IOModell] = None
-    config: dict
+    config: Optional[dict] = None
 
 
 class ControllerComponentStaticDataAttribute(BaseModel):
@@ -86,5 +92,34 @@ class ControllerComponentStaticData(  # pylint: disable=too-few-public-methods
             (like in the config) and the value as the value of the static data.
     """
 
+# Custom Exceptions
 class ComponentValidationError(Exception):
     """Custom error for invalid configurations."""
+
+# Models for the internal input and output connections, needs to filled for the components
+
+class OutputModel(BaseModel):
+    """
+    Basemodel for the configuration of the outputs of a component
+
+    Needs to be implemented by the user.
+    """
+
+class InputModel(BaseModel):
+    """
+    Basemodel for the configuration of the inputs of a component
+    """
+class ComponentIOModel(BaseModel):
+    """
+    Model for the input and output of the thermal storage service.
+    
+    Contains:
+        `input`: InputModel = Input configuration for the thermal storage service
+        `output`: OutputModel = Output configuration for the thermal storage service
+    """
+    input: InputModel = Field(
+        ...,
+        description="Input configuration for the thermal storage service")
+    output: OutputModel = Field(
+        ...,
+        description="Output configuration for the thermal storage service")

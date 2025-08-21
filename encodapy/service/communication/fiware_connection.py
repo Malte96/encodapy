@@ -926,7 +926,8 @@ class FiwareConnection:
         output_points = attrs + cmds
 
         if len(output_points) == 0:
-            logger.debug("No output data available for sending to the FIWARE platform.")
+            logger.debug("There is no output data available to send to the FIWARE platform "
+                         f"for the entity {fiware_entity.id}.")
             return
 
         if len(attrs)>0:

@@ -68,4 +68,4 @@ class ThermalStorageService(ControllerBasicService):
         """
         if self.reload_staticdata:
             logger.debug("Reloading static data for thermal storage")
-            self.thermal_storage.prepare_start_thermal_storage(static_data=data.static_entities)
+            self.thermal_storage.calibrate(static_data=data.static_entities)

@@ -583,8 +583,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
 
         if self.config.controller_settings.time_settings.calibration is None:
-            logger.error(
-                "No Information about the calibration time in the configuration."
+            logger.info(
+                "No Information about the calibration time in the configuration. "
+                "Calibration will not be performed."
             )
             return
 

@@ -6,6 +6,7 @@ Author: Martin Altenburger
 
 import datetime
 from enum import Enum
+from pickle import NONE
 from typing import Union
 
 from loguru import logger
@@ -73,6 +74,7 @@ class DataUnits(Enum):
 
     # Temperature
     DEGREECELSIUS = "CEL"  # "°C"
+    KELVIN = "KEL"  # "K"
 
     # Volume / Volumeflow
     LITER = "LTR"  # "l"
@@ -89,8 +91,11 @@ class DataUnits(Enum):
     MTR = "MTR"  # "m"
     MTK = "MTK"  # "m²"
 
+    # speed
     MTS = "MTS"  # "m/s"
-    P1 = "P1"  # "%"
+
+    # unitless
+    PERCENT = "P1"  # "%"    #TODO Change it
 
     # Electrical
     OHM = "OHM"  # "Ohm"

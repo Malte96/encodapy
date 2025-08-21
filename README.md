@@ -63,6 +63,10 @@ You could install the Package via PyPI:
 ```
 pip install encodapy
 ```
+There are two ways to use the Package:
+
+### Customer service based on the ControllerBasicService
+
 To create your own custom service, you have to overwrite two functions of the [ControllerBasicService](./encodapy/service/basic_service.py):
 - `prepare_start`: This is a synchronous function that prepares the start of the algorithm and specifies aspects of the service. This should not take long due to health issues in Docker containers. It only needs to be overwritten if other tasks are required after initialisation of the service.
 - `calculation()`: Asynchronous function to perform the main calculation in the service
@@ -72,7 +76,14 @@ To start the service, you need to call
 - `start_calibration()`: To start the calibration if required
 - `start_service()`: To start the service
 
-A easy posibility to start the service is to run the base [main.py](./service_main/main.py). For more details, see the [examples](#examples)
+For more details, see the [examples](#examples)
+
+### Run Components with the ComponentRunnerService
+- You could use components to run them with the [ComponentRunnerService](./encodapy/service/component_runner_service.py)
+- Frist, create a configuration, then start the service:
+    - as shown in [examples/07_component_runner](./examples/07_component_runner/)
+    - by running the service with the [main.py](./service_main/main.py).
+- If you need additional components, please see [encodapy/components](./encodapy/components/)
 
 ### Examples
 For different examples and documentation, how to use the tool - see [examples](./examples/).

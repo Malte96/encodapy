@@ -13,7 +13,8 @@ from encodapy.components.components_basic_config import(
 from encodapy.utils.models import InputDataEntityModel, StaticDataEntityModel
 from encodapy.utils.units import DataUnits
 from encodapy.components.two_point_controller.two_point_controller_config import (
-    TwoPointControllerValues
+    TwoPointControllerValues,
+    TwoPointControllerStaticData
 )
 
 
@@ -123,15 +124,15 @@ class TwoPointController(BasicComponent):
             raise ValueError("Hysteresis unit is not set.")
 
         setpoint, _ = self.get_component_static_data(
-            component_id="setpoint_value",
+            component_id=TwoPointControllerStaticData.SETPOINT.value,
             unit=self.controller_values.current_unit)
         hysteresis, _ = self.get_component_static_data(
-            component_id="hysteresis",
+            component_id=TwoPointControllerStaticData.HYSTERESIS.value,
             unit=self.unit_hysteresis)
         command_enabled, command_enabled_unit = self.get_component_static_data(
-            component_id="command_enabled")
+            component_id=TwoPointControllerStaticData.COMMAND_ENABLED.value)
         command_disabled, command_disabled_unit = self.get_component_static_data(
-            component_id="command_disabled")
+            component_id=TwoPointControllerStaticData.COMMAND_DISABLED.value)
 
         if setpoint is None or hysteresis is None \
             or command_enabled is None or command_disabled is None:

@@ -11,7 +11,9 @@ from encodapy.components.thermal_storage.thermal_storage_config import (
     TemperatureSensorValues,
     ThermalStorageInputModel,
     ThermalStorageCalculationMethods,
-    ThermalStorageEnergyTypes)
+    ThermalStorageEnergyTypes,
+    ThermalStorageStaticData
+)
 from encodapy.components.basic_component import BasicComponent
 from encodapy.components.components_basic_config import (
     ComponentValidationError,
@@ -420,13 +422,13 @@ class ThermalStorage(BasicComponent):
             return
 
         medium_value, _ = self.get_component_static_data(
-            component_id="medium"
+            component_id=ThermalStorageStaticData.MEDIUM.value
         )
         if not isinstance(medium_value, str):
             error_msg = "No medium of the thermal storage specified in the configuration, \
                 or wrong type (string is required), using default medium 'water'"
             logger.warning(error_msg)
-            medium_value = 'water'
+            medium_value = Medium.WATER.value
         try:
             self.medium = Medium(medium_value)
         except ValueError:
@@ -436,7 +438,7 @@ class ThermalStorage(BasicComponent):
 
 
         volume, _ = self.get_component_static_data(
-            component_id="volume",
+            component_id=ThermalStorageStaticData.VOLUME.value,
             unit=DataUnits("MTQ")
         )
         if not isinstance(volume, (float, int, str)):
@@ -448,7 +450,7 @@ class ThermalStorage(BasicComponent):
         self.volume = float(volume)
 
         sensor_config, _ = self.get_component_static_data(
-            component_id="sensor_config"
+            component_id=ThermalStorageStaticData.SENSOR_CONFIG.value
         )
 
         if sensor_config is None:

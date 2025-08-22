@@ -88,7 +88,8 @@ An example of how a Pydantic model can be used to validate the configuration of 
   - Input discovery logic (to be triggered by the service)
   - A function to run the component and calculates all the outputs mentioned in the configuration.
 
-- Each component needs the same structure in a module called `*.new_component`:
+- Each component needs the same structure in a module called `*.$new_component`:
+  - `__init__.py`: can be empty
   - `new_component.py`: The Python module that initialises the class `NewComponent`.
   - `new_component_config.py`: The Python module containing all the necessary configurations.
 
@@ -135,13 +136,29 @@ An example of how a Pydantic model can be used to validate the configuration of 
           json_schema_extra={"calculation": "$funtion_name_to_get_the_result"}
       )
     ```
+    **If you only want to use some of the possible results, you need to set them to  `Optional[IOAllocationModel]`**
   - `NewComponentStaticData(Enum)`: A Enum class which defines the required static keys to check during the initilisazion. It should look like this:
     ```python
     class NewComponentStaticData(Enum):
       STATIC_VALUE = "$static_value_name"
     ```
+    You do not need this definition if you don't want to use static data.
 - If the new component requires preparation before the first run, this should be added to the `prepare_component()` function.
 - The new component requires:
   - a function to set the necessary inputs. For this, you have to use the function `set_input_values(input_entities: list[InputDataEntityModel])`.
   - the functions to calculate the results with the same names as mentioned in `NewComponentOutputModel(OutputModel)`, using the component's internal value storage and other background functions.
 - If the new component requires calibration, you should extend the function `calibrate()`. In the basic component, this function is only used to update static data.
+
+### Using the New Component
+- If you are using the structure for a new component, you can specify the module path in your project's configuration as the component type, as shown in the following example:
+```json
+  ...
+  "controller_components": [
+      {
+          "id": "example_controller",
+          "type": "$your_project.$your_modules.$new_component",
+          ...
+      }
+    ]
+  ...
+```

@@ -274,6 +274,9 @@ class BasicComponent:
             component_type=self.component_config.type,
             model_subname="StaticData"
         )
+        if static_model is None:
+            logger.debug("No static model found, skipping static config check.")
+            return
 
         for static_datapoint in static_model.__members__:
 

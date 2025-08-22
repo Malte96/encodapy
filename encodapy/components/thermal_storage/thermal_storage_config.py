@@ -339,3 +339,11 @@ class ThermalStorageEnergyTypes(Enum):
     MINIMAL = "minimal"
     MAXIMAL = "maximal"
     CURRENT = "current"
+
+class ThermalStorageStaticData(Enum):
+    """
+    Enum class that defines the static data keys for the thermal storage.
+    """
+    VOLUME = "volume"
+    MEDIUM = "medium"
+    SENSOR_CONFIG = "sensor_config"

@@ -1,14 +1,12 @@
 """
-This module provides basic components for the encodapy package.
+Description: This module provides basic components for the encodapy package.
+Author: Martin Altenburger
 """
-
 from typing import Dict, List, Optional, Union, Type
 from datetime import datetime, timezone
-import importlib
 from loguru import logger
 from pandas import DataFrame
 from pydantic import BaseModel, ValidationError
-
 from encodapy.components.components_basic_config import (
     ControllerComponentModel,
     ControllerComponentStaticData,
@@ -17,7 +15,8 @@ from encodapy.components.components_basic_config import (
     IOModell,
     ComponentIOModel,
     InputModel,
-    OutputModel
+    OutputModel,
+    ComponentValidationError
 )
 from encodapy.utils.models import (
     DataUnits,
@@ -26,6 +25,10 @@ from encodapy.utils.models import (
     InputDataModel,
     DataTransferComponentModel
     )
+from encodapy.components.component_loader import (
+    get_component_io_model,
+    get_component_static_data_model
+)
 
 class BasicComponent:
     """
@@ -85,7 +88,7 @@ class BasicComponent:
             if component.id == component_id:
                 return component
 
-        raise ValueError(f"No component configuration found for {component_id}")
+        raise KeyError(f"No component configuration found for {component_id}")
 
     def get_component_input(
         self,
@@ -114,7 +117,8 @@ class BasicComponent:
                     if attribute.id == input_config.attribute:
                         return attribute.data, attribute.unit
 
-        raise ValueError(f"Input data {input_config.entity} / {input_config.attribute} not found")
+        raise KeyError(f"Input data {input_config.entity} / {input_config.attribute} not found. "
+                         "Please check the configuration of the Inputs, Outputs and Static Data.")
 
     def set_component_static_data(
         self,
@@ -189,91 +193,20 @@ class BasicComponent:
             return
         self.static_data = static_data_model
 
-    def get_component_static_data(
-        self,
-        component_id: str,
-        unit: Optional[DataUnits] = None
-    ) -> tuple[
-        Union[str, float, int, bool, Dict, List, DataFrame, None],
-        Optional[DataUnits]
-    ]:
+    def prepare_basic_component(self):
         """
-        Function to get the static data of a component by its ID \
-            and in the specified unit (optional).
-        Args:
-            component_id (str): ID of the component to get the static data for
-            unit (Optional[str]): Unit to convert the static data value to, if specified
-        Returns:
-            Union[str, float, int, bool, Dict, List, DataFrame, None]: 
-                The value of the static data in the specified unit or as is if no unit is specified
+        Function for preparing the start of the component:
+            - Preparing the I/O configuration.
+            - Checking the static configuration.
+            - Starting the function for individual preparation steps.
         """
-        if component_id not in self.static_data.root.keys():
-            return None, None
-
-        static_data = ControllerComponentStaticDataAttribute.model_validate(
-            self.static_data.root.get(component_id, None)
-        )
-        static_data_value = static_data.value
-        static_data_unit = static_data.unit
-
-        if unit is not None and static_data_unit is not None:
-            if static_data_unit == unit:
-                return static_data_value, static_data_unit
-            # TODO: Implement unit conversion if needed
-            raise ValueError(
-                f"Unit conversion from {static_data_unit} to {unit} is not implemented"
-            )
-
-        return static_data_value, static_data_unit
-
-    def set_input_values(self,
-                         input_entities: list[InputDataEntityModel]
-                         ) -> None:
-        """
-        Set the input values for the component from the provided input entities.
-        Needs to be implemented in each component.
-        TODO: Is this possible in the basic component?
-
-        Args:
-            input_entities (list[InputDataEntityModel]): List of input data entities to set
-
-        """
-        _input_data = input_entities
-        logger.debug("Input values should be set in each component")
-
-    def prepare_component(self):
-        """
-        Function to prepare the component.
-        This function should be implemented in each component to prepare the component.
-        """
-        logger.debug("Prepare component is not implemented in the base class")
-
-    def prepare_basic_component(
-        self,
-        static_data: Optional[list[StaticDataEntityModel]] = None,
-        ):
-        """
-        Function to prepare the start of the component, \
-            including the loading configuration of the component \
-                and preparing the component.
-        Special parts for a component could be included by the function `prepare_component()`
-        It is possible to pass static data for component, \
-            which will be used to set the static data of the component. \
-                (For a update of the static data)
-        Args:
-            static_data (Optional[list[StaticDataEntityModel]]): Static data for the component
-        """
-
-        if static_data is not None:
-
-            self.set_component_static_data(
-                static_data=static_data,
-                static_config=self.component_config.staticdata
-            )
 
         self._prepare_i_o_config()
 
+        self._check_static_config()
+
         self.prepare_component()
+
 
     def _get_input_and_output_models(self) -> tuple[Type[BaseModel], Type[BaseModel]]:
         """
@@ -282,22 +215,19 @@ class BasicComponent:
         
         #TODO maybe we could use the module-path for different modules?
         """
-        component_type = self.component_config.type
-        module_path = f"encodapy.components.{component_type}.{component_type}_config"
+        component_input_model = get_component_io_model(
+            component_type = self.component_config.type,
+            model_subname = "InputModel"
+        )
+        component_output_model = get_component_io_model(
+            component_type = self.component_config.type,
+            model_subname = "OutputModel"
+        )
 
-        config_module = importlib.import_module(module_path)
-        model_name = "".join(part.capitalize() for part in component_type.split("_"))
-
-        try:
-            component_input_model = getattr(config_module, f"{model_name}InputModel")
-            component_output_model = getattr(config_module, f"{model_name}OutputModel")
-        except AttributeError:
-            error_msg = f"Input or output model not found in {module_path}"
-            logger.error(error_msg)
-            raise
         if not (issubclass(component_input_model, InputModel) and
                 issubclass(component_output_model, OutputModel)):
-            error_msg = f"Input or output model is not a subclass of BaseModel in {module_path}"
+            error_msg = (
+                "Input or output model is not a subclass of BaseModel")
             logger.error(error_msg)
             raise TypeError(error_msg)
 
@@ -331,6 +261,90 @@ class BasicComponent:
             input=input_config,
             output=output_config
             )
+
+    def _check_static_config(self):
+        """
+        Check the static configuration of the component.
+        Uses the model of the required static data to validate the configuration.
+        
+        Raises:
+            ComponentValidationError: If the validation fails because static data is missing.
+        """
+        static_model = get_component_static_data_model(
+            component_type=self.component_config.type,
+            model_subname="StaticData"
+        )
+
+        for static_datapoint in static_model.__members__:
+
+            static_name = static_model[static_datapoint].value
+
+            if static_name not in self.component_config.staticdata.root.keys():
+                logger.error(f"Static data '{static_name}' is missing in the configuration "
+                             f"of the component {self.component_config.id}.")
+                raise ComponentValidationError(
+                    f"Static data '{static_name}' is missing in the configuration. "
+                             f"of the component {self.component_config.id}.")
+
+    def get_component_static_data(
+        self,
+        component_id: str,
+        unit: Optional[DataUnits] = None
+    ) -> tuple[
+        Union[str, float, int, bool, Dict, List, DataFrame, None],
+        Optional[DataUnits]
+    ]:
+        """
+        Function to get the static data of a component by its ID \
+            and in the specified unit (optional).
+        Args:
+            component_id (str): ID of the component to get the static data for
+            unit (Optional[str]): Unit to convert the static data value to, if specified
+        Returns:
+            Union[str, float, int, bool, Dict, List, DataFrame, None]: 
+                The value of the static data in the specified unit or as is if no unit is specified
+        """
+        if component_id not in self.static_data.root.keys():
+            return None, None
+
+        static_data = ControllerComponentStaticDataAttribute.model_validate(
+            self.static_data.root.get(component_id, None)
+        )
+        static_data_value = static_data.value
+        static_data_unit = static_data.unit
+
+        if unit is not None and static_data_unit is not None:
+            if static_data_unit == unit:
+                return static_data_value, static_data_unit
+            # TODO: Implement unit conversion if needed
+            raise RuntimeError(
+                f"Unit conversion from {static_data_unit} to {unit} is not implemented"
+            )
+
+        return static_data_value, static_data_unit
+
+    def prepare_component(self):
+        """
+        Function to prepare the component.
+        This function should be implemented in each component to prepare the component.
+        """
+        logger.debug("Prepare component is not implemented in the base class")
+
+    def set_input_values(self,
+                         input_entities: list[InputDataEntityModel]
+                         ) -> None:
+        """
+        Set the input values for the component from the provided input entities.
+        Needs to be implemented in each component.
+        TODO: Is this possible in the basic component?
+
+        Args:
+            input_entities (list[InputDataEntityModel]): List of input data entities to set
+
+        """
+        _input_data = input_entities
+        logger.debug("Input values should be set in each component")
+
 
     def run(self,
             data: InputDataModel
@@ -420,3 +434,6 @@ class BasicComponent:
                 static_config=self.component_config.staticdata
             )
             self.prepare_component()
+
+
+

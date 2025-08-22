@@ -3,8 +3,6 @@ Description: This module contains the definition of a service to calculate \
     the energy in a thermal storage based on the temperature sensors.
 Author: Martin Altenburger
 """
-from typing import Type
-import importlib
 from loguru import logger
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
@@ -16,6 +14,7 @@ from encodapy.utils.models import (
     AttributeTypes
     )
 from encodapy.components.basic_component import BasicComponent
+from encodapy.components.component_loader import get_component_class_model
 
 
 class ComponentRunnerService(ControllerBasicService):
@@ -32,31 +31,6 @@ class ComponentRunnerService(ControllerBasicService):
         super().__init__()
 
 
-    def get_component_class(self,
-                            component_type: str) -> Type[BasicComponent]:
-        """
-        Function to get the class of a component
-
-        Args:
-            component (BasicComponent): The component to get the class for
-
-        Returns:
-            Type[BasicComponent]: The class of the component
-        """
-        module_path = f"encodapy.components.{component_type}.{component_type}"
-
-        config_module = importlib.import_module(module_path)
-        class_name = "".join(part.capitalize() for part in component_type.split("_"))
-
-        try:
-            component_class = getattr(config_module, class_name)
-        except AttributeError:
-            error_msg = f"Input or output model not found in {module_path}"
-            logger.error(error_msg)
-            raise
-
-        return component_class
-
     def prepare_start(self):
         """ Function to prepare the thermal storage service for start
         This function loads the thermal storage configuration \
@@ -67,7 +41,7 @@ class ComponentRunnerService(ControllerBasicService):
 
             if component.active is False:
                 continue
-            component_type = self.get_component_class(component.type)
+            component_type = get_component_class_model(component.type)
             self.components.append(component_type(
                 config=component,
                 component_id=component.id,

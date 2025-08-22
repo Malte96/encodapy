@@ -3,6 +3,7 @@ Description: Configuration model for the two-point controller component.
 Author: Martin Altenburger
 """
 from typing import Optional, Union
+from enum import Enum
 from pydantic import Field, BaseModel
 from encodapy.components.components_basic_config import (
     IOAllocationModel,
@@ -43,6 +44,16 @@ class TwoPointControllerOutputModel(OutputModel):
         description="Control signal output from the two-point controller",
         json_schema_extra={"calculation": "get_control_signal"}
     )
+
+class TwoPointControllerStaticData(Enum):
+    """
+    Enum class that defines the static data keys for the two-point controller.
+    """
+    HYSTERESIS = "hysteresis"
+    SETPOINT = "setpoint_value"
+    COMMAND_ENABLED = "command_enabled"
+    COMMAND_DISABLED = "command_disabled"
+
 
 class TwoPointControllerValues(BaseModel):
     """

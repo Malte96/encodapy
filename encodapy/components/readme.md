@@ -1,8 +1,8 @@
-# Component Architecture of `encodapy`
+# Component Architecture of `EnCoDaPy`
 
 ## Structure of the Component Code
 
-This module provides a structured way to define and manage components for use within the `encodapy` framework.
+This module provides a structured way to define and manage components for use within the `EnCoDaPy` framework.
 
 ### Highlights
 
@@ -134,6 +134,11 @@ An example of how a Pydantic model can be used to validate the configuration of 
           description="Result of the new component",
           json_schema_extra={"calculation": "$funtion_name_to_get_the_result"}
       )
+    ```
+  - `NewComponentStaticData(Enum)`: A Enum class which defines the required static keys to check during the initilisazion. It should look like this:
+    ```python
+    class NewComponentStaticData(Enum):
+      STATIC_VALUE = "$static_value_name"
     ```
 - If the new component requires preparation before the first run, this should be added to the `prepare_component()` function.
 - The new component requires:

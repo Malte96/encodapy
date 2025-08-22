@@ -7,7 +7,9 @@ from pydantic import ValidationError
 from loguru import logger
 from pandas import DataFrame
 from encodapy.components.basic_component import BasicComponent
-from encodapy.components.components_basic_config import ControllerComponentModel
+from encodapy.components.components_basic_config import(
+    ControllerComponentModel
+)
 from encodapy.utils.models import InputDataEntityModel, StaticDataEntityModel
 from encodapy.utils.units import DataUnits
 from encodapy.components.two_point_controller.two_point_controller_config import (
@@ -38,12 +40,12 @@ class TwoPointController(BasicComponent):
                          config=config,
                          static_data=static_data)
 
+
     def prepare_component(self):
         _, hysteresis_unit = self.get_component_static_data(component_id="hysteresis")
 
         if hysteresis_unit is not None:
             self.unit_hysteresis = hysteresis_unit
-        #TODO Check the configs?
 
     def set_input_values(self, input_entities: list[InputDataEntityModel]) -> None:
 

@@ -3,6 +3,8 @@ Description: This module contains the definition of a service to calculate \
     the energy in a thermal storage based on the temperature sensors.
 Author: Martin Altenburger
 """
+from typing import Optional
+import asyncio
 from loguru import logger
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
@@ -23,12 +25,13 @@ class ComponentRunnerService(ControllerBasicService):
 
     """
 
-    def __init__(self)-> None:
+    def __init__(self,
+                 shutdown_event: Optional[asyncio.Event])-> None:
         """
         Constructor for the ThermalStorageService
         """
         self.components:list[BasicComponent] = []
-        super().__init__()
+        super().__init__(shutdown_event=shutdown_event)
 
 
     def prepare_start(self):
@@ -149,7 +152,7 @@ class ComponentRunnerService(ControllerBasicService):
             all_component_results.extend(component_results)
 
 
-        return DataTransferModel(components=component_results)
+        return DataTransferModel(components=all_component_results)
 
 
     async def calibration(self,

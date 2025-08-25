@@ -6,10 +6,10 @@ Author: Martin Altenburger
 import os
 from asyncio import sleep
 from datetime import datetime
-from typing import Union
-
+from typing import Union, Optional
+import asyncio
+import signal
 from loguru import logger
-
 from encodapy.config import (
     AttributeModel,
     CommandModel,
@@ -44,11 +44,13 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
     """
 
-    def __init__(self) -> None:
+    def __init__(self,
+                 shutdown_event: Optional[asyncio.Event]) -> None:
         FiwareConnection.__init__(self)
         FileConnection.__init__(self)
         MqttConnection.__init__(self)
 
+        self.stop_event = shutdown_event or asyncio.Event()
         self.logger = LoggerControl()
 
         self.reload_staticdata = False
@@ -417,7 +419,10 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 "The sampling time must be increased!"
             )
         while ((datetime.now() - start_time).total_seconds()) < hold_time:
+            if self.stop_event.is_set():
+                break
             await sleep(0.01)
+ 
 
     async def calculation(
         self,
@@ -543,13 +548,23 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 break
         return output_cmds
 
+    def cleanup_service(self):
+        """
+        Cleanup the service resources:
+            - MQTT Client
+        If more resources are added in the future, make sure to clean them up here.
+        """
+
+        self.stop_mqtt_client()
+        logger.debug("Service stopped, cleanup finished.")
+
     async def start_service(self):
         """
         Main function for converting the data
         """
         logger.info("Start the Service")
 
-        while True:
+        while not self.stop_event.is_set():
             logger.debug("Start the Prozess")
             start_time = datetime.now()
 
@@ -577,6 +592,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 start_time=start_time, hold_time=sampling_time
             )
 
+        logger.debug("Service will be stopped, running cleanup")
+        self.cleanup_service()
+
     async def start_calibration(self):
         """
         Function for autonomous adjustment of the system parameters
@@ -596,7 +614,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             )
         )
 
-        while True:
+        while not self.stop_event.is_set():
             logger.debug("Start Calibration")
             start_time = datetime.now()
             data_input = await self.get_data(method=DataQueryTypes.CALIBRATION)
@@ -605,13 +623,15 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             await self._hold_sampling_time(
                 start_time=start_time, hold_time=sampling_time
             )
+        logger.debug("Calibration was stopped")
+
 
     async def check_health_status(self):
         """
         Function to check the health-status of the service
         """
         logger.debug("Start the the Health-Check")
-        while True:
+        while not self.stop_event.is_set():
             start_time = datetime.now()
             sampling_time = (
                 self.config.controller_settings.time_settings.calculation.sampling_time

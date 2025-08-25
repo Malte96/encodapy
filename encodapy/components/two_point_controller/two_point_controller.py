@@ -10,7 +10,11 @@ from encodapy.components.basic_component import BasicComponent
 from encodapy.components.components_basic_config import(
     ControllerComponentModel
 )
-from encodapy.utils.models import InputDataEntityModel, StaticDataEntityModel
+from encodapy.utils.models import (
+    InputDataModel,
+    InputDataEntityModel,
+    StaticDataEntityModel
+)
 from encodapy.utils.units import DataUnits
 from encodapy.components.two_point_controller.two_point_controller_config import (
     TwoPointControllerValues,
@@ -48,12 +52,16 @@ class TwoPointController(BasicComponent):
         if hysteresis_unit is not None:
             self.unit_hysteresis = hysteresis_unit
 
-    def set_input_values(self, input_entities: list[InputDataEntityModel]) -> None:
+    def set_input_values(self, input_data: InputDataModel) -> None:
 
 
         if self.io_model is None:
             logger.error("IO model is not set.")
             return
+
+        input_datapoints: list[Union[InputDataEntityModel, StaticDataEntityModel]] = []
+        input_datapoints.extend(input_data.input_entities)
+        input_datapoints.extend(input_data.static_entities)
 
         sensor_values: dict[str, Union[bool, float, None]] = {}
         sensor_units: dict[str, Optional[DataUnits]] = {}
@@ -64,7 +72,7 @@ class TwoPointController(BasicComponent):
                 continue
 
             value, unit = self.get_component_input(
-                    input_entities=input_entities,
+                    input_entities=input_datapoints,
                     input_config=datapoint_information
                 )
 
@@ -99,7 +107,7 @@ class TwoPointController(BasicComponent):
             latest_control_signal = latest_control_signal_raw
 
         try:
-            controller_values = TwoPointControllerValues(
+            self.controller_values = TwoPointControllerValues(
                 current_value=cast(float, sensor_values.get("current_value")),
                 current_unit=sensor_units.get("current_value"),
                 latest_control_signal=cast(Union[str, float, int, bool], latest_control_signal)
@@ -107,8 +115,6 @@ class TwoPointController(BasicComponent):
         except (ValidationError, KeyError) as e:
             logger.error(f"Error setting controller values: {e}")
             return
-
-        self.controller_values = controller_values
 
     def get_control_signal(self
                            ) -> tuple[

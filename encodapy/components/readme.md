@@ -128,7 +128,7 @@ An example of how a Pydantic model can be used to validate the configuration of 
       IOAllocationModel,
       OutputModel
     )
-    class TwoPointControllerOutputModel(OutputModel):
+    class NewComponentOutputModel(OutputModel):
 
       result: IOAllocationModel = Field(
           ...,

@@ -24,6 +24,7 @@ from encodapy.utils.mediums import(
     get_medium_parameter)
 from encodapy.utils.units import DataUnits
 from encodapy.utils.models import (
+    InputDataModel,
     StaticDataEntityModel,
     InputDataEntityModel
     )
@@ -294,9 +295,7 @@ class ThermalStorage(BasicComponent):
         loading_potential = round(nominal_energy - current_energy, 2)
         return loading_potential, DataUnits.WHR
 
-    def set_input_values(self,
-                               input_entities: list[InputDataEntityModel]
-                               ) -> None:
+    def set_input_values(self, input_data: InputDataModel) -> None:
         """
         Function to set the sensor values in the thermal storage
 
@@ -310,6 +309,10 @@ class ThermalStorage(BasicComponent):
 
         if self.io_model is None:
             raise ValueError("IO model is not set.")
+        
+        input_datapoints: list[Union[InputDataEntityModel, StaticDataEntityModel]] = []
+        input_datapoints.extend(input_data.input_entities)
+        input_datapoints.extend(input_data.static_entities)
 
         # Temperature values, which are not sensors in the thermal storage:
         # TemperatureSensorValues.load_temperature_in / .load_temperature_out
@@ -322,7 +325,7 @@ class ThermalStorage(BasicComponent):
                 continue
 
             temperature_value, _temperature_unit = self.get_component_input(
-                    input_entities=input_entities,
+                    input_entities=input_datapoints,
                     input_config=datapoint_information
                 )
             if not isinstance(temperature_value, (str, int, float)):

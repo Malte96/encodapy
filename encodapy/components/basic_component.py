@@ -92,7 +92,10 @@ class BasicComponent:
 
     def get_component_input(
         self,
-        input_entities: Union[list[InputDataEntityModel], list[StaticDataEntityModel]],
+        input_entities: Union[
+            list[InputDataEntityModel],
+            list[StaticDataEntityModel],
+            list[Union[InputDataEntityModel, StaticDataEntityModel]]],
         input_config: IOAllocationModel,
     ) -> tuple[
         Union[str, float, int, bool, Dict, List, DataFrame, None],
@@ -110,7 +113,6 @@ class BasicComponent:
             tuple[Union[str, float, int, bool, Dict, List, DataFrame, None], \
                 Union[DataUnits, None]]: The value of the input data and its unit
         """
-
         for input_data in input_entities:
             if input_data.id == input_config.entity:
                 for attribute in input_data.attributes:
@@ -334,7 +336,7 @@ class BasicComponent:
         logger.debug("Prepare component is not implemented in the base class")
 
     def set_input_values(self,
-                         input_entities: list[InputDataEntityModel]
+                         input_data: InputDataModel
                          ) -> None:
         """
         Set the input values for the component from the provided input entities.
@@ -342,10 +344,10 @@ class BasicComponent:
         TODO: Is this possible in the basic component?
 
         Args:
-            input_entities (list[InputDataEntityModel]): List of input data entities to set
+            input_data (InputDataModel): Input data model containing all necessary entities
 
         """
-        _input_data = input_entities
+        _input_data = input_data
         logger.debug("Input values should be set in each component")
 
 
@@ -368,8 +370,8 @@ class BasicComponent:
             return components
 
         try:
-            self.set_input_values(input_entities=data.input_entities)
-        except ValueError as e:
+            self.set_input_values(input_data=data)
+        except (ValueError, KeyError) as e:
             logger.error(f"Setting input values failed for {self.component_config.id}: {e}")
             return components
 
@@ -437,6 +439,3 @@ class BasicComponent:
                 static_config=self.component_config.staticdata
             )
             self.prepare_component()
-
-
-

@@ -17,13 +17,13 @@ async def main():
         - start the service
     """
 
-    service = ComponentRunnerService()
+    shutdown_event = asyncio.Event()
+    service = ComponentRunnerService(shutdown_event=shutdown_event)
 
     task_for_calibration = asyncio.create_task(service.start_calibration())
     task_for_check_health = asyncio.create_task(service.check_health_status())
     task_for_start_service = asyncio.create_task(service.start_service())
 
-    shutdown_event = asyncio.Event()
 
     def signal_handler():
         """Handler für SIGTERM und SIGINT Signale"""
@@ -53,19 +53,15 @@ async def main():
             return_when=asyncio.FIRST_COMPLETED
         )
 
-        logger.debug("Finish all tasks...")
-        for task in service_tasks:
-            if not task.done():
-                task.cancel()
-
 
         if service_tasks:
             try:
                 done, pending = await asyncio.wait(
                     service_tasks,
-                    timeout=10.0,
+                    timeout=30.0,
                     return_when=asyncio.ALL_COMPLETED
                 )
+
                 if pending:
                     logger.error("Service could not be terminated properly: "
                                  f"{len(pending)} Tasks hang.")

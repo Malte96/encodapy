@@ -567,10 +567,7 @@ class MqttConnection:
                 return float(num_str)
             return int(num_str)
 
-        # if nothing else worked, return the payload as string
-        logger.warning(
-            f"Payload '{payload}' could not be parsed automatically, returning it as string."
-        )
+        # if nothing else worked, return the payload as is
         return payload
 
     def send_data_to_mqtt(

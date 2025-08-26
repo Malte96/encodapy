@@ -102,8 +102,8 @@ class BasicComponent:
         Union[DataUnits, None],
     ]:
         """
-        Function to get the value of the input data for a spesific input configuration \
-            of a component of the controller (or a inividual one).
+        Function to get the value of the input data for a specific input configuration \
+            of a component of the controller (or a individual one).
 
         Args:
             input_entities (list[InputDataEntityModel]): Data of input entities
@@ -128,8 +128,8 @@ class BasicComponent:
         static_config: Union[IOAllocationModel, IOModell, None],
     ):
         """
-        Function to get the value of the static data for a spesific input configuration \
-            of a component of the controller (or a inividual one).
+        Function to get the value of the static data for a specific input configuration \
+            of a component of the controller (or a individual one).
 
         Args:
             static_data (Union[list[StaticDataEntityModel], None]): Data of static entities

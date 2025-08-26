@@ -6,8 +6,7 @@ Author: Martin Altenburger
 
 import datetime
 from enum import Enum
-from pickle import NONE
-from typing import Union
+from typing import Union, Optional
 
 from loguru import logger
 
@@ -36,7 +35,7 @@ class TimeUnitsSeconds(Enum):
     MONTH = datetime.timedelta(days=30).total_seconds()
 
 
-def get_time_unit_seconds(time_unit: Union[TimeUnits, str]) -> Union[int, None]:
+def get_time_unit_seconds(time_unit: Union[TimeUnits, str]) -> Optional[float]:
     """Funktion to get the seconds for a time unit
 
     Args:
@@ -80,6 +79,7 @@ class DataUnits(Enum):
     LITER = "LTR"  # "l"
     MTQ = "MTQ"  # "m³"
     MQH = "MQH"  # "m³/h"
+    MQS = "MQS"  # "m³/s"
 
     # Energy / Power
     WTT = "WTT"  # "W"
@@ -102,7 +102,9 @@ class DataUnits(Enum):
     VLT = "VLT"  # "V"
 
 
-def get_unit_adjustment_factor(unit_actual: DataUnits, unit_target: DataUnits) -> float:
+def get_unit_adjustment_factor(unit_actual: DataUnits,
+                               unit_target: DataUnits
+                               ) -> Optional[float]:
     """Function to get the adjustment factor for the conversion of units
 
     Args:
@@ -112,6 +114,14 @@ def get_unit_adjustment_factor(unit_actual: DataUnits, unit_target: DataUnits) -
     Returns:
         float: Adjustment factor for the conversion of the units
     """
+    if unit_actual is None:
+        logger.warning("Actual unit is None, could not determine adjustment factor")
+        return None
+    if unit_target is None:
+        logger.warning("Target unit is None, could not determine adjustment factor")
+        return None
+    if unit_actual == unit_target:
+        return 1.0
     # TODO: Real adjustment factors
     raise NotImplementedError(
         "Adjustment factors for the conversion of units are not implemented yet"

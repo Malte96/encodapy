@@ -10,7 +10,7 @@ from pydantic import BaseModel, ValidationError
 from encodapy.components.basic_component_config import (
     ControllerComponentModel,
     ControllerComponentStaticData,
-    ControllerComponentStaticDataAttribute,
+    DataPointModel,
     IOAllocationModel,
     IOModell,
     ComponentIOModel,
@@ -158,7 +158,7 @@ class BasicComponent:
                     input_config=static_config.root[static_config_item],
                 )
                 static_config_data[static_config_item] = (
-                    ControllerComponentStaticDataAttribute(
+                    DataPointModel(
                         value=datapoint_value, unit=datapoint_unit
                     )
                 )
@@ -169,7 +169,7 @@ class BasicComponent:
                 input_config=static_config,
             )
             static_config_data[static_config.entity] = (
-                ControllerComponentStaticDataAttribute(
+                DataPointModel(
                     value=datapoint_value, unit=datapoint_unit
                 )
             )
@@ -312,7 +312,7 @@ class BasicComponent:
         if component_id not in self.static_data.root.keys():
             return None, None
 
-        static_data = ControllerComponentStaticDataAttribute.model_validate(
+        static_data = DataPointModel.model_validate(
             self.static_data.root.get(component_id, None)
         )
         static_data_value = static_data.value

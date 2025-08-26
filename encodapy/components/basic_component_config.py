@@ -1,11 +1,11 @@
 """
-Basic configuration for the components in the Encodapy framework.
+Basic configuration for the components in the EnCoCaPy framework.
 Author: Martin Altenburger
 """
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Any
 from pandas import DataFrame
-from pydantic import BaseModel, ConfigDict, Field, RootModel
+from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 from encodapy.utils.units import DataUnits
 
 # Models for the Input Configuration
@@ -23,6 +23,12 @@ class IOAllocationModel(BaseModel):
     )
     attribute: str = Field(
         ..., description="ID of the attribute to which the input or output is allocated"
+    )
+    default: Optional[Any] = Field(
+        None, description="Default value for the input or output"
+    )
+    unit: Optional[DataUnits] = Field(
+        None, description="Unit of the input or output"
     )
 
 
@@ -65,7 +71,7 @@ class ControllerComponentModel(BaseModel):
     config: Optional[dict] = None
 
 
-class ControllerComponentStaticDataAttribute(BaseModel):
+class DataPointModel(BaseModel):
     """
     Model for the static data attributes of the controller component.
     
@@ -82,7 +88,7 @@ class ControllerComponentStaticDataAttribute(BaseModel):
 
 
 class ControllerComponentStaticData(  # pylint: disable=too-few-public-methods
-    RootModel[Dict[str, ControllerComponentStaticDataAttribute]]
+    RootModel[Dict[str, DataPointModel]]
 ):
     """
     Model for the static data of the controller.
@@ -109,6 +115,25 @@ class InputModel(BaseModel):
     """
     Basemodel for the configuration of the inputs of a component
     """
+
+    @model_validator(mode="after")
+    def check_default_values(self)->"InputModel":
+        """
+        Check the default_values
+        """
+        for name, field in self.model_fields.items():
+            value = getattr(self, name)
+            extra = field.json_schema_extra or {}
+
+            if isinstance(value, IOAllocationModel) and isinstance(extra, dict):
+
+                if "default" in extra and value.default is None:
+                    value.default = extra["default"]
+                if "unit" in extra and value.unit is None:
+                    value.unit = DataUnits(extra["unit"])
+
+        return self
+
 class ComponentIOModel(BaseModel):
     """
     Model for the input and output of the thermal storage service.

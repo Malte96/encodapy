@@ -1,6 +1,6 @@
 """
-Description: This module contains the definition of a service to calculate \
-    the energy in a thermal storage based on the temperature sensors.
+Description: This module contains the definition of a service to run
+    a component based on the configuration.
 Author: Martin Altenburger
 """
 from typing import Optional
@@ -21,23 +21,27 @@ from encodapy.components.component_loader import get_component_class_model
 
 class ComponentRunnerService(ControllerBasicService):
     """
-    Class for a thermal storage calculation service
+    Class for a component runner service
 
     """
 
     def __init__(self,
-                 shutdown_event: Optional[asyncio.Event])-> None:
+                 shutdown_event: Optional[asyncio.Event]=None)-> None:
         """
-        Constructor for the ThermalStorageService
+        Constructor for the ComponentRunnerService
+
+        Args:
+            shutdown_event (Optional[asyncio.Event]): \
+                The shutdown event to signal when the service should stop
         """
         self.components:list[BasicComponent] = []
         super().__init__(shutdown_event=shutdown_event)
 
 
     def prepare_start(self):
-        """ Function to prepare the thermal storage service for start
-        This function loads the thermal storage configuration \
-            and initializes the thermal storage component.
+        """ Function to prepare the service for start
+        This function loads the configuration \
+            and initializes the component.
         """
 
         for component in self.config.controller_components:
@@ -159,14 +163,14 @@ class ComponentRunnerService(ControllerBasicService):
                           data: InputDataModel
                           )-> None:
         """
-        Function to do the calibration of the thermal storage service. 
-        This function prepares the thermal storage component with the static data, \
+        Function to do the calibration of the component runner service.
+        This function prepares the component with the static data, \
             if this is reloaded.
-        It is possible to update the static data of the thermal storage component with \
-            rerunning the `prepare_start_thermal_storage` method with new static data.
+        It is possible to update the static data of the component with \
+            rerunning the `prepare_start_component` method with new static data.
 
         Args:
-            data (InputDataModel): InputDataModel for the thermal storage component
+            data (InputDataModel): InputDataModel for the component
         """
         logger.debug("The calibration of the components has begun.")
         for component in self.components:

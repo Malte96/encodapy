@@ -9,14 +9,21 @@ Author: Martin Altenburger, Maximilian Beyer
 from datetime import datetime, timezone
 
 from loguru import logger
+from pandas import DataFrame
 
 from encodapy.components.basic_component import BasicComponent
+from encodapy.components.basic_component_config import (
+    ControllerComponentModel,
+    IOAllocationModel,
+)
 from encodapy.service import ControllerBasicService
 from encodapy.utils.models import (
     DataTransferComponentModel,
     DataTransferModel,
+    InputDataEntityModel,
     InputDataModel,
 )
+from encodapy.utils.units import DataUnits
 
 
 class MQTTController(ControllerBasicService):
@@ -35,7 +42,7 @@ class MQTTController(ControllerBasicService):
         """
         Constructor of the class
         """
-        self.controller: BasicComponent
+        self.heater_config = ControllerComponentModel
         super().__init__()
 
     def prepare_start(self):
@@ -49,6 +56,36 @@ class MQTTController(ControllerBasicService):
         for item in self.config.controller_components:
             if item.type == "BasicComponent":
                 self.controller = BasicComponent(config=item, component_id=item.id)
+
+    def get_component_input(
+        self,
+        input_entities: list[InputDataEntityModel],
+        input_config: IOAllocationModel,
+    ) -> tuple[
+        (str | float | int | bool | dict | list | DataFrame | None), (DataUnits | None)
+    ]:
+        """
+        Function to get the value of the input data for a specific input configuration \
+            of a component of the controller (or a individual one).
+
+        Args:
+            input_entities (list[InputDataEntityModel]): Data of input entities
+            input_config (IOAllocationModel): Configuration of the input
+
+        Returns:
+            tuple[Union[str, float, int, bool, Dict, List, DataFrame, None], \
+                Union[DataUnits, None]]: The value of the input data and its unit
+        """
+        for input_data in input_entities:
+            if input_data.id == input_config.entity:
+                for attribute in input_data.attributes:
+                    if attribute.id == input_config.attribute:
+                        return attribute.data, attribute.unit
+
+        raise KeyError(
+            f"Input data {input_config.entity} / {input_config.attribute} not found. "
+            "Please check the configuration of the Inputs, Outputs and Static Data."
+        )
 
     def check_heater_command(
         self,

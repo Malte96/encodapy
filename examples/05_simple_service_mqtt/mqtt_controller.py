@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 from loguru import logger
 from pandas import DataFrame
 
-from encodapy.components.basic_component import BasicComponent
 from encodapy.components.basic_component_config import (
     ControllerComponentModel,
     IOAllocationModel,
@@ -53,9 +52,9 @@ class MQTTController(ControllerBasicService):
         """
         logger.debug("Loading configuration of the service")
 
-        for item in self.config.controller_components:
-            if item.type == "BasicComponent":
-                self.controller = BasicComponent(config=item, component_id=item.id)
+        for component in self.config.controller_components:
+            if component.type == "MQTTController":
+                self.heater_config = component
 
     def get_component_input(
         self,
@@ -73,8 +72,7 @@ class MQTTController(ControllerBasicService):
             input_config (IOAllocationModel): Configuration of the input
 
         Returns:
-            tuple[Union[str, float, int, bool, Dict, List, DataFrame, None], \
-                Union[DataUnits, None]]: The value of the input data and its unit
+            tuple: Value of the input data, unit of the input data
         """
         for input_data in input_entities:
             if input_data.id == input_config.entity:
@@ -129,31 +127,27 @@ class MQTTController(ControllerBasicService):
         """
 
         inputs = {}
-        for (
-            input_key,
-            input_config,
-        ) in self.controller.component_config.inputs.root.items():
-            inputs[input_key], _ = self.controller.get_component_input(
+        for input_key, input_config in self.heater_config.inputs.root.items():
+            inputs[input_key], _ = self.get_component_input(
                 input_entities=data.input_entities, input_config=input_config
             )
 
         heater_status = self.check_heater_command(
-            temperature_setpoint=float(inputs["temperature_setpoint"]),
-            temperature_measured=float(inputs["temperature_measured"]),
-            hysteresis=self.controller.component_config.config[
-                "temperature_hysteresis"
-            ],
-            heater_status_old=bool(inputs["heater_status"]),
+            temperature_setpoint=inputs["temperature_setpoint"] if isinstance(inputs["temperature_setpoint"], (int, float)) else 0.0,
+            temperature_measured=inputs["temperature_measured"] if isinstance(inputs["temperature_measured"], (int, float)) else 0.0,
+            hysteresis=self.heater_config.config["temperature_hysteresis"]
+            if self.heater_config.config
+            and "temperature_hysteresis" in self.heater_config.config
+            else 5,
+            heater_status_old=bool(inputs["heater_status_current"]),
         )
 
         return DataTransferModel(
             components=[
                 DataTransferComponentModel(
-                    entity_id=self.controller.component_config.outputs.root[
-                        "heater_status"
-                    ].entity,
-                    attribute_id=self.controller.component_config.outputs.root[
-                        "heater_status"
+                    entity_id=self.heater_config.outputs.root["heater_status_recommand"].entity,
+                    attribute_id=self.heater_config.outputs.root[
+                        "heater_status_recommand"
                     ].attribute,
                     value=heater_status,
                     timestamp=datetime.now(timezone.utc),

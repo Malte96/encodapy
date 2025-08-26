@@ -16,6 +16,8 @@ class IOAllocationModel(BaseModel):
     Contains:
         `entity`: ID of the entity to which the input or output is allocated
         `attribute`: ID of the attribute to which the input or output is allocated
+        `default`: Default value for the input or output
+        `unit`: Unit of the input or output
     """
 
     entity: str = Field(

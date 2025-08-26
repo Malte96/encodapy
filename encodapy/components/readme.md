@@ -120,6 +120,26 @@ An example of how a Pydantic model can be used to validate the configuration of 
 
 - The Configuration(`new_component_config.py`) needs as a minimum:
   - `NewComponentInputModel(InputModel)`: A definition of the input datapoints
+    You can add information about the default values and units for each input using a `Field` definition with the `json_schema_extra` key:
+    ```python
+    from pydantic import Field
+    from encodapy.components.components_basic_config import (
+      IOAllocationModel,
+      OutputModel
+    )
+    class NewComponentInputModel(OutputModel):
+
+      input: IOAllocationModel = Field(
+          ...,
+          description="Input of the new component",
+          json_schema_extra={
+            "default": "$default_value"
+            "unit": "$unit_value"}
+      )
+    ```
+    The value of the variable `"$unit_value"` must be a valid unit from the `encodapy.utils.units.DataUnits` such as `"CEL"` for °C.
+
+    These two values will be added to the IOModel of the component.
   - `NewComponentOutputModel(OutputModel)`: A definition of the possible output datapoints / results  
     This BaseModell needs to contain a `Field`-Definition with the key: `json_schema_extra={"calculation": "$funtion_name_to_get_the_result"}`:
     ```python
@@ -137,6 +157,8 @@ An example of how a Pydantic model can be used to validate the configuration of 
       )
     ```
     **If you only want to use some of the possible results, you need to set them to  `Optional[IOAllocationModel]`**
+
+    As with the `NewComponentInputModel`, you could also add information about the unit.
   - `NewComponentStaticData(Enum)`: A Enum class which defines the required static keys to check during the initilisazion. It should look like this:
     ```python
     class NewComponentStaticData(Enum):

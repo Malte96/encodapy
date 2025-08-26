@@ -5,7 +5,7 @@ Author: Martin Altenburger
 from typing import Optional, Union
 from enum import Enum
 from pydantic import Field, BaseModel
-from encodapy.components.components_basic_config import (
+from encodapy.components.basic_component_config import (
     IOAllocationModel,
     InputModel,
     OutputModel

@@ -15,7 +15,7 @@ from encodapy.components.thermal_storage.thermal_storage_config import (
     ThermalStorageStaticData
 )
 from encodapy.components.basic_component import BasicComponent
-from encodapy.components.components_basic_config import (
+from encodapy.components.basic_component_config import (
     ComponentValidationError,
     ControllerComponentModel
 )

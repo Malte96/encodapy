@@ -18,7 +18,7 @@ from encodapy.utils.models import (
     InputDataEntityModel,
     InputDataModel,
 )
-from encodapy.components.components_basic_config import (
+from encodapy.components.basic_component_config import (
     ControllerComponentModel,
     IOAllocationModel
 )

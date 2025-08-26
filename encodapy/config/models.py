@@ -19,7 +19,7 @@ from encodapy.config.types import (
 )
 from encodapy.utils.error_handling import ConfigError, InterfaceNotActive
 from encodapy.utils.units import DataUnits, TimeUnits
-from encodapy.components.components_basic_config import ControllerComponentModel
+from encodapy.components.basic_component_config import ControllerComponentModel
 
 class InterfaceModel(BaseModel):
     """Base class for the interfaces

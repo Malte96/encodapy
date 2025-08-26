@@ -6,7 +6,7 @@ from typing import Optional
 from enum import Enum
 from pydantic import BaseModel, Field
 from pydantic.functional_validators import model_validator
-from encodapy.components.components_basic_config import (
+from encodapy.components.basic_component_config import (
     IOAllocationModel,
     ComponentValidationError,
     InputModel,

@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from loguru import logger
 from pandas import DataFrame
 from encodapy.components.basic_component import BasicComponent
-from encodapy.components.components_basic_config import(
+from encodapy.components.basic_component_config import(
     ControllerComponentModel
 )
 from encodapy.utils.models import (

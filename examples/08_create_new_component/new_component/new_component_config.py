@@ -12,10 +12,10 @@ class NewComponentInputModel(InputModel):
     Input model for the new component
     """
 
-    input: IOAllocationModel = Field(
+    a_input: IOAllocationModel = Field(
         ...,
         description="Input of the new component",
-        json_schema_extra={"default": "$default_value", "unit": "$unit_value"},
+        json_schema_extra={"default": "20", "unit": "CEL"},
     )
 
 
@@ -24,7 +24,7 @@ class NewComponentOutputModel(OutputModel):
     Output model for the new component
     """
 
-    result: IOAllocationModel = Field(
+    a_result: IOAllocationModel = Field(
         ...,
         description="Result of the new component",
         json_schema_extra={"calculation": "$funtion_name_to_get_the_result"},

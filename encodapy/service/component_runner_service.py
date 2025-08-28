@@ -49,11 +49,12 @@ class ComponentRunnerService(ControllerBasicService):
             if component.active is False:
                 continue
             component_type = get_component_class_model(component.type)
-            self.components.append(component_type(
+            component = component_type(
                 config=component,
                 component_id=component.id,
                 static_data=self.staticdata
-            ))
+            )
+            self.components.append(component)
 
     def _result_to_input_data_attribute(self,
                                         result:DataTransferComponentModel

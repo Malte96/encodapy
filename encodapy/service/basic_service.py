@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Union, Optional
 import asyncio
 from loguru import logger
+from pydantic import ValidationError
 from encodapy.config import (
     AttributeModel,
     CommandModel,
@@ -106,12 +107,22 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
         # Load the static data from the configuration, \
         # maybe it is needed for the preparation of components
-        self.staticdata = self.reload_static_data(
-            method=DataQueryTypes.CALIBRATION, staticdata=[]
-        )
+        try:
+            self.staticdata = self.reload_static_data(
+                method=DataQueryTypes.CALIBRATION, staticdata=[]
+            )
+        except (KeyError, ValueError, TypeError) as e:
+            logger.error(f"Error reloading static data: {e}")
+            self.cleanup_service()
+            raise
 
         # Prepare the individual start of the service
-        self.prepare_start()
+        try:
+            self.prepare_start()
+        except (KeyError, ValueError, TypeError, ValidationError) as e:
+            logger.error(f"Error preparing the start of the service: {e}")
+            self.cleanup_service()
+            raise
 
     def prepare_start(self):
         """

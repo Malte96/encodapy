@@ -58,15 +58,13 @@ class ThermalStorage(BasicComponent):
         # Variables for the calculation
         self.sensor_values: Optional[TemperatureSensorValues] = None
         self.sensor_volumes: Optional[dict] = None
-        self.calculation_method: ThermalStorageCalculationMethods = (
-            ThermalStorageCalculationMethods.STATIC_LIMITS)
+        self.calculation_method: ThermalStorageCalculationMethods = \
+            ThermalStorageCalculationMethods.STATIC_LIMITS
 
         # Prepare Basic Parts / needs to be the latest part
         super().__init__(config=config,
                          component_id=component_id,
                          static_data=static_data)
-
-
 
     def _calculate_volume_per_sensor(self) -> dict:
         """
@@ -309,7 +307,7 @@ class ThermalStorage(BasicComponent):
 
         if self.io_model is None:
             raise ValueError("IO model is not set.")
-        
+
         input_datapoints: list[Union[InputDataEntityModel, StaticDataEntityModel]] = []
         input_datapoints.extend(input_data.input_entities)
         input_datapoints.extend(input_data.static_entities)
@@ -329,7 +327,7 @@ class ThermalStorage(BasicComponent):
                     input_config=datapoint_information
                 )
             if not isinstance(temperature_value, (str, int, float)):
-                logger.error(f"Invalid temperature value for {key}: {temperature_value} "
+                logger.error(f"Invalid temperature value for {key} with '{temperature_value}'. "
                              "Sensor Values are not set correctly")
                 return
 

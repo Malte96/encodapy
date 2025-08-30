@@ -38,6 +38,12 @@ class NewComponentOutputModel(OutputModel):
         description="Result of the new component",
         json_schema_extra={"calculation": "calculate_a_result"},
     )
+    # TODO: Needs to throw error if no matching calculation function is defined
+    b_result: IOAllocationModel = Field(
+        ...,
+        description="Test no definition of calculation function",
+        json_schema_extra={"calculation": "calculate_b_result"},
+    )
 
 
 # TODO: Throws errors due if only an empty list in config

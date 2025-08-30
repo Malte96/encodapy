@@ -45,6 +45,10 @@
                 "a_result": {
                     "entity": "mqtt_output_entity",
                     "attribute": "result_data"
+                },
+                "b_result": {
+                    "entity": "mqtt_output_entity",
+                    "attribute": "result_data"
                 }
             },
             "config": {

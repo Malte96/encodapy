@@ -1,3 +1,6 @@
+from enum import Enum
+from typing import Optional
+
 from pydantic import Field
 
 from encodapy.components.basic_component_config import (
@@ -18,6 +21,12 @@ class NewComponentInputModel(InputModel):
         json_schema_extra={"default": "20", "unit": "CEL"},
     )
 
+    optional_input: Optional[IOAllocationModel] = Field(
+        None,
+        description="Optional input of the new component",
+        json_schema_extra={"default": "10", "unit": "CEL"},
+    )
+
 
 class NewComponentOutputModel(OutputModel):
     """
@@ -29,3 +38,13 @@ class NewComponentOutputModel(OutputModel):
         description="Result of the new component",
         json_schema_extra={"calculation": "$funtion_name_to_get_the_result"},
     )
+
+
+# TODO: Throws errors due if only an empty list in config
+# TODO: staticdata should be optional, but is required in config, otherwise validation error
+# class NewComponentStaticData(Enum):
+#     """
+#     Static data for the new component (Optional)
+#     """
+
+#     A_STATIC_VALUE = "setpoint for something"

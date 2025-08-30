@@ -1,5 +1,7 @@
 from typing import Union
 
+from loguru import logger
+
 from encodapy.components.basic_component import BasicComponent
 from encodapy.components.basic_component_config import ControllerComponentStaticData
 from encodapy.config.models import ControllerComponentModel
@@ -23,3 +25,11 @@ class NewComponent(BasicComponent):
         super().__init__(config=config, component_id=component_id)
 
         # Component-specific initialization logic
+
+    def prepare_component(self) -> None:
+        """
+        Prepare the component (e.g., initialize resources)
+        """
+        # Component-specific preparation logic
+        logger.debug("Hello from NewComponent! Preparing component...")
+        pass

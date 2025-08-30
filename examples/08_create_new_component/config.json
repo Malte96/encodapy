@@ -7,7 +7,7 @@
     },
     "inputs": [
         {
-            "id": "input_entity",
+            "id": "mqtt_input_entity",
             "interface": "mqtt",
             "id_interface": "input-topic",
             "attributes": [
@@ -19,7 +19,7 @@
     ],
     "outputs": [
         {
-            "id": "output_entity",
+            "id": "mqtt_output_entity",
             "interface": "mqtt",
             "id_interface": "output-topic",
             "attributes": [
@@ -37,13 +37,13 @@
             "type": "examples.08_create_new_component.new_component",
             "inputs": {
                 "a_input": {
-                    "entity": "input_entity",
+                    "entity": "mqtt_input_entity",
                     "attribute": "input_data"
                 }
             },
             "outputs": {
                 "a_result": {
-                    "entity": "output_entity",
+                    "entity": "mqtt_output_entity",
                     "attribute": "result_data"
                 }
             },

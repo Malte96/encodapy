@@ -182,8 +182,13 @@ An example of how a Pydantic model can be used to validate the configuration of 
   - `NewComponentStaticData(Enum)`: A Enum class which defines the required static keys to check during the initilisazion. It should look like this:
 
     ```python
+    from enum import Enum
+
     class NewComponentStaticData(Enum):
-      STATIC_VALUE = "$static_value_name"
+        """
+        Static data for the new component
+        """
+        STATIC_VALUE = "$static_value_name"
     ```
 
     You do not need this definition if you don't want to use static data.

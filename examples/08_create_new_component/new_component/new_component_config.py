@@ -1,4 +1,4 @@
-from enum import Enum
+# from enum import Enum
 from typing import Optional
 
 from pydantic import Field
@@ -36,7 +36,7 @@ class NewComponentOutputModel(OutputModel):
     a_result: IOAllocationModel = Field(
         ...,
         description="Result of the new component",
-        json_schema_extra={"calculation": "$funtion_name_to_get_the_result"},
+        json_schema_extra={"calculation": "calculate_a_result"},
     )
 
 

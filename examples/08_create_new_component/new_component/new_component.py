@@ -5,6 +5,8 @@ from loguru import logger
 from encodapy.components.basic_component import BasicComponent
 from encodapy.components.basic_component_config import ControllerComponentStaticData
 from encodapy.config.models import ControllerComponentModel
+from encodapy.utils.models import InputDataModel
+from encodapy.utils.units import DataUnits
 
 
 class NewComponent(BasicComponent):
@@ -30,6 +32,19 @@ class NewComponent(BasicComponent):
         """
         Prepare the component (e.g., initialize resources)
         """
-        # Component-specific preparation logic
         logger.debug("Hello from NewComponent! Preparing component...")
         pass
+
+    def set_input_values(self, input_data: InputDataModel) -> None:
+        """
+        Set the input values for the new component
+        """
+        pass
+
+    def calculate_a_result(self) -> tuple[float, DataUnits]:
+        """
+        Example calculation function for the new component
+        """
+        # Example calculation logic using the input data stored in the component
+        logger.debug("Calculating a_result in NewComponent...")
+        return 42, DataUnits.DEGREECELSIUS

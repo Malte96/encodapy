@@ -195,8 +195,8 @@ An example of how a Pydantic model can be used to validate the configuration of 
 - If the new component requires preparation before the first run, this should be added to the `prepare_component()` function.
 
 - The new component requires in the `new_component.py`:
-  - a function to set the necessary inputs. For this, you have to use the function `set_input_values(input_entities: list[InputDataEntityModel])`.
-  - the functions to calculate the results with the same names as mentioned in `NewComponentOutputModel(OutputModel)`, using the component's internal value storage and other background functions.
+  - a function to set the necessary inputs. For this, you have to use the function `set_input_values(self, input_data: InputDataModel)`.
+  - the functions to calculate the results with the same names as mentioned in `NewComponentOutputModel(OutputModel)`, using the component's internal value storage and other background functions. These functions needs to return a tuple of (value, unit).
 - If the new component requires calibration, you should extend the function `calibrate()`. In the basic component, this function is only used to update static data.
 
 ### Using the New Component

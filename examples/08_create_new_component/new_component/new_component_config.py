@@ -21,6 +21,12 @@ class NewComponentInputModel(InputModel):
         json_schema_extra={"default": "20", "unit": "CEL"},
     )
 
+    another_input: IOAllocationModel = Field(
+        ...,
+        description="Another input of the new component",
+        json_schema_extra={"default": "30", "unit": "CEL"},
+    )
+
     optional_input: Optional[IOAllocationModel] = Field(
         None,
         description="Optional input of the new component",
@@ -38,15 +44,22 @@ class NewComponentOutputModel(OutputModel):
         description="Result of the new component",
         json_schema_extra={"calculation": "calculate_a_result"},
     )
-    # TODO: Needs to throw error if no matching calculation function is defined
-    b_result: IOAllocationModel = Field(
+
+    another_result: IOAllocationModel = Field(
         ...,
-        description="Test no definition of calculation function",
-        json_schema_extra={"calculation": "calculate_b_result"},
+        description="Another result of the new component",
+        json_schema_extra={"calculation": "calculate_another_result"},
     )
 
+    # TODO: Needs to throw error if no matching calculation function is defined
+    # b_result: IOAllocationModel = Field(
+    #     ...,
+    #     description="Test no definition of calculation function",
+    #     json_schema_extra={"calculation": "calculate_b_result"},
+    # )
 
-# TODO: Throws errors due if only an empty list in config
+
+# TODO: Throws errors due only an empty list in config
 # TODO: staticdata should be optional, but is required in config, otherwise validation error
 # class NewComponentStaticData(Enum):
 #     """

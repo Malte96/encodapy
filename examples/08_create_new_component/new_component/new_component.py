@@ -8,11 +8,18 @@ from encodapy.config.models import ControllerComponentModel
 from encodapy.utils.models import InputDataModel
 from encodapy.utils.units import DataUnits
 
+from .new_component_config import NewComponentInputModel
+
 
 class NewComponent(BasicComponent):
     """
     Class for a new component
     """
+
+    # automatic declaration of attributes from NewComponentInputModel
+    __annotations__ = {
+        **NewComponentInputModel.__annotations__,
+    }
 
     def __init__(
         self,
@@ -24,6 +31,9 @@ class NewComponent(BasicComponent):
         # example: self.variable: Optional[float]
         self.static_data = static_data
 
+        for field_name in NewComponentInputModel.__annotations__:
+            setattr(self, field_name, None)
+
         super().__init__(config=config, component_id=component_id)
 
         # Component-specific initialization logic
@@ -32,14 +42,20 @@ class NewComponent(BasicComponent):
         """
         Prepare the component (e.g., initialize resources)
         """
-        logger.debug("Hello from NewComponent! Preparing component...")
+        logger.debug("Hello from NewComponent! Preparing...")
         pass
 
     def set_input_values(self, input_data: InputDataModel) -> None:
         """
         Set the input values for the new component
         """
-        pass
+        input_fields = self.component_config.inputs.root.keys()
+        for field_name in input_fields:
+            input_config = self.component_config.inputs.root[field_name]
+            value, _unit = self.get_component_input(
+                input_entities=input_data.input_entities, input_config=input_config
+            )
+            setattr(self, field_name, value)
 
     def calculate_a_result(self) -> tuple[float, DataUnits]:
         """
@@ -48,3 +64,11 @@ class NewComponent(BasicComponent):
         # Example calculation logic using the input data stored in the component
         logger.debug("Calculating a_result in NewComponent...")
         return 42, DataUnits.DEGREECELSIUS
+
+    def calculate_another_result(self) -> tuple[float, DataUnits]:
+        """
+        Example calculation function for the new component
+        """
+        # Example calculation logic using the input data stored in the component
+        logger.debug("Calculating another_result in NewComponent...")
+        return self.another_input, DataUnits.DEGREECELSIUS

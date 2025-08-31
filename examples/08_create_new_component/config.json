@@ -13,6 +13,9 @@
             "attributes": [
                 {
                     "id": "input_data"
+                },
+                {
+                    "id": "another_input_data"
                 }
             ]
         }
@@ -25,6 +28,9 @@
             "attributes": [
                 {
                     "id": "result_data"
+                },
+                {
+                    "id": "another_result_data"
                 }
             ],
             "commands": []
@@ -39,12 +45,20 @@
                 "a_input": {
                     "entity": "mqtt_input_entity",
                     "attribute": "input_data"
+                },
+                "another_input": {
+                    "entity": "mqtt_input_entity",
+                    "attribute": "another_input_data"
                 }
             },
             "outputs": {
                 "a_result": {
                     "entity": "mqtt_output_entity",
                     "attribute": "result_data"
+                },
+                "another_result": {
+                    "entity": "mqtt_output_entity",
+                    "attribute": "another_result_data"
                 },
                 "b_result": {
                     "entity": "mqtt_output_entity",

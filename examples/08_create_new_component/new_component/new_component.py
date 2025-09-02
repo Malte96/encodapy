@@ -8,18 +8,19 @@ from encodapy.config.models import ControllerComponentModel
 from encodapy.utils.models import InputDataModel
 from encodapy.utils.units import DataUnits
 
-from .new_component_config import NewComponentInputModel
-
 
 class NewComponent(BasicComponent):
     """
     Class for a new component
     """
-
-    # automatic declaration of attributes from NewComponentInputModel
-    __annotations__ = {
-        **NewComponentInputModel.__annotations__,
-    }
+    # Inputs:
+    a_input: float
+    another_input: float
+    optional_input: float
+    
+    # Outputs:
+    a_result: float
+    another_result: float
 
     def __init__(
         self,
@@ -30,9 +31,6 @@ class NewComponent(BasicComponent):
         # Add the necessary instance variables here (you need to store the input data in the component)
         # example: self.variable: Optional[float]
         self.static_data = static_data
-
-        for field_name in NewComponentInputModel.__annotations__:
-            setattr(self, field_name, None)
 
         super().__init__(config=config, component_id=component_id)
 
@@ -63,7 +61,9 @@ class NewComponent(BasicComponent):
         """
         # Example calculation logic using the input data stored in the component
         logger.debug("Calculating a_result in NewComponent...")
-        return 42, DataUnits.DEGREECELSIUS
+        a_number = 13.0
+        # a_number = self.a_input + self.another_input
+        return a_number, DataUnits.KELVIN
 
     def calculate_another_result(self) -> tuple[float, DataUnits]:
         """
@@ -71,4 +71,5 @@ class NewComponent(BasicComponent):
         """
         # Example calculation logic using the input data stored in the component
         logger.debug("Calculating another_result in NewComponent...")
-        return self.another_input, DataUnits.DEGREECELSIUS
+        another_number = 42 if self.another_input is None else self.another_input
+        return another_number, DataUnits.DEGREECELSIUS

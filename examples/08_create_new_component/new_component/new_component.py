@@ -13,11 +13,12 @@ class NewComponent(BasicComponent):
     """
     Class for a new component
     """
+
     # Inputs:
     a_input: float
     another_input: float
     optional_input: float
-    
+
     # Outputs:
     a_result: float
     another_result: float
@@ -28,7 +29,7 @@ class NewComponent(BasicComponent):
         component_id: str,
         static_data: ControllerComponentStaticData,  # TODO: Redesign desired
     ) -> None:
-        # Add the necessary instance variables here (you need to store the input data in the component)
+        # Add the necessary instance variables here (you need to store the input data in the component) TODO: Is that so?
         # example: self.variable: Optional[float]
         self.static_data = static_data
 
@@ -62,6 +63,7 @@ class NewComponent(BasicComponent):
         # Example calculation logic using the input data stored in the component
         logger.debug("Calculating a_result in NewComponent...")
         a_number = 13.0
+        # TODO: SERVICE STOPS RUNNING: Calculate with None-values
         # a_number = self.a_input + self.another_input
         return a_number, DataUnits.KELVIN
 

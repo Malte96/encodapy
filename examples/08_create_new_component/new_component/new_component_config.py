@@ -51,7 +51,7 @@ class NewComponentOutputModel(OutputModel):
         json_schema_extra={"calculation": "calculate_another_result"},
     )
 
-    # TODO: Needs to throw error if no matching calculation function is defined
+    # TODO: SERVICE STOPS RUNNING: Needs to throw error if no matching calculation function is defined
     # b_result: IOAllocationModel = Field(
     #     ...,
     #     description="Test no definition of calculation function",

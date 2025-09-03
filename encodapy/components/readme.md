@@ -159,16 +159,27 @@ An example of how a Pydantic model can be used to validate the configuration of 
     **If you only want to use some of the possible results, you need to set them to  `Optional[IOAllocationModel]`**
 
     As with the `NewComponentInputModel`, you could also add information about the unit.
-  - `NewComponentStaticData(Enum)`: A Enum class which defines the required static keys to check during the initilisazion. It should look like this:
+  - `NewComponentDataModel(BaseModel)`: A BaseModel class which defines the required static data to check during the initilisazion. It should look like this:
     ```python
-    class NewComponentStaticData(Enum):
-      STATIC_VALUE = "$static_value_name"
+    from pydantic import BaseModel
+    class NewComponentDataModel(BaseModel):
+    """
+    Model for the configuration data of the thermal storage service.
+    """
+    $static_value: str = Field(
+        ...,
+        description="Static value for the new component"
+    )
+    $optional_static_value: Optional[str] = Field(
+        "default value",
+        description="optional static value for the new component"
+    )
     ```
-    You do not need this definition if you don't want to use static data.
+    You do not need this definition if you don't want to use static data.  
+    You could add optional data that does not need to be set in the configuration. This should resemble the second field in the model.
 - If the new component requires preparation before the first run, this should be added to the `prepare_component()` function.
-- The new component requires:
-  - a function to set the necessary inputs. For this, you have to use the function `set_input_values(input_entities: list[InputDataEntityModel])`.
-  - the functions to calculate the results with the same names as mentioned in `NewComponentOutputModel(OutputModel)`, using the component's internal value storage and other background functions.
+- The new component requires the functions to calculate the results with the same names as mentioned in `NewComponentOutputModel(OutputModel)`, using the component's internal value storage and other background functions.
+- If you don't want to use the internal function `set_input_values(input_entities: list[InputDataEntityModel])`, you could add an individual function to handle the inputs. This basic function collects the data and enables you to query it using the function `self.input_values.get_input_data("$input_value_name")`.
 - If the new component requires calibration, you should extend the function `calibrate()`. In the basic component, this function is only used to update static data.
 
 ### Using the New Component

@@ -145,11 +145,11 @@ def get_component_io_model(component_type: str,
     logger.error(error_msg)
     raise TypeError(error_msg)
 
-def get_component_static_data_model(component_type: str,
+def get_component_config_data_model(component_type: str,
                                     model_subname: str,
                                     module_path: Optional[str] = None,
-                                    )-> Union[Type[Enum], None]:
-    """Get the component static data model for a specific component type.
+                                    )-> Union[Type[BaseModel], None]:
+    """Get the component config data model for a specific component type.
 
     Args:
         component_type (str): Type of the component
@@ -160,21 +160,13 @@ def get_component_static_data_model(component_type: str,
     Returns:
         Union[Type[BasicComponent], None]: The component static data model or None, if not found.
     """
-    component_type, module_path = check_component_type(component_type)
-    component_config_model = get_component_model(
-        component_type = component_type,
-        model_subname = model_subname,
-        module_base_path = module_path,
-        model_type = ModelTypes.COMPONENT_CONFIG,
-        none_allowed=True)
-
-    if component_config_model is None:
+    try:
+        config_model =  get_component_io_model(
+            component_type=component_type,
+            model_subname=model_subname,
+            module_path=module_path
+        )
+    except (KeyError, TypeError) as exc:
+        logger.error(f"Error getting config model for {component_type}: {exc}")
         return None
-
-    if issubclass(component_config_model, Enum):
-        return component_config_model
-
-
-    error_msg = f"Component class {component_config_model.__name__} is not a subclass of Enum"
-    logger.error(error_msg)
-    raise TypeError(error_msg)
+    return config_model

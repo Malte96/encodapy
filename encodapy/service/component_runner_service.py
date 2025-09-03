@@ -43,7 +43,6 @@ class ComponentRunnerService(ControllerBasicService):
         This function loads the configuration \
             and initializes the component.
         """
-
         for component in self.config.controller_components:
 
             if component.active is False:

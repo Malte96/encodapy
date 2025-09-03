@@ -2,7 +2,7 @@
 Description: Configuration models for the thermal storage component
 Author: Martin Altenburger
 """
-from typing import Optional
+from typing import Optional, Union
 from enum import Enum
 from pydantic import BaseModel, Field
 from pydantic.functional_validators import model_validator
@@ -347,3 +347,25 @@ class ThermalStorageStaticData(Enum):
     VOLUME = "volume"
     MEDIUM = "medium"
     SENSOR_CONFIG = "sensor_config"
+    CALCULATION_METHOD = "calculation_method"
+
+class ThermalStorageConfigDataModel(BaseModel):
+    """
+    Model for the configuration data of the thermal storage service.
+    """
+    volume: Union[float, int] = Field(
+        ...,
+        description="Volume of the thermal storage in liters"
+    )
+    medium: str = Field(
+        ...,
+        description="Medium of the thermal storage"
+    )
+    sensor_config: dict = Field(
+        ...,
+        description="Sensor configuration of the thermal storage"
+    )
+    calculation_method: ThermalStorageCalculationMethods = Field(
+        ThermalStorageCalculationMethods.STATIC_LIMITS,
+        description="Calculation method for the thermal storage"
+    )

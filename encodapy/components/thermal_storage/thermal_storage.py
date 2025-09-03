@@ -17,7 +17,8 @@ from encodapy.components.thermal_storage.thermal_storage_config import (
 from encodapy.components.basic_component import BasicComponent
 from encodapy.components.basic_component_config import (
     ComponentValidationError,
-    ControllerComponentModel
+    ControllerComponentModel,
+    DataPointModel
 )
 from encodapy.utils.mediums import(
     Medium,
@@ -314,27 +315,27 @@ class ThermalStorage(BasicComponent):
 
         # Temperature values, which are not sensors in the thermal storage:
         # TemperatureSensorValues.load_temperature_in / .load_temperature_out
-        temperature_values = {}
+        temperature_values: dict[str, float] = {}
         # Temperature values from the inside - TemperatureSensorValues.storage_sensors
-        storage_temperatures = []
+        storage_temperatures: list[float] = []
 
         for key, datapoint_information in self.io_model.input.__dict__.items():
             if datapoint_information is None:
                 continue
 
-            temperature_value, _temperature_unit = self.get_component_input(
+            temperature = self.get_component_input(
                     input_entities=input_datapoints,
                     input_config=datapoint_information
                 )
-            if not isinstance(temperature_value, (str, int, float)):
-                logger.error(f"Invalid temperature value for {key} with '{temperature_value}'. "
+            if temperature is None or not isinstance(temperature.value, (str, int, float)):
+                logger.error(f"Invalid temperature value for {key} with '{temperature.value}'. "
                              "Sensor Values are not set correctly")
                 return
 
             if key.startswith("temperature_"):
-                storage_temperatures.append(float(temperature_value))
+                storage_temperatures.append(float(temperature.value))
             else:
-                temperature_values[key] = float(temperature_value)
+                temperature_values[key] = float(temperature.value)
 
         self.sensor_values = TemperatureSensorValues(
             storage_sensors= storage_temperatures,
@@ -413,55 +414,58 @@ class ThermalStorage(BasicComponent):
             ThermalStorage: Instance of the ThermalStorage class with the prepared configuration
         """
 
-        if self.component_config.staticdata is None:
+        if self.component_config.config is None:
             logger.error("Static data of the thermal storage is missing in the configuration. "
                          "Please check the configuration.")
             return
-        if len(self.static_data.root.keys()) < len(self.component_config.staticdata.root.keys()):
+
+        if len(self.static_data.root.keys()) < len(self.component_config.config.root.keys()):
             logger.error("Static data of the thermal storage is not complete. "
                          "Please check the configuration.")
             return
 
-        medium_value, _ = self.get_component_static_data(
+        medium = self.get_component_static_data(
             component_id=ThermalStorageStaticData.MEDIUM.value
         )
-        if not isinstance(medium_value, str):
+        if medium is None or not isinstance(medium.value, str):
             error_msg = "No medium of the thermal storage specified in the configuration, \
                 or wrong type (string is required), using default medium 'water'"
             logger.warning(error_msg)
-            medium_value = Medium.WATER.value
+            medium = DataPointModel(value=Medium.WATER.value)
         try:
-            self.medium = Medium(medium_value)
+            self.medium = Medium(medium.value)
         except ValueError:
-            error_msg = f"Invalid medium in the configuration: '{medium_value}'"
+            error_msg = f"Invalid medium in the configuration: '{medium.value}'"
             logger.error(error_msg)
             raise ValueError(error_msg) from None
 
 
-        volume, _ = self.get_component_static_data(
+        volume = self.get_component_static_data(
             component_id=ThermalStorageStaticData.VOLUME.value,
             unit=DataUnits("MTQ")
         )
-        if not isinstance(volume, (float, int, str)):
+        if volume is None or not isinstance(volume.value, (float, int, str)):
             error_msg = "No volume of the thermal storage specified in the configuration \
                 or invalid type (int or float are possible)."
             logger.error(error_msg)
             raise KeyError(error_msg) from None
 
-        self.volume = float(volume)
+        self.volume = float(volume.value)
 
-        sensor_config, _ = self.get_component_static_data(
+        sensor_config = self.get_component_static_data(
             component_id=ThermalStorageStaticData.SENSOR_CONFIG.value
         )
 
-        if sensor_config is None:
+        if sensor_config is None or sensor_config.value is None:
             error_msg = "No sensor configuration of the thermal storage specified \
                 in the configuration."
             logger.error(error_msg)
             raise KeyError(error_msg) from None
 
         try:
-            self.sensor_config = ThermalStorageTemperatureSensors.model_validate(sensor_config)
+            self.sensor_config = ThermalStorageTemperatureSensors.model_validate(
+                sensor_config.value
+                )
 
         except ValidationError:
             error_msg = "Invalid sensor configuration in the thermal storage"
@@ -469,11 +473,16 @@ class ThermalStorage(BasicComponent):
             raise
 
         try:
-            if not isinstance(self.component_config.config, dict):
-                raise KeyError("Calculation method is not set in the configuration.")
-
+            calculation_method = self.get_component_static_data(
+                    ThermalStorageStaticData.CALCULATION_METHOD.value
+                    )
+            if calculation_method is None or not isinstance(calculation_method.value, str):
+                error_msg = "No valid calculation method specified in the configuration."
+                logger.error(error_msg)
+                raise KeyError(error_msg) from None
             self.calculation_method = ThermalStorageCalculationMethods(
-                self.component_config.config.get("calculation_method"))
+                calculation_method.value
+            )
 
         except (ValueError, KeyError):
             logger.error("Invalid calculation method in the configuration. "

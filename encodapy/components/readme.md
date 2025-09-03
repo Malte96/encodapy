@@ -37,10 +37,13 @@ Common configuration elements used across multiple components can be placed in:
 `encodapy.components.components_basic_config`
 
 #### `ControllerComponentModel`
+
 This is a model for configuring components that form part of the general configuration of a service.
 
 #### `IOModell`
+
 Root-Modell to describe the structur of the Inputs, Outputs and static data (`$INPUT_OR_OUTPUT_VARIABLE`) of a component as a dictionary of `IOAllocationModel`, like:
+
 ```json
 
   "inputs": {
@@ -64,12 +67,14 @@ The expected format for each input or output (`$INPUT_OR_OUTPUT_VARIABLE`) withi
   }
 }
 ```
+
 #### `ControllerComponentStaticData`
+
 A model for storing the static data of a component as a dict of `ControllerComponentStaticDataAttribute` in a Pydantic root model.
 
 #### `ControllerComponentStaticDataAttribute`
-Model for the static data attributes of the controller component, is part if the `ControllerComponentStaticData`-Model.
 
+Model for the static data attributes of the controller component, is part if the `ControllerComponentStaticData`-Model.
 
 ### Example Configuration
 
@@ -79,6 +84,8 @@ An example of how a Pydantic model can be used to validate the configuration of 
 ---
 
 ## Implementing a New Component
+
+- an example is provided in [`examples/08_create_new_component`](../../examples/08_create_new_component)
 
 ### Infos for the New Component
 
@@ -95,67 +102,80 @@ An example of how a Pydantic model can be used to validate the configuration of 
 
   Make sure the names follow this convention if you want to use the component runner.
 
-
-
 ### Details to create a New Component
 
-- When implementing a new component, begin by initializing the base class:
+- When implementing a new component, begin by initializing the base class in `NewComponent`:
 
   ```python
-  def __init__(self,
-              config: Union[ControllerComponentModel, list[ControllerComponentModel]],
-              component_id: str
-              ) -> None:
+  class NewComponent(BasicComponent):
+    """
+    Class for a new component
+    """
 
-      # Add the necessary instance variables here (you need to store the input data in the component)
-      # example: self.variable: Optional[float]
+    def __init__(
+        self,
+        config: Union[ControllerComponentModel, list[ControllerComponentModel]],
+        component_id: str,
+    ) -> None:
+        # Add the necessary instance variables here (you need to store the input data in the component)
+        # example: self.variable: Optional[float]
 
-      super().__init__(config=config,
-                      component_id=component_id)
+        super().__init__(config=config, component_id=component_id)
 
-      # Component-specific initialization logic
+        # Component-specific initialization logic
   ```
 
   **Important**: The `component_id` must match a key in the provided configuration. If not, the component will raise a `ValueError` during initialization.
 
 - The Configuration(`new_component_config.py`) needs as a minimum:
-  - `NewComponentInputModel(InputModel)`: A definition of the input datapoints
+  - `NewComponentInputModel(InputModel)`: A definition of the input datapoints.
+  
     You can add information about the default values and units for each input using a `Field` definition with the `json_schema_extra` key:
+
     ```python
     from pydantic import Field
-    from encodapy.components.components_basic_config import (
-      IOAllocationModel,
-      OutputModel
-    )
-    class NewComponentInputModel(OutputModel):
 
-      input: IOAllocationModel = Field(
-          ...,
-          description="Input of the new component",
-          json_schema_extra={
-            "default": "$default_value"
-            "unit": "$unit_value"}
-      )
+    from encodapy.components.basic_component_config import IOAllocationModel, InputModel
+
+
+    class NewComponentInputModel(InputModel):
+        """
+        Input model for the new component
+        """
+
+        input: IOAllocationModel = Field(
+            ...,
+            description="Input of the new component",
+            json_schema_extra={"default": "$default_value", "unit": "$unit_value"},
+        )
     ```
+
     The value of the variable `"$unit_value"` must be a valid unit from the `encodapy.utils.units.DataUnits` such as `"CEL"` for °C.
 
     These two values will be added to the IOModel of the component.
-  - `NewComponentOutputModel(OutputModel)`: A definition of the possible output datapoints / results  
+
+  - `NewComponentOutputModel(OutputModel)`: A definition of the possible output datapoints / results.
+
     This BaseModell needs to contain a `Field`-Definition with the key: `json_schema_extra={"calculation": "$funtion_name_to_get_the_result"}`:
+
     ```python
     from pydantic import Field
-    from encodapy.components.components_basic_config import (
-      IOAllocationModel,
-      OutputModel
-    )
-    class NewComponentOutputModel(OutputModel):
 
-      result: IOAllocationModel = Field(
-          ...,
-          description="Result of the new component",
-          json_schema_extra={"calculation": "$funtion_name_to_get_the_result"}
-      )
+    from encodapy.components.basic_component_config import IOAllocationModel, OutputModel
+
+
+    class NewComponentOutputModel(OutputModel):
+        """
+        Output model for the new component
+        """
+  
+        result: IOAllocationModel = Field(
+            ...,
+            description="Result of the new component",
+            json_schema_extra={"calculation": "$funtion_name_to_get_the_result"},
+        )
     ```
+
     **If you only want to use some of the possible results, you need to set them to  `Optional[IOAllocationModel]`**
 
     As with the `NewComponentInputModel`, you could also add information about the unit.
@@ -178,12 +198,14 @@ An example of how a Pydantic model can be used to validate the configuration of 
     You do not need this definition if you don't want to use static data.  
     You could add optional data that does not need to be set in the configuration. This should resemble the second field in the model.
 - If the new component requires preparation before the first run, this should be added to the `prepare_component()` function.
-- The new component requires the functions to calculate the results with the same names as mentioned in `NewComponentOutputModel(OutputModel)`, using the component's internal value storage and other background functions.
+- The new component requires the functions to calculate the results with the same names as mentioned in `NewComponentOutputModel(OutputModel)`, using the component's internal value storage and other background functions. These functions needs to return a tuple of (value, unit).
 - If you don't want to use the internal function `set_input_values(input_entities: list[InputDataEntityModel])`, you could add an individual function to handle the inputs. This basic function collects the data and enables you to query it using the function `self.input_values.get_input_data("$input_value_name")`.
 - If the new component requires calibration, you should extend the function `calibrate()`. In the basic component, this function is only used to update static data.
 
 ### Using the New Component
+
 - If you are using the structure for a new component, you can specify the module path in your project's configuration as the component type, as shown in the following example:
+
 ```json
   ...
   "controller_components": [

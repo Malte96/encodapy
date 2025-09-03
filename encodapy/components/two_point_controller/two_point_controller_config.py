@@ -2,15 +2,19 @@
 Description: Configuration model for the two-point controller component.
 Author: Martin Altenburger
 """
-from typing import Optional, Union
+
 from enum import Enum
-from pydantic import Field, BaseModel
+from typing import Optional, Union
+
+from pydantic import BaseModel, Field
+
 from encodapy.components.basic_component_config import (
-    IOAllocationModel,
     InputModel,
-    OutputModel
+    IOAllocationModel,
+    OutputModel,
 )
 from encodapy.utils.units import DataUnits
+
 
 class TwoPointControllerInputModel(InputModel):
     """
@@ -23,18 +27,17 @@ class TwoPointControllerInputModel(InputModel):
     """
 
     current_value: IOAllocationModel = Field(
-        ...,
-        description="Current value of the input, typically a sensor reading"
+        ..., description="Current value of the input, typically a sensor reading"
     )
     latest_control_signal: IOAllocationModel = Field(
-        ...,
-        description="Latest control signal output from the two-point controller"
+        ..., description="Latest control signal output from the two-point controller"
     )
+
 
 class TwoPointControllerOutputModel(OutputModel):
     """
     Model for the output of the two-point controller component.
-    
+
     Contains:
         control_signal (IOAllocationModel): The control signal output from the two-point controller.
     """
@@ -42,13 +45,15 @@ class TwoPointControllerOutputModel(OutputModel):
     control_signal: IOAllocationModel = Field(
         ...,
         description="Control signal output from the two-point controller",
-        json_schema_extra={"calculation": "get_control_signal"}
+        json_schema_extra={"calculation": "get_control_signal"},
     )
+
 
 class TwoPointControllerStaticData(Enum):
     """
     Enum class that defines the static data keys for the two-point controller.
     """
+
     HYSTERESIS = "hysteresis"
     SETPOINT = "setpoint_value"
     COMMAND_ENABLED = "command_enabled"
@@ -58,7 +63,7 @@ class TwoPointControllerStaticData(Enum):
 class TwoPointControllerValues(BaseModel):
     """
     Model for the values of the two-point controller component.
-    
+
     Contains:
         current_value (float): The current value of the controlled variable.
         current_unit (Optional[DataUnits]): The unit of the current value.

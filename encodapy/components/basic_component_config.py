@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Union, Any
 from datetime import datetime
 from pandas import DataFrame
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
+
 from encodapy.utils.units import DataUnits
 
 # Models to hold the data
@@ -79,9 +80,7 @@ class IOAllocationModel(BaseModel):
     default: Optional[Any] = Field(
         None, description="Default value for the input or output"
     )
-    unit: Optional[DataUnits] = Field(
-        None, description="Unit of the input or output"
-    )
+    unit: Optional[DataUnits] = Field(None, description="Unit of the input or output")
 
 
 class IOModell((RootModel[Dict[str, IOAllocationModel]])):  # pylint: disable=too-few-public-methods
@@ -90,8 +89,8 @@ class IOModell((RootModel[Dict[str, IOAllocationModel]])):  # pylint: disable=to
 
     It contains a dictionary with the key as the ID of the input, output or static data
     and the value as the allocation model.
-    
-    There is no validation for this. 
+
+    There is no validation for this.
     It is used to create the the ComponentIOModel for each component.
     """
 class ConfigDataPoints((RootModel[Dict[str, IOAllocationModel | DataPointModel]])):  # pylint: disable=too-few-public-methods
@@ -123,7 +122,9 @@ class ControllerComponentModel(BaseModel):
     config: Optional[ConfigDataPoints] = None
 
 
+
 # Models for the internal input and output connections, needs to filled for the components
+
 
 class OutputModel(BaseModel):
     """
@@ -132,13 +133,14 @@ class OutputModel(BaseModel):
     Needs to be implemented by the user.
     """
 
+
 class InputModel(BaseModel):
     """
     Basemodel for the configuration of the inputs of a component
     """
 
     @model_validator(mode="after")
-    def check_default_values(self)->"InputModel":
+    def check_default_values(self) -> "InputModel":
         """
         Check the default_values
         """
@@ -147,7 +149,6 @@ class InputModel(BaseModel):
             extra = field.json_schema_extra or {}
 
             if isinstance(value, IOAllocationModel) and isinstance(extra, dict):
-
                 if "default" in extra and value.default is None:
                     value.default = extra["default"]
                 if "unit" in extra and value.unit is None:
@@ -155,17 +156,19 @@ class InputModel(BaseModel):
 
         return self
 
+
 class ComponentIOModel(BaseModel):
     """
     Model for the input and output of the thermal storage service.
-    
+
     Contains:
         `input`: InputModel = Input configuration for the thermal storage service
         `output`: OutputModel = Output configuration for the thermal storage service
     """
+
     input: InputModel = Field(
-        ...,
-        description="Input configuration for the thermal storage service")
+        ..., description="Input configuration for the thermal storage service"
+    )
     output: OutputModel = Field(
         ...,
         description="Output configuration for the thermal storage service")

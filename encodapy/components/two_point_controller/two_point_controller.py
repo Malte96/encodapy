@@ -2,24 +2,25 @@
 Description: Simple component of a two-point controller
 Author: Martin Altenburger
 """
-from typing import Dict, List, Union, cast, Optional
-from pydantic import ValidationError
+
+from typing import Dict, List, Optional, Union, cast
+
 from loguru import logger
 from pandas import DataFrame
+from pydantic import ValidationError
+
 from encodapy.components.basic_component import BasicComponent
-from encodapy.components.basic_component_config import(
-    ControllerComponentModel
+from encodapy.components.basic_component_config import ControllerComponentModel
+from encodapy.components.two_point_controller.two_point_controller_config import (
+    TwoPointControllerStaticData,
+    TwoPointControllerValues,
 )
 from encodapy.utils.models import (
-    InputDataModel,
     InputDataEntityModel,
-    StaticDataEntityModel
+    InputDataModel,
+    StaticDataEntityModel,
 )
 from encodapy.utils.units import DataUnits
-from encodapy.components.two_point_controller.two_point_controller_config import (
-    TwoPointControllerValues,
-    TwoPointControllerStaticData
-)
 
 
 class TwoPointController(BasicComponent):
@@ -32,19 +33,18 @@ class TwoPointController(BasicComponent):
         static_data (Optional[list[StaticDataEntityModel]]): Static data for the component.
     """
 
-    def __init__(self,
-                 config:Union[ControllerComponentModel, list[ControllerComponentModel]],
-                 component_id:str,
-                 static_data: Optional[list[StaticDataEntityModel]] = None
-                 ):
-
+    def __init__(
+        self,
+        config: Union[ControllerComponentModel, list[ControllerComponentModel]],
+        component_id: str,
+        static_data: Optional[list[StaticDataEntityModel]] = None,
+    ):
         self.controller_values: Optional[TwoPointControllerValues] = None
         self.unit_hysteresis: Optional[DataUnits] = None
 
-        super().__init__(component_id=component_id,
-                         config=config,
-                         static_data=static_data)
-
+        super().__init__(
+            component_id=component_id, config=config, static_data=static_data
+        )
 
     def prepare_component(self):
         _, hysteresis_unit = self.get_component_static_data(component_id="hysteresis")
@@ -53,8 +53,6 @@ class TwoPointController(BasicComponent):
             self.unit_hysteresis = hysteresis_unit
 
     def set_input_values(self, input_data: InputDataModel) -> None:
-
-
         if self.io_model is None:
             logger.error("IO model is not set.")
             return
@@ -67,18 +65,18 @@ class TwoPointController(BasicComponent):
         sensor_units: dict[str, Optional[DataUnits]] = {}
 
         for key, datapoint_information in self.io_model.input.__dict__.items():
-
             if datapoint_information is None:
                 continue
 
             value, unit = self.get_component_input(
-                    input_entities=input_datapoints,
-                    input_config=datapoint_information
-                )
+                input_entities=input_datapoints, input_config=datapoint_information
+            )
 
             if value is not None and not isinstance(value, (str, int, float, bool)):
-                logger.error(f"Invalid value for '{key}: {value}' "
-                             "Sensor Values are not set correctly")
+                logger.error(
+                    f"Invalid value for '{key}: {value}' "
+                    "Sensor Values are not set correctly"
+                )
                 return
 
             if value is None or isinstance(value, bool):
@@ -92,7 +90,8 @@ class TwoPointController(BasicComponent):
 
         if latest_control_signal_raw is None:
             command_disabled, _command_disabled_unit = self.get_component_static_data(
-                component_id="command_disabled")
+                component_id="command_disabled"
+            )
 
             if not isinstance(command_disabled, (str, int, float)):
                 error_msg = "Latest control signal is not set and command_disabled \
@@ -100,8 +99,9 @@ class TwoPointController(BasicComponent):
                 logger.error(error_msg)
                 raise ValueError(error_msg)
 
-            logger.warning("Latest control signal is not set. "
-                           f" Using default {command_disabled}.")
+            logger.warning(
+                f"Latest control signal is not set.  Using default {command_disabled}."
+            )
             latest_control_signal = command_disabled
         else:
             latest_control_signal = latest_control_signal_raw
@@ -110,17 +110,19 @@ class TwoPointController(BasicComponent):
             self.controller_values = TwoPointControllerValues(
                 current_value=cast(float, sensor_values.get("current_value")),
                 current_unit=sensor_units.get("current_value"),
-                latest_control_signal=cast(Union[str, float, int, bool], latest_control_signal)
+                latest_control_signal=cast(
+                    Union[str, float, int, bool], latest_control_signal
+                ),
             )
         except (ValidationError, KeyError) as e:
             logger.error(f"Error setting controller values: {e}")
             return
 
-    def get_control_signal(self
-                           ) -> tuple[
-                               Union[str, float, int, bool, Dict, List, DataFrame, None],
-                               Optional[DataUnits]
-                               ]:
+    def get_control_signal(
+        self,
+    ) -> tuple[
+        Union[str, float, int, bool, Dict, List, DataFrame, None], Optional[DataUnits]
+    ]:
         """Calculate the control signal based on current and setpoint values."""
         if self.controller_values is None:
             logger.error("Controller values are not set.")
@@ -131,30 +133,36 @@ class TwoPointController(BasicComponent):
 
         setpoint, _ = self.get_component_static_data(
             component_id=TwoPointControllerStaticData.SETPOINT.value,
-            unit=self.controller_values.current_unit)
+            unit=self.controller_values.current_unit,
+        )
         hysteresis, _ = self.get_component_static_data(
             component_id=TwoPointControllerStaticData.HYSTERESIS.value,
-            unit=self.unit_hysteresis)
+            unit=self.unit_hysteresis,
+        )
         command_enabled, command_enabled_unit = self.get_component_static_data(
-            component_id=TwoPointControllerStaticData.COMMAND_ENABLED.value)
+            component_id=TwoPointControllerStaticData.COMMAND_ENABLED.value
+        )
         command_disabled, command_disabled_unit = self.get_component_static_data(
-            component_id=TwoPointControllerStaticData.COMMAND_DISABLED.value)
+            component_id=TwoPointControllerStaticData.COMMAND_DISABLED.value
+        )
 
-        if setpoint is None or hysteresis is None \
-            or command_enabled is None or command_disabled is None:
+        if (
+            setpoint is None
+            or hysteresis is None
+            or command_enabled is None
+            or command_disabled is None
+        ):
             logger.error("One or more static data values are not set.")
             raise ValueError("One or more static data values are not set.")
 
-
-        if not isinstance(setpoint, (float, int, str)) \
-            or not isinstance(hysteresis, (float, int, str)):
+        if not isinstance(setpoint, (float, int, str)) or not isinstance(
+            hysteresis, (float, int, str)
+        ):
             logger.error("Setpoint or hysteresis is not a valid number.")
             raise ValueError("Setpoint or hysteresis is not a valid number.")
 
-        minimal_value = (
-            float(setpoint) - float(hysteresis)
-        )
-        #TODO how to handle the units here?
+        minimal_value = float(setpoint) - float(hysteresis)
+        # TODO how to handle the units here?
 
         if self.controller_values.current_value < minimal_value:
             return command_enabled, command_enabled_unit

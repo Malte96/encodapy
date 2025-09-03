@@ -323,7 +323,7 @@ class ThermalStorage(BasicComponent):
         loading_potential = round(nominal_energy - current_energy, 2)
         return loading_potential, DataUnits.WHR
 
-    def set_input_values(self, input_data: InputDataModel) -> None:
+    def set_input_data(self, input_data: InputDataModel) -> None:
         """
         Function to set the sensor values in the thermal storage
 
@@ -473,7 +473,7 @@ class ThermalStorage(BasicComponent):
             return
 
         medium = self.get_component_static_data(
-            component_id=ThermalStorageStaticData.MEDIUM.value
+            datapoint_id=ThermalStorageStaticData.MEDIUM.value
         )
         if medium is None or not isinstance(medium.value, str):
             error_msg = "No medium of the thermal storage specified in the configuration, \
@@ -489,7 +489,7 @@ class ThermalStorage(BasicComponent):
 
 
         volume = self.get_component_static_data(
-            component_id=ThermalStorageStaticData.VOLUME.value,
+            datapoint_id=ThermalStorageStaticData.VOLUME.value,
             unit=DataUnits("MTQ")
         )
         if volume is None or not isinstance(volume.value, (float, int, str)):
@@ -502,7 +502,7 @@ class ThermalStorage(BasicComponent):
         self.volume = float(volume.value)
 
         sensor_config = self.get_component_static_data(
-            component_id=ThermalStorageStaticData.SENSOR_CONFIG.value
+            datapoint_id=ThermalStorageStaticData.SENSOR_CONFIG.value
         )
 
         if sensor_config is None or sensor_config.value is None:

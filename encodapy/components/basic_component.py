@@ -17,7 +17,7 @@ from encodapy.components.basic_component_config import (
     IOAllocationModel,
     IOModell,
     OutputModel,
-    InputValues,
+    ControllerComponentInputData,
     ConfigDataPoints
 )
 from encodapy.components.component_loader import (
@@ -70,7 +70,7 @@ class BasicComponent:
         )
         # Inputs and Outputs of the component itsel
         self.io_model: Optional[ComponentIOModel] = None
-        self.input_values: Optional[InputValues] = None
+        self.input_data: ControllerComponentInputData = ControllerComponentInputData({})
 
         self._prepare_i_o_config()
 
@@ -340,7 +340,7 @@ class BasicComponent:
             "Please check the configuration of the Inputs, Outputs and Static Data."
         )
     def get_component_static_data(
-        self, component_id: str, unit: Optional[DataUnits] = None
+        self, datapoint_id: str, unit: Optional[DataUnits] = None
     ) -> Optional[DataPointModel]:
         """
         Function to get the static data of a component by its ID \
@@ -351,15 +351,15 @@ class BasicComponent:
         Returns:
             DataPointModel: The value of the input data and its unit, if available
         """
-        if component_id not in self.static_data.root.keys():
+        if datapoint_id not in self.static_data.root.keys():
             logger.debug(
-                f"Static data with ID {component_id} not found in the static data of "
+                f"Static data with ID {datapoint_id} not found in the static data of "
                 f"the component {self.component_config.id}."
             )
             return None
 
         static_data = DataPointModel.model_validate(
-            self.static_data.root.get(component_id, None)
+            self.static_data.root.get(datapoint_id, None)
         )
         static_data_value = static_data.value
         static_data_unit = static_data.unit
@@ -379,6 +379,49 @@ class BasicComponent:
             value=static_data_value,
             unit=static_data_unit,
         )
+    def get_component_input_data(
+        self, datapoint_id: str, unit: Optional[DataUnits] = None
+    ) -> Optional[DataPointModel]:
+        """
+        Function to get the static data of a component by its ID \
+            and in the specified unit (optional).
+        Args:
+            component_id (str): ID of the component to get the static data for
+            unit (Optional[str]): Unit to convert the static data value to, if specified
+        Returns:
+            DataPointModel: The value of the input data and its unit, if available
+        """
+        if datapoint_id not in self.input_data.root.keys():
+            logger.debug(
+                f"Input data with ID {datapoint_id} not found in the input data of "
+                f"the component {self.component_config.id}."
+            )
+            return None
+
+        input_data = DataPointModel.model_validate(
+            self.input_data.root.get(datapoint_id, None)
+        )
+        input_data_value = input_data.value
+        input_data_unit = input_data.unit
+        input_data_time = input_data.time
+
+        if unit is not None and input_data_unit is not None:
+            if input_data_unit == unit:
+                return DataPointModel(
+                    value=input_data_value,
+                    unit=input_data_unit,
+                    time=input_data_time
+                )
+            # TODO: Implement unit conversion if needed
+            raise RuntimeError(
+                f"Unit conversion from {input_data_unit} to {unit} is not implemented"
+            )
+
+        return DataPointModel(
+            value=input_data_value,
+            unit=input_data_unit,
+            time=input_data_time
+        )
 
     def prepare_component(self):
         """
@@ -387,7 +430,7 @@ class BasicComponent:
         """
         logger.debug("Prepare component is not implemented in the base class")
 
-    def set_input_values(self, input_data: InputDataModel) -> None:
+    def set_input_data(self, input_data: InputDataModel) -> None:
         """
         Set the input values for the component from the provided input entities.
         Needs to be implemented in each component.
@@ -422,7 +465,7 @@ class BasicComponent:
                 time=input_datapoint.time
             )
 
-        self.input_values = InputValues.model_validate(input_values)
+        self.input_data = ControllerComponentInputData.model_validate(input_values)
 
     def run(self, data: InputDataModel) -> list[DataTransferComponentModel]:
         """
@@ -441,10 +484,10 @@ class BasicComponent:
             return components
 
         try:
-            self.set_input_values(input_data=data)
+            self.set_input_data(input_data=data)
         except (ValueError, KeyError) as e:
             logger.error(
-                f"Setting input values failed for {self.component_config.id}: {e}"
+                f"Setting input data failed for {self.component_config.id}: {e}"
             )
             return components
 

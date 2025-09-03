@@ -10,7 +10,6 @@ from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 from encodapy.utils.units import DataUnits
 
 # Models to hold the data
-
 class DataPointModel(BaseModel):
     """
     Model for the static data attributes of the controller component.
@@ -41,23 +40,23 @@ class ControllerComponentConfigData(  # pylint: disable=too-few-public-methods
         - root: The static data as a dictionary with the key as the ID of the static data \
             (like in the config) and the value as the value of the static data.
     """
-class InputValues(RootModel[Dict[str, DataPointModel]]): # pylint: disable=too-few-public-methods
+class ControllerComponentInputData(RootModel[Dict[str, DataPointModel]]): # pylint: disable=too-few-public-methods
     """Input values for the substation controller
 
     Args:
         RootModel (Dict[str, IOAllocationModel]): Input values mapping
     """
 
-    def get_input_data(self,
-                       datapoint_name:str
-                       ) -> Optional[DataPointModel]:
-        """
-        Get input data by name.
-        """
-        if datapoint_name not in self.root:
-            raise ValueError(f"Input data with name '{datapoint_name}' not found. "
-                             f"Available input data: {list(self.root.keys())}")
-        return self.root.get(datapoint_name)
+    # def get_input_data(self,
+    #                    datapoint_name:str
+    #                    ) -> Optional[DataPointModel]:
+    #     """
+    #     Get input data by name.
+    #     """
+    #     if datapoint_name not in self.root:
+    #         raise ValueError(f"Input data with name '{datapoint_name}' not found. "
+    #                          f"Available input data: {list(self.root.keys())}")
+    #     return self.root.get(datapoint_name)
 
 # Models for the Input Configuration
 class IOAllocationModel(BaseModel):

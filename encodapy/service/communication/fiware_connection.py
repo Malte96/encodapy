@@ -124,6 +124,17 @@ class FiwareConnection:
             database_params=database_params
         )
 
+    def check_fiware_connection(self) -> None:
+        """
+        Check the Fiware connection. Are there any entities available?
+        """
+        if self.cb_client is None:
+            raise InterfaceNotActive("ContextBrokerClient is not active")
+
+        if len(self.cb_client.get_entity_list()) == 0:
+            logger.error("No entities were found in the ContextBrokerClient. "
+                           "Ensure that the configuration for the FIWARE entities is valid.")
+
     def prepare_fiware_connection(self):
         """
         Prepare the Fiware connection.
@@ -157,6 +168,7 @@ class FiwareConnection:
             url=self.fiware_conn_params.fiware_params.cb_url,
             fiware_header=self.fiware_header
         )
+        self.check_fiware_connection()
 
         self.crate_db_client = CrateDBConnection(
             crate_db_url=self.fiware_conn_params.database_params.crate_db_url,

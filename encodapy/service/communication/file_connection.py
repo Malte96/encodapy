@@ -380,7 +380,7 @@ class FileConnection:
                 {
                     "id_interface": output.id_interface,
                     "value": output.value,
-                    "time": output.timestamp.strftime("%H:%M:%S %d.%m.%Y"),
+                    "time": output.timestamp.isoformat(' '),
                 }
             )
 
@@ -393,7 +393,7 @@ class FileConnection:
                 {
                     "id_interface": command.id_interface,
                     "value": command.value,
-                    "time": command.timestamp.strftime("%H:%M:%S %d.%m.%Y"),
+                    "time": command.timestamp.isoformat(' '),
                 }
             )
 

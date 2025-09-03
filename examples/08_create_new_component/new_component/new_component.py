@@ -3,7 +3,7 @@ from typing import Union
 from loguru import logger
 
 from encodapy.components.basic_component import BasicComponent
-from encodapy.components.basic_component_config import ControllerComponentStaticData
+from encodapy.components.basic_component_config import ControllerComponentConfigData
 from encodapy.config.models import ControllerComponentModel
 from encodapy.utils.models import InputDataModel
 from encodapy.utils.units import DataUnits
@@ -27,7 +27,7 @@ class NewComponent(BasicComponent):
         self,
         config: Union[ControllerComponentModel, list[ControllerComponentModel]],
         component_id: str,
-        static_data: ControllerComponentStaticData,  # TODO: Redesign desired
+        static_data: ControllerComponentConfigData,  # TODO: Redesign desired
     ) -> None:
         # Add the necessary instance variables here (you need to store the input data in the component) TODO: Is that so?
         # example: self.variable: Optional[float]

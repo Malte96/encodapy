@@ -1,7 +1,7 @@
 # from enum import Enum
 from typing import Optional
 
-from pydantic import Field
+from pydantic import Field, BaseModel
 
 from encodapy.components.basic_component_config import (
     InputModel,
@@ -67,3 +67,15 @@ class NewComponentOutputModel(OutputModel):
 #     """
 
 #     A_STATIC_VALUE = "setpoint for something"
+
+
+class NewComponentConfigDataModel(BaseModel):
+    """
+    Config data model for the new component
+    """
+
+    a_config_value: float = Field(
+        ...,
+        description="Config value for the new component",
+        json_schema_extra={"default": 5, "unit": "KEL"},
+    )

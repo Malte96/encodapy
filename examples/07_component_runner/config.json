@@ -162,7 +162,7 @@
                     "attribute": "storage__level"
                 }
             },
-            "staticdata": {
+            "config": {
                 "volume": {
                     "entity" : "thermal_storage",
                     "attribute": "volume"
@@ -174,11 +174,11 @@
                 "sensor_config": {
                     "entity" : "thermal_storage",
                     "attribute": "sensor_config"
+                },
+                "calculation_method": {
+                    "value": "static_limits"
                 }
-            },
-            "config": {
-                "calculation_method" : "static_limits"
-                }
+            }
         },
         {
             "id": "two_point_controller",
@@ -199,8 +199,8 @@
                     "attribute": "control_signal"
                 }
             },
-            "staticdata": {
-                "setpoint_value": {
+            "config": {
+                "setpoint": {
                     "entity" : "thermal_storage_controller",
                     "attribute": "controller_setpoint"
                 },

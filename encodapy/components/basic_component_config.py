@@ -10,53 +10,55 @@ from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
 from encodapy.utils.units import DataUnits
 
 # Models to hold the data
-class DataPointModel(BaseModel):
+class DataPointGeneral(BaseModel):
     """
-    Model for the static data attributes of the controller component.
+    Model for datapoints of the controller component.
     
     Contains:
-        value: The value of the static data attribute, which can be of various types \
+        value: The value of the datapoint, which can be of various types \
             (string, float, int, boolean, dictionary, list, DataFrame, or None)
-        unit: Optional unit of the static data attribute, if applicable
-        time: Optional timestamp of the static data attribute, if applicable
+        unit: Optional unit of the datapoint, if applicable
+        time: Optional timestamp of the datapoint, if applicable
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    value: Union[str, float, int, bool, dict, List, DataFrame,
-                 None,
-                 BaseModel]
+    value: Any
     unit: Optional[DataUnits] = None
     time: Optional[datetime] = None
 
-
-class ControllerComponentConfigData(  # pylint: disable=too-few-public-methods
-    RootModel[Dict[str, DataPointModel]]
-):
+class DataPointNumber(DataPointGeneral):
     """
-    Model for the static data of the controller.
+    Model for datapoints of the controller component.
     
     Contains:
-        - root: The static data as a dictionary with the key as the ID of the static data \
-            (like in the config) and the value as the value of the static data.
-    """
-class ControllerComponentInputData(RootModel[Dict[str, DataPointModel]]): # pylint: disable=too-few-public-methods
-    """Input values for the substation controller
-
-    Args:
-        RootModel (Dict[str, IOAllocationModel]): Input values mapping
+        value: The value of the datapoint, which is a number (float, int)
+        unit: Optional unit of the datapoint, if applicable
+        time: Optional timestamp of the datapoint, if applicable
     """
 
-    # def get_input_data(self,
-    #                    datapoint_name:str
-    #                    ) -> Optional[DataPointModel]:
-    #     """
-    #     Get input data by name.
-    #     """
-    #     if datapoint_name not in self.root:
-    #         raise ValueError(f"Input data with name '{datapoint_name}' not found. "
-    #                          f"Available input data: {list(self.root.keys())}")
-    #     return self.root.get(datapoint_name)
+class DataPointString(DataPointGeneral):
+    """
+    Model for datapoints of the controller component.
+
+    Contains:
+        value: The value of the datapoint, which is a string
+        unit: Optional unit of the datapoint, if applicable
+        time: Optional timestamp of the datapoint, if applicable
+    """
+
+    value: str
+class DataPointDict(DataPointGeneral):
+    """
+    Model for datapoints of the controller component.
+
+    Contains:
+        value: The value of the datapoint, which is a dictionary
+        unit: Optional unit of the datapoint, if applicable
+        time: Optional timestamp of the datapoint, if applicable
+    """
+
+    value: dict
 
 # Models for the Input Configuration
 class IOAllocationModel(BaseModel):
@@ -92,7 +94,7 @@ class IOModell((RootModel[Dict[str, IOAllocationModel]])):  # pylint: disable=to
     There is no validation for this.
     It is used to create the the ComponentIOModel for each component.
     """
-class ConfigDataPoints((RootModel[Dict[str, IOAllocationModel | DataPointModel]])):  # pylint: disable=too-few-public-methods
+class ConfigDataPoints((RootModel[Dict[str, IOAllocationModel | DataPointGeneral]])):  # pylint: disable=too-few-public-methods
     """
     Model for the configuration of config data points.
     """
@@ -120,40 +122,39 @@ class ControllerComponentModel(BaseModel):
     outputs: IOModell
     config: Optional[ConfigDataPoints] = None
 
-
-
 # Models for the internal input and output connections, needs to filled for the components
-
-
-class OutputModel(BaseModel):
+class OutputData(BaseModel):
     """
     Basemodel for the configuration of the outputs of a component
 
     Needs to be implemented by the user.
     """
 
-
-class InputModel(BaseModel):
+class InputData(BaseModel):
     """
     Basemodel for the configuration of the inputs of a component
     """
+    #TODO remove this validator
+    # @model_validator(mode="after")
+    # def check_default_values(self) -> "InputModel":
+    #     """
+    #     Check the default_values
+    #     """
+    #     for name, field in self.model_fields.items():
+    #         value = getattr(self, name)
+    #         extra = field.json_schema_extra or {}
 
-    @model_validator(mode="after")
-    def check_default_values(self) -> "InputModel":
-        """
-        Check the default_values
-        """
-        for name, field in self.model_fields.items():
-            value = getattr(self, name)
-            extra = field.json_schema_extra or {}
+    #         if isinstance(value, IOAllocationModel) and isinstance(extra, dict):
+    #             if "default" in extra and value.default is None:
+    #                 value.default = extra["default"]
+    #             if "unit" in extra and value.unit is None:
+    #                 value.unit = DataUnits(extra["unit"])
 
-            if isinstance(value, IOAllocationModel) and isinstance(extra, dict):
-                if "default" in extra and value.default is None:
-                    value.default = extra["default"]
-                if "unit" in extra and value.unit is None:
-                    value.unit = DataUnits(extra["unit"])
-
-        return self
+    #     return self
+class ConfigData(BaseModel):
+    """
+    Basemodel for the configuration data of a component
+    """
 
 
 class ComponentIOModel(BaseModel):
@@ -165,10 +166,10 @@ class ComponentIOModel(BaseModel):
         `output`: OutputModel = Output configuration for the thermal storage service
     """
 
-    input: InputModel = Field(
+    input: InputData = Field(
         ..., description="Input configuration for the thermal storage service"
     )
-    output: OutputModel = Field(
+    output: OutputData = Field(
         ...,
         description="Output configuration for the thermal storage service")
 

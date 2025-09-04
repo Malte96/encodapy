@@ -4,26 +4,28 @@ Author: Martin Altenburger
 """
 
 from datetime import datetime, timezone
-from typing import Optional, Type, Union, Any
+from typing import Optional, Union, Type, Any
 from loguru import logger
-from pydantic import BaseModel, ValidationError
+from pydantic import ValidationError
 from encodapy.components.basic_component_config import (
     ComponentIOModel,
     ComponentValidationError,
     ControllerComponentModel,
-    ControllerComponentConfigData,
-    DataPointModel,
-    InputModel,
+    DataPointGeneral,
     IOAllocationModel,
     IOModell,
-    OutputModel,
-    ControllerComponentInputData,
-    ConfigDataPoints
+    ConfigDataPoints,
+    InputData,
+    ConfigData,
+    OutputData
 )
 from encodapy.components.component_loader import (
     get_component_io_model,
-    get_component_config_data_model
+    get_component_config_data_model,
+    get_component_input_data_model,
+    get_component_output_data_model
 )
+
 from encodapy.utils.models import (
     DataTransferComponentModel,
     InputDataEntityModel,
@@ -31,7 +33,6 @@ from encodapy.utils.models import (
     StaticDataEntityModel,
 )
 from encodapy.utils.units import DataUnits, get_unit_adjustment_factor
-
 
 class BasicComponent:
     """
@@ -64,13 +65,13 @@ class BasicComponent:
                 self.get_component_config(config=config, component_id=component_id)
             )
 
-        self.config_data = ControllerComponentConfigData({})
+        self.config_data: ConfigData
         self.set_component_config_data(
             static_data=static_data, static_config=self.component_config.config
         )
         # Inputs and Outputs of the component itsel
         self.io_model: Optional[ComponentIOModel] = None
-        self.input_data: ControllerComponentInputData = ControllerComponentInputData({})
+        self.input_data: InputData
 
         self._prepare_i_o_config()
 
@@ -96,22 +97,22 @@ class BasicComponent:
 
         raise KeyError(f"No component configuration found for {component_id}")
 
-    def _get_input_and_output_models(self) -> tuple[Type[BaseModel], Type[BaseModel]]:
+    def _get_input_and_output_config_models(self) -> tuple[Type[InputData], Type[OutputData]]:
         """
         Function to get the input and output models for the component.
         There needs to be a InputModel and a OutputModel in the config-module for the component.
 
         """
         component_input_model = get_component_io_model(
-            component_type=self.component_config.type, model_subname="InputModel"
+            component_type=self.component_config.type, model_subname="InputData"
         )
         component_output_model = get_component_io_model(
-            component_type=self.component_config.type, model_subname="OutputModel"
+            component_type=self.component_config.type, model_subname="OutputData"
         )
 
         if not (
-            issubclass(component_input_model, InputModel)
-            and issubclass(component_output_model, OutputModel)
+            issubclass(component_input_model, InputData)
+            and issubclass(component_output_model, OutputData)
         ):
             error_msg = "Input or output model is not a subclass of BaseModel"
             logger.error(error_msg)
@@ -123,10 +124,8 @@ class BasicComponent:
         """
         Function to prepare the I/O configuration for the component
         """
+        component_input_model, component_output_model = self._get_input_and_output_config_models()
         config = self.component_config
-        component_input_model, component_output_model = (
-            self._get_input_and_output_models()
-        )
         try:
             input_config = component_input_model.model_validate(
                 config.inputs.root
@@ -185,20 +184,20 @@ class BasicComponent:
             return
 
         config_model = get_component_config_data_model(
-            component_type=self.component_config.type, model_subname="ConfigDataModel"
+            component_type=self.component_config.type, model_subname="ConfigData"
         )
 
         if config_model is None:
             logger.debug("No config model found, skipping static config check.")
             return
 
-        static_config_data: dict[str, DataPointModel] = {}
+        static_config_data: dict[str, DataPointGeneral] = {}
 
         for datapoint_name, datapoint_config in config_model.model_fields.items():
 
             if datapoint_name not in static_config.root.keys() and datapoint_config.is_required():
                 error_msg = (
-                    f"Config entry '{datapoint_name}' is missing in the configuration " 
+                    f"Config entry '{datapoint_name}' is missing in the configuration "
                     f"of the component {self.component_config.id}."
                 )
                 logger.error(error_msg)
@@ -211,14 +210,14 @@ class BasicComponent:
                 unit_default = DataUnits(datapoint_config.json_schema_extra["unit"])
 
             if datapoint_name not in static_config.root.keys():
-                static_config_data[datapoint_name] = DataPointModel(
+                static_config_data[datapoint_name] = DataPointGeneral(
                     value=datapoint_config.default,
                     unit=unit_default
                 )
                 continue
             datapoint = static_config.root[datapoint_name]
 
-            if isinstance(datapoint, DataPointModel):
+            if isinstance(datapoint, DataPointGeneral):
                 static_config_data[datapoint_name] = datapoint
 
             if isinstance(datapoint, IOAllocationModel):
@@ -252,7 +251,7 @@ class BasicComponent:
                         logger.error(error_msg)
                         raise ComponentValidationError(error_msg)
 
-                    static_config_data[datapoint_name] = DataPointModel(
+                    static_config_data[datapoint_name] = DataPointGeneral(
                         value=value * unit_adjustment_factor,
                         unit=unit_default
                     )
@@ -265,34 +264,15 @@ class BasicComponent:
                     logger.error(error_msg)
                     raise ComponentValidationError(error_msg)
 
-            # Validate the value in the configuration by the given model
-                # Ensure, that the values are valid according to the model
-                # A BaseModel could not used directly for validation, because of the DataPointModel
-            try:
-                value = getattr(config_model.__pydantic_validator__.validate_assignment(
-                    config_model.model_construct(),
-                    datapoint_name,
-                    static_config_data[datapoint_name].value
-                ), datapoint_name)
-
-                static_config_data[datapoint_name] = DataPointModel(
-                    value=value,
-                    unit=static_config_data[datapoint_name].unit,
-                    time=static_config_data[datapoint_name].time
-                )
-
-            except ValidationError as error:
-                error_msg = (
-                    f"Error in static data configuration for '{datapoint_name}': {error}"
-                    " Could not validate and set the static data model"
-                )
-                logger.error(error_msg)
-                raise ComponentValidationError(error_msg) from error
+        # we need to convert the data to a dict of the correct types
+        # because the config data model could contain different types
+        for key, value in static_config_data.items():
+            static_config_data[key] = value.model_dump()
 
         try:
 
-            static_data_model = ControllerComponentConfigData.model_validate(
-                static_config_data, strict=False
+            config_data_model = config_model.model_validate(
+                static_config_data
             )
 
         except ValidationError as error:
@@ -303,7 +283,7 @@ class BasicComponent:
             logger.error(error_msg)
             raise ComponentValidationError(error_msg) from error
 
-        self.static_data = static_data_model
+        self.config_data = config_data_model
 
     def get_component_input(
         self,
@@ -313,7 +293,7 @@ class BasicComponent:
             list[Union[InputDataEntityModel, StaticDataEntityModel]],
         ],
         input_config: IOAllocationModel,
-    ) -> DataPointModel:
+    ) -> DataPointGeneral:
         """
         Function to get the value of the input data for a specific input configuration \
             of a component of the controller (or a individual one).
@@ -323,13 +303,13 @@ class BasicComponent:
             input_config (IOAllocationModel): Configuration of the input
 
         Returns:
-            DataPointModel: The value of the input data and its unit and timestamp
+            DataPointGeneral: The value of the input data and its unit and timestamp
         """
         for input_data in input_entities:
             if input_data.id == input_config.entity:
                 for attribute in input_data.attributes:
                     if attribute.id == input_config.attribute:
-                        return DataPointModel(
+                        return DataPointGeneral(
                             value=attribute.data,
                             unit=attribute.unit,
                             time=attribute.latest_timestamp_input
@@ -338,89 +318,6 @@ class BasicComponent:
         raise KeyError(
             f"Input data {input_config.entity} / {input_config.attribute} not found. "
             "Please check the configuration of the Inputs, Outputs and Static Data."
-        )
-    def get_component_static_data(
-        self, datapoint_id: str, unit: Optional[DataUnits] = None
-    ) -> Optional[DataPointModel]:
-        """
-        Function to get the static data of a component by its ID \
-            and in the specified unit (optional).
-        Args:
-            component_id (str): ID of the component to get the static data for
-            unit (Optional[str]): Unit to convert the static data value to, if specified
-        Returns:
-            DataPointModel: The value of the input data and its unit, if available
-        """
-        if datapoint_id not in self.static_data.root.keys():
-            logger.debug(
-                f"Static data with ID {datapoint_id} not found in the static data of "
-                f"the component {self.component_config.id}."
-            )
-            return None
-
-        static_data = DataPointModel.model_validate(
-            self.static_data.root.get(datapoint_id, None)
-        )
-        static_data_value = static_data.value
-        static_data_unit = static_data.unit
-
-        if unit is not None and static_data_unit is not None:
-            if static_data_unit == unit:
-                return DataPointModel(
-                    value=static_data_value,
-                    unit=static_data_unit
-                )
-            # TODO: Implement unit conversion if needed
-            raise RuntimeError(
-                f"Unit conversion from {static_data_unit} to {unit} is not implemented"
-            )
-
-        return DataPointModel(
-            value=static_data_value,
-            unit=static_data_unit,
-        )
-    def get_component_input_data(
-        self, datapoint_id: str, unit: Optional[DataUnits] = None
-    ) -> Optional[DataPointModel]:
-        """
-        Function to get the static data of a component by its ID \
-            and in the specified unit (optional).
-        Args:
-            component_id (str): ID of the component to get the static data for
-            unit (Optional[str]): Unit to convert the static data value to, if specified
-        Returns:
-            DataPointModel: The value of the input data and its unit, if available
-        """
-        if datapoint_id not in self.input_data.root.keys():
-            logger.debug(
-                f"Input data with ID {datapoint_id} not found in the input data of "
-                f"the component {self.component_config.id}."
-            )
-            return None
-
-        input_data = DataPointModel.model_validate(
-            self.input_data.root.get(datapoint_id, None)
-        )
-        input_data_value = input_data.value
-        input_data_unit = input_data.unit
-        input_data_time = input_data.time
-
-        if unit is not None and input_data_unit is not None:
-            if input_data_unit == unit:
-                return DataPointModel(
-                    value=input_data_value,
-                    unit=input_data_unit,
-                    time=input_data_time
-                )
-            # TODO: Implement unit conversion if needed
-            raise RuntimeError(
-                f"Unit conversion from {input_data_unit} to {unit} is not implemented"
-            )
-
-        return DataPointModel(
-            value=input_data_value,
-            unit=input_data_unit,
-            time=input_data_time
         )
 
     def prepare_component(self):
@@ -446,10 +343,19 @@ class BasicComponent:
         input_datapoints.extend(input_data.input_entities)
         input_datapoints.extend(input_data.static_entities)
 
-        input_values: dict[str, Any] = {}
+        input_values: dict[str, DataPointGeneral] = {}
 
         for datapoint_name, datapoint_config in self.io_model.input.__dict__.items():
-            datapoint_config = IOAllocationModel.model_validate(datapoint_config)
+            if datapoint_config is None:
+                continue
+            try:
+                datapoint_config = IOAllocationModel.model_validate(datapoint_config)
+            except ValidationError as e:
+                logger.warning(
+                    f"Invalid input configuration for {datapoint_name} "
+                    f"in {self.component_config.id}: {e}"
+                    )
+                continue
 
             input_datapoint = self.get_component_input(
                 input_entities=input_datapoints,
@@ -459,13 +365,20 @@ class BasicComponent:
                 input_datapoint.value = datapoint_config.default
             if input_datapoint.unit is None:
                 input_datapoint.unit = datapoint_config.unit
-            input_values[datapoint_name] = DataPointModel(
+            input_values[datapoint_name] = DataPointGeneral(
                 value=input_datapoint.value,
                 unit=input_datapoint.unit,
                 time=input_datapoint.time
             )
 
-        self.input_data = ControllerComponentInputData.model_validate(input_values)
+        input_data_model = get_component_input_data_model(
+            component_type=self.component_config.type
+            )
+        input_values_raw: dict[str, Any] = {}
+        for key, value in input_values.items():
+            input_values_raw[key] = value.model_dump()
+
+        self.input_data = input_data_model.model_validate(input_values_raw)
 
     def run(self, data: InputDataModel) -> list[DataTransferComponentModel]:
         """
@@ -491,10 +404,20 @@ class BasicComponent:
             )
             return components
 
+        # TODO use the output model to hold and validate the output values
+        # would be easier to use
+        # no information about calculation function needed, only a calculation is required
+
         # avoid: Instance of 'FieldInfo' has no 'model_fields' memberPylintE1101:no-member
         try:
-            _, component_output_model = self._get_input_and_output_models()
-            output = component_output_model.model_validate(self.io_model.output)
+            _, component_output_model = self._get_input_and_output_config_models()
+
+            if hasattr(self.io_model.output, 'model_dump'):
+                output_model = self.io_model.output.model_dump()
+            else:
+                raise ValidationError("Output model is not valid")
+
+            output = component_output_model.model_validate(output_model)
         except ValidationError as e:
             logger.error(
                 f"Output validation failed for {self.component_config.id}: {e}"

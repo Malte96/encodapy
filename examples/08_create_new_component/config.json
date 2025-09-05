@@ -12,6 +12,9 @@
             "id_interface": "input-topic",
             "attributes": [
                 {
+                    "id": "general_data"
+                },
+                {
                     "id": "input_data"
                 },
                 {
@@ -30,7 +33,7 @@
                     "id": "result_data"
                 },
                 {
-                    "id": "another_result_data"
+                    "id": "optional_result_data"
                 }
             ],
             "commands": []
@@ -42,11 +45,15 @@
             "id": "new_component",
             "type": "examples.08_create_new_component.new_component",
             "inputs": {
-                "a_input": {
+                "a_general_input":{
+                    "entity": "mqtt_input_entity",
+                    "attribute": "general_data"
+                },
+                "a_number_input": {
                     "entity": "mqtt_input_entity",
                     "attribute": "input_data"
                 },
-                "another_input": {
+                "another_number_input": {
                     "entity": "mqtt_input_entity",
                     "attribute": "another_input_data"
                 }
@@ -56,9 +63,9 @@
                     "entity": "mqtt_output_entity",
                     "attribute": "result_data"
                 },
-                "another_result": {
+                "optional_result": {
                     "entity": "mqtt_output_entity",
-                    "attribute": "another_result_data"
+                    "attribute": "optional_result_data"
                 },
                 "b_result": {
                     "entity": "mqtt_output_entity",

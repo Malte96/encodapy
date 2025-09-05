@@ -4,34 +4,36 @@ Author: Martin Altenburger
 """
 
 from datetime import datetime, timezone
-from typing import Optional, Union, Type, Any
+from typing import Any, Optional, Type, Union
+
 from loguru import logger
 from pydantic import ValidationError
+
 from encodapy.components.basic_component_config import (
     ComponentIOModel,
     ComponentValidationError,
+    ConfigData,
+    ConfigDataPoints,
     ControllerComponentModel,
     DataPointGeneral,
+    InputData,
     IOAllocationModel,
     IOModell,
-    ConfigDataPoints,
-    InputData,
-    ConfigData,
-    OutputData
+    OutputData,
 )
 from encodapy.components.component_loader import (
-    get_component_io_model,
     get_component_config_data_model,
     get_component_input_data_model,
-    get_component_output_data_model
+    get_component_io_model,
+    get_component_output_data_model,
 )
-
 from encodapy.utils.models import (
     DataTransferComponentModel,
     InputDataEntityModel,
     InputDataModel,
     StaticDataEntityModel,
 )
+
 
 class BasicComponent:
     """
@@ -97,7 +99,9 @@ class BasicComponent:
 
         raise KeyError(f"No component configuration found for {component_id}")
 
-    def _get_input_and_output_config_models(self) -> tuple[Type[InputData], Type[OutputData]]:
+    def _get_input_and_output_config_models(
+        self,
+    ) -> tuple[Type[InputData], Type[OutputData]]:
         """
         Function to get the input and output models for the component.
         There needs to be a InputModel and a OutputModel in the config-module for the component.
@@ -124,7 +128,9 @@ class BasicComponent:
         """
         Function to prepare the I/O configuration for the component
         """
-        component_input_model, component_output_model = self._get_input_and_output_config_models()
+        component_input_model, component_output_model = (
+            self._get_input_and_output_config_models()
+        )
         config = self.component_config
         try:
             input_config = component_input_model.model_validate(
@@ -169,10 +175,12 @@ class BasicComponent:
 
         """
         try:
-            assert static_config is not None, \
+            assert static_config is not None, (
                 "No static config provided, skipping static data setup."
-            assert isinstance(static_config, ConfigDataPoints), \
+            )
+            assert isinstance(static_config, ConfigDataPoints), (
                 "Invalid static config provided."
+            )
         except AssertionError as e:
             logger.error(f"Static config error: {e}")
             raise ComponentValidationError(f"Static config error: {e}") from e
@@ -188,7 +196,6 @@ class BasicComponent:
         static_config_data: dict[str, DataPointGeneral] = {}
 
         for datapoint_name, _ in config_model.model_fields.items():
-
             if datapoint_name not in static_config.root:
                 logger.debug(
                     f"Static config {datapoint_name} not in static configuration, "
@@ -209,8 +216,7 @@ class BasicComponent:
                     logger.error(error_msg)
                     raise ComponentValidationError(error_msg)
                 static_config_data[datapoint_name] = self.get_component_input(
-                    input_entities=static_data,
-                    input_config=datapoint
+                    input_entities=static_data, input_config=datapoint
                 )
 
         # we need to convert the data to a dict of the correct types
@@ -220,9 +226,7 @@ class BasicComponent:
             static_config_raw[key] = value.model_dump()
 
         try:
-            self.config_data = config_model.model_validate(
-                static_config_raw
-            )
+            self.config_data = config_model.model_validate(static_config_raw)
 
         except ValidationError as error:
             error_msg = (
@@ -259,7 +263,7 @@ class BasicComponent:
                         return DataPointGeneral(
                             value=attribute.data,
                             unit=attribute.unit,
-                            time=attribute.latest_timestamp_input
+                            time=attribute.latest_timestamp_input,
                         )
 
         raise KeyError(
@@ -272,9 +276,9 @@ class BasicComponent:
         Set the input values for the component from the provided input entities.
         The input values are extracted based on the component's input configuration.
         Also static data is used as input.
-        
+
         Input data is validated against the component's input model and stored in self.input_data.
-        
+
         The validation ensures that the input data conforms to the expected structure and types.
         Also the units are checked and converted if necessary.
 
@@ -300,17 +304,16 @@ class BasicComponent:
                 logger.warning(
                     f"Invalid input configuration for {datapoint_name} "
                     f"in {self.component_config.id}: {e}"
-                    )
+                )
                 continue
 
             input_values[datapoint_name] = self.get_component_input(
-                input_entities=input_datapoints,
-                input_config=datapoint_config
+                input_entities=input_datapoints, input_config=datapoint_config
             )
 
         input_data_model = get_component_input_data_model(
             component_type=self.component_config.type
-            )
+        )
         input_values_raw: dict[str, Any] = {}
         for key, value in input_values.items():
             input_values_raw[key] = value.model_dump()
@@ -322,25 +325,29 @@ class BasicComponent:
         Function to prepare the component.
         This function should be implemented in each component to prepare the component.
         """
-        logger.debug("Prepare component is not implemented in the base class"
-                     f" for {self.component_config.id}")
+        logger.debug(
+            "Prepare component is not implemented in the base class"
+            f" for {self.component_config.id}"
+        )
 
     def calculate(self):
         """
         Function to calculate the output of the component.
         This function should be implemented in each component to calculate the output.
-        
+
         The function should use the input data stored in self.input_data
         and the static data stored in self.config_data to perform the calculation.
         The result should be stored in self.output_data.
-        
+
         Raises:
             ValueError: If the calculation fails due to invalid input data.
             KeyError: If a required input data point is missing.
             RuntimeError: If the calculation cannot be performed for other reasons.
         """
-        logger.debug("Calculate is not implemented in the base class"
-                     f" for {self.component_config.id}")
+        logger.debug(
+            "Calculate is not implemented in the base class"
+            f" for {self.component_config.id}"
+        )
 
     def run(self, data: InputDataModel) -> list[DataTransferComponentModel]:
         """
@@ -369,17 +376,15 @@ class BasicComponent:
         try:
             self.calculate()
         except (ValueError, KeyError, RuntimeError) as e:
-            logger.error(
-                f"Calculation failed for {self.component_config.id}: {e}"
-            )
+            logger.error(f"Calculation failed for {self.component_config.id}: {e}")
             return components
 
         try:
             output_model = get_component_output_data_model(
                 component_type=self.component_config.type
-                )
+            )
 
-            if not hasattr(self, 'output_data'):
+            if not hasattr(self, "output_data"):
                 raise ValueError("Output data is not set in the component.")
 
             self.output_data = output_model.model_validate(
@@ -451,5 +456,7 @@ class BasicComponent:
                 )
                 self.prepare_component()
             except ComponentValidationError as e:
-                logger.error(f"Failed to reload static data for {self.component_config.id}: {e}")
+                logger.error(
+                    f"Failed to reload static data for {self.component_config.id}: {e}"
+                )
                 raise

@@ -1,56 +1,59 @@
 # from enum import Enum
 from typing import Optional
 
-from pydantic import Field, BaseModel
+from pydantic import Field
 
 from encodapy.components.basic_component_config import (
-    InputModel,
-    IOAllocationModel,
-    OutputModel,
+    ConfigData,
+    DataPointGeneral,
+    DataPointNumber,
+    InputData,
+    OutputData,
 )
 
 
-class NewComponentInputModel(InputModel):
+class NewComponentInputData(InputData):
     """
     Input model for the new component
     """
 
-    a_input: IOAllocationModel = Field(
+    a_general_input: DataPointGeneral = Field(
         ...,
-        description="Input of the new component",
-        json_schema_extra={"default": "20", "unit": "CEL"},
+        description="A general input of the new component",
+        json_schema_extra={"default": "Hello new component!"},
     )
-
-    another_input: IOAllocationModel = Field(
-        ...,
-        description="Another input of the new component",
-        json_schema_extra={"default": "30", "unit": "CEL"},
+    a_number_input: DataPointNumber = Field(
+        DataPointNumber(value=30),
+        description="A number input of the new component",
+        json_schema_extra={"unit": "CEL"},
     )
-
-    optional_input: Optional[IOAllocationModel] = Field(
+    another_number_input: DataPointNumber = Field(
+        DataPointNumber(value=10),
+        description="Another number input of the new component",
+        json_schema_extra={"unit": "KEL"},
+    )
+    optional_input: Optional[DataPointGeneral] = Field(
         None,
         description="Optional input of the new component",
         json_schema_extra={"default": "10", "unit": "CEL"},
     )
 
 
-class NewComponentOutputModel(OutputModel):
+class NewComponentOutputData(OutputData):
     """
     Output model for the new component
     """
 
-    a_result: IOAllocationModel = Field(
+    a_result: DataPointGeneral = Field(
         ...,
         description="Result of the new component",
-        json_schema_extra={"calculation": "calculate_a_result"},
+        json_schema_extra={"unit": "CEL"},
     )
-
-    another_result: IOAllocationModel = Field(
+    optional_result: Optional[DataPointGeneral] = Field(
         ...,
-        description="Another result of the new component",
-        json_schema_extra={"calculation": "calculate_another_result"},
+        description="This is an optional result of the new component and does not need to be exported.",
+        json_schema_extra={"unit": "$unit_value"},
     )
-
     # TODO: SERVICE STOPS RUNNING: Needs to throw error if no matching calculation function is defined
     # b_result: IOAllocationModel = Field(
     #     ...,
@@ -69,13 +72,17 @@ class NewComponentOutputModel(OutputModel):
 #     A_STATIC_VALUE = "setpoint for something"
 
 
-class NewComponentConfigDataModel(BaseModel):
+class NewComponentConfigData(ConfigData):
     """
     Config data model for the new component
     """
 
-    a_config_value: float = Field(
+    a_config_value: DataPointNumber = Field(
         ...,
-        description="Config value for the new component",
+        description="Static value for the new component",
         json_schema_extra={"default": 5, "unit": "KEL"},
+    )
+    optional_config_value: Optional[DataPointGeneral] = Field(
+        DataPointGeneral(value=1),
+        description="Optional static value for the new component",
     )

@@ -2,11 +2,15 @@
 Basic configuration for the components in the EnCoCaPy framework.
 Author: Martin Altenburger
 """
-from typing import Dict, Optional, Any
+
 from datetime import datetime
-from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
+from typing import Any, Dict, Optional
+
 from loguru import logger
+from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
+
 from encodapy.utils.units import DataUnits, get_unit_adjustment_factor
+
 
 # Models to hold the data
 class DataPointGeneral(BaseModel):
@@ -26,15 +30,17 @@ class DataPointGeneral(BaseModel):
     unit: Optional[DataUnits] = None
     time: Optional[datetime] = None
 
+
 class DataPointNumber(DataPointGeneral):
     """
     Model for datapoints of the controller component.
-    
+
     Contains:
         value: The value of the datapoint, which is a number (float, int)
         unit: Optional unit of the datapoint, if applicable
         time: Optional timestamp of the datapoint, if applicable
     """
+
 
 class DataPointString(DataPointGeneral):
     """
@@ -47,6 +53,8 @@ class DataPointString(DataPointGeneral):
     """
 
     value: str
+
+
 class DataPointDict(DataPointGeneral):
     """
     Model for datapoints of the controller component.
@@ -59,6 +67,7 @@ class DataPointDict(DataPointGeneral):
 
     value: dict
 
+
 class DataPointBool(DataPointGeneral):
     """
     Model for datapoints of the controller component.
@@ -70,6 +79,7 @@ class DataPointBool(DataPointGeneral):
     """
 
     value: bool
+
 
 # Models for the Input Configuration
 class IOAllocationModel(BaseModel):
@@ -99,10 +109,13 @@ class IOModell((RootModel[Dict[str, IOAllocationModel]])):  # pylint: disable=to
     There is no validation for this.
     It is used to create the the ComponentIOModel for each component.
     """
+
+
 class ConfigDataPoints((RootModel[Dict[str, IOAllocationModel | DataPointGeneral]])):  # pylint: disable=too-few-public-methods
     """
     Model for the configuration of config data points.
     """
+
 
 class ControllerComponentModel(BaseModel):
     """
@@ -127,6 +140,7 @@ class ControllerComponentModel(BaseModel):
     outputs: IOModell
     config: Optional[ConfigDataPoints] = None
 
+
 # Models for the internal input and output connections, needs to filled for the components
 class ComponentData(BaseModel):
     """
@@ -137,6 +151,7 @@ class ComponentData(BaseModel):
     Provides a validator to check the units of the input values \
         and convert them if necessary.
     """
+
     @model_validator(mode="after")
     def check_unit_values(self) -> "ComponentData":
         """
@@ -152,9 +167,11 @@ class ComponentData(BaseModel):
             if isinstance(value, DataPointGeneral):
                 if "unit" in extra.keys() and value.unit is None:
                     value.unit = DataUnits(extra["unit"])
-                elif "unit" in extra.keys() and value.unit is not None \
-                    and value.unit != DataUnits(extra["unit"]):
-
+                elif (
+                    "unit" in extra.keys()
+                    and value.unit is not None
+                    and value.unit != DataUnits(extra["unit"])
+                ):
                     if value.value is None or not isinstance(value.value, (int, float)):
                         logger.warning(
                             f"Unit of {name} is {value.unit}, but expected {extra['unit']}. "
@@ -162,8 +179,7 @@ class ComponentData(BaseModel):
                         )
                         continue
                     unit_adjustment_factor = get_unit_adjustment_factor(
-                        unit_actual=value.unit,
-                        unit_target=DataUnits(extra["unit"])
+                        unit_actual=value.unit, unit_target=DataUnits(extra["unit"])
                     )
                     if unit_adjustment_factor is None:
                         logger.warning(
@@ -176,6 +192,7 @@ class ComponentData(BaseModel):
                     value.unit = DataUnits(extra["unit"])
         return self
 
+
 class OutputData(ComponentData):
     """
     Basemodel for the configuration of the outputs of a component
@@ -185,6 +202,7 @@ class OutputData(ComponentData):
     Provides a validator to check the units of the input values \
         and convert them if necessary.
     """
+
 
 class InputData(ComponentData):
     """
@@ -198,6 +216,7 @@ class InputData(ComponentData):
         is a DataPointGeneral or a SubModel.
     """
 
+
 class ConfigData(ComponentData):
     """
     Basemodel for the configuration data of a component
@@ -207,6 +226,7 @@ class ConfigData(ComponentData):
     Provides a validator to check the units of the input values \
         and convert them if necessary.
     """
+
 
 class ComponentIOModel(BaseModel):
     """
@@ -221,8 +241,9 @@ class ComponentIOModel(BaseModel):
         ..., description="Input configuration for the thermal storage service"
     )
     output: OutputData = Field(
-        ...,
-        description="Output configuration for the thermal storage service")
+        ..., description="Output configuration for the thermal storage service"
+    )
+
 
 # Custom Exceptions
 class ComponentValidationError(Exception):

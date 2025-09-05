@@ -5,16 +5,16 @@ Author: Martin Altenburger
 
 import importlib
 from enum import Enum
-from typing import TYPE_CHECKING, Optional, Type, Union, cast, Tuple, Dict, Any
+from typing import TYPE_CHECKING, Any, Dict, Optional, Tuple, Type, Union, cast
 
 from loguru import logger
-from pydantic import BaseModel, create_model, Field
+from pydantic import BaseModel, Field, create_model
 
 from encodapy.components.basic_component_config import (
-    IOAllocationModel,
+    ConfigData,
     InputData,
+    IOAllocationModel,
     OutputData,
-    ConfigData
 )
 
 if TYPE_CHECKING:
@@ -93,9 +93,7 @@ def get_component_model(
     raise AttributeError(error_msg)
 
 
-def get_component_class_model(
-    component_type: str
-) -> "Type[BasicComponent]":
+def get_component_class_model(component_type: str) -> "Type[BasicComponent]":
     """Get the component class model for a specific component type.
 
     Args:
@@ -125,8 +123,7 @@ def get_component_class_model(
 
 
 def get_component_io_model(
-    component_type: str,
-    model_subname: str
+    component_type: str, model_subname: str
 ) -> Union[Type[InputData], Type[OutputData]]:
     """Get the component io (input or output) model for a specific component type.
 
@@ -159,14 +156,15 @@ def get_component_io_model(
     # 1. Create the fields for the new model
     felder: Dict[str, Tuple[Any, Any]] = {}
     for datapoint_name, datapoint_info in component_data_model.model_fields.items():
-
         felder[datapoint_name] = (
-            IOAllocationModel if datapoint_info.is_required() else Optional[IOAllocationModel],
+            IOAllocationModel
+            if datapoint_info.is_required()
+            else Optional[IOAllocationModel],
             Field(
                 default=datapoint_info.default,
                 description=datapoint_info.description,
                 json_schema_extra=datapoint_info.json_schema_extra,
-            )
+            ),
         )
     # 2. Create the new model dynamically
     component_config_model = create_model(
@@ -176,7 +174,7 @@ def get_component_io_model(
     )
     # 3. copy methods (if any)
     for attr_name, attr_value in component_data_model.__dict__.items():
-        if callable(attr_value) and not attr_name.startswith('__'):
+        if callable(attr_value) and not attr_name.startswith("__"):
             setattr(component_config_model, attr_name, attr_value)
 
     # 4. copy validators (if any)
@@ -191,7 +189,7 @@ def get_component_data_model(
     component_type: str,
     model_subname: str,
     data_model_type: Union[Type[InputData], Type[OutputData], Type[ConfigData]],
-    none_allowed=True
+    none_allowed=True,
 ) -> Union[Type[InputData], Type[OutputData], Type[ConfigData], None]:
     """
     Get the component data model for a specific component type.
@@ -213,11 +211,11 @@ def get_component_data_model(
             The component data model or None if not found.
     """
     data_model = get_component_model(
-            component_type=component_type,
-            model_subname=model_subname,
-            model_type=ModelTypes.COMPONENT_CONFIG,
-            none_allowed=True,
-        )
+        component_type=component_type,
+        model_subname=model_subname,
+        model_type=ModelTypes.COMPONENT_CONFIG,
+        none_allowed=True,
+    )
 
     if data_model is None:
         if none_allowed:
@@ -225,15 +223,18 @@ def get_component_data_model(
             return None
         raise KeyError(f"Component Config Model not found for {component_type}")
     if not issubclass(data_model, data_model_type):
-        error_message = (f"Component class {data_model.__name__} "
-            f"is not a subclass of {data_model_type.__name__}")
+        error_message = (
+            f"Component class {data_model.__name__} "
+            f"is not a subclass of {data_model_type.__name__}"
+        )
         logger.error(error_message)
         raise TypeError(error_message)
     return cast(Union[Type[InputData], Type[OutputData], Type[ConfigData]], data_model)
 
-def get_component_config_data_model(component_type: str,
-                                    model_subname: str
-                                    )-> Union[Type[ConfigData], None]:
+
+def get_component_config_data_model(
+    component_type: str, model_subname: str
+) -> Union[Type[ConfigData], None]:
     """Get the component config data model for a specific component type.
 
     Args:
@@ -243,14 +244,18 @@ def get_component_config_data_model(component_type: str,
     Returns:
         Union[Type[BasicComponent], None]: The component static data model or None, if not found.
     """
-    return cast(Optional[Type[ConfigData]], get_component_data_model(
-        component_type=component_type,
-        model_subname=model_subname,
-        data_model_type=ConfigData,
-        none_allowed=True
-    ))
-def get_component_input_data_model(component_type: str
-                                   ) -> Type[InputData]:
+    return cast(
+        Optional[Type[ConfigData]],
+        get_component_data_model(
+            component_type=component_type,
+            model_subname=model_subname,
+            data_model_type=ConfigData,
+            none_allowed=True,
+        ),
+    )
+
+
+def get_component_input_data_model(component_type: str) -> Type[InputData]:
     """Get the component input data model for a specific component type.
 
     Args:
@@ -259,13 +264,17 @@ def get_component_input_data_model(component_type: str
     Returns:
         Type[InputData]: The component input data model.
     """
-    return cast(Type[InputData], get_component_data_model(
-        component_type=component_type,
-        model_subname="InputData",
-        data_model_type=InputData
-    ))
-def get_component_output_data_model(component_type: str
-                                    ) -> Type[OutputData]:
+    return cast(
+        Type[InputData],
+        get_component_data_model(
+            component_type=component_type,
+            model_subname="InputData",
+            data_model_type=InputData,
+        ),
+    )
+
+
+def get_component_output_data_model(component_type: str) -> Type[OutputData]:
     """Get the component output data model for a specific component type.
 
     Args:
@@ -274,8 +283,11 @@ def get_component_output_data_model(component_type: str
     Returns:
         Type[OutputData]: The component output data model.
     """
-    return cast(Type[OutputData], get_component_data_model(
-        component_type=component_type,
-        model_subname="OutputData",
-        data_model_type=OutputData
-    ))
+    return cast(
+        Type[OutputData],
+        get_component_data_model(
+            component_type=component_type,
+            model_subname="OutputData",
+            data_model_type=OutputData,
+        ),
+    )

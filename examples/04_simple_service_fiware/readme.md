@@ -24,3 +24,5 @@ To create your own custom service, you have to overwrite three functions of the 
 - `calibration`: Asynchrone function to calibrate the service or coefficients in the service if required
 
 For the models of the inputs and outputs see [02_datatransfer](./../02_datatransfer/)
+
+This shows the basic function of a service connected to the FIWARE platform without using components. It is recommended to use the component structure instead — see the example [06_thermal_storage_service] (./../.06_thermal_storage_service/) or the following.

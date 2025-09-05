@@ -22,6 +22,7 @@ class TemperatureLimits(BaseModel):
     Configuration of the temperature limits in the termal storage, contains:
         - `minimal_temperature`: Minimal temperature in the thermal storage in °C
         - `maximal_temperature`: Maximal temperature in the thermal storage in °C
+        - `reference_temperature`: Reference temperature in the storage in °C (default: 0°C)
 
     Raises:
         ValueError: if the minimal temperature is heighter than the maximal temperature
@@ -55,18 +56,15 @@ class TemperatureLimits(BaseModel):
 
         return self
 
-
 class StorageSensorConfig(BaseModel):
     """
     Configuration for the storage sensor in the thermal storage
 
     Contains:
-        `name`: Name of the sensor in the thermal storage
         `height`: Height of the sensor in percent (0=top, 100=bottom)
         `limits`: Temperature limits for the sensor
     """
 
-    # name: str = Field(..., description="Name of the sensor in the thermal storage")
     height: float = Field(
         ...,
         ge=0,
@@ -104,14 +102,14 @@ class ThermalStorageTemperatureSensors(BaseModel):
     storage_sensors: list[StorageSensorConfig] = Field(
         ..., description="List of temperature sensors (3–10 sensors)"
     )
-    load_connection_sensor_out: Optional[ConnectionSensorConfig] = Field(
-        None,
-        description="Thermal sensor on the load connection, outflow from thermal storage",
-    )
-    load_connection_sensor_in: Optional[ConnectionSensorConfig] = Field(
-        None,
-        description="Thermal sensor on the load connection, inflow to thermal storage",
-    )
+    # load_connection_sensor_out: Optional[ConnectionSensorConfig] = Field(
+    #     None,
+    #     description="Thermal sensor on the load connection, outflow from thermal storage",
+    # )
+    # load_connection_sensor_in: Optional[ConnectionSensorConfig] = Field(
+    #     None,
+    #     description="Thermal sensor on the load connection, inflow to thermal storage",
+    # )
 
     @model_validator(mode="after")
     def check_storage_tank_sensors(self) -> "ThermalStorageTemperatureSensors":
@@ -145,23 +143,23 @@ class ThermalStorageTemperatureSensors(BaseModel):
 
         return self
 
-    def check_connection_sensors(self) -> None:
-        """
-        Check the connection sensors:
-            - If they are needed, they must have a name
+    # def check_connection_sensors(self) -> None:
+    #     """
+    #     Check the connection sensors:
+    #         - If they are needed, they must have a name
 
-        Raises:
-            ValueError: if the connection sensors are not set correctly
-        """
+    #     Raises:
+    #         ValueError: if the connection sensors are not set correctly
+    #     """
 
-        if self.load_connection_sensor_out is None:
-            raise ComponentValidationError(
-                "The load connection sensor outflow must have a name."
-            )
-        if self.load_connection_sensor_in is None:
-            raise ComponentValidationError(
-                "The load connection sensor inflow must have a name."
-            )
+    #     if self.load_connection_sensor_out is None:
+    #         raise ComponentValidationError(
+    #             "The load connection sensor outflow must have a name."
+    #         )
+    #     if self.load_connection_sensor_in is None:
+    #         raise ComponentValidationError(
+    #             "The load connection sensor inflow must have a name."
+    #         )
 
 
 class ThermalStorageInputData(InputData):

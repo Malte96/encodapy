@@ -116,90 +116,125 @@ An example of how a Pydantic model can be used to validate the configuration of 
         self,
         config: Union[ControllerComponentModel, list[ControllerComponentModel]],
         component_id: str,
+        static_data: Optional[list[StaticDataEntityModel]] = None,
     ) -> None:
         # Add the necessary instance variables here (you need to store the input data in the component)
-        # example: self.variable: Optional[float]
+        self.example_variable:float = 1
+        
+        # Add the type declaration for the following variables so that autofill works properly
+        self.config_data: NewComponentConfigData
+        self.input_data: NewComponentInputData
+        self.output_data: NewComponentOutputData
 
-        super().__init__(config=config, component_id=component_id)
-
-        # Component-specific initialization logic
+         # Prepare Basic Parts / needs to be the latest part
+        super().__init__(
+            config=config, component_id=component_id, static_data=static_data
+        )
   ```
 
   **Important**: The `component_id` must match a key in the provided configuration. If not, the component will raise a `ValueError` during initialization.
 
 - The Configuration(`new_component_config.py`) needs as a minimum:
-  - `NewComponentInputModel(InputModel)`: A definition of the input datapoints.
+  - `NewComponentInputData(InputData)`: A definition of the input datapoints.
   
-    You can add information about the default values and units for each input using a `Field` definition with the `json_schema_extra` key:
+    You can add information about the default values in die Field-Information and also for units using a `Field` definition with the `json_schema_extra` key:
 
     ```python
     from pydantic import Field
 
-    from encodapy.components.basic_component_config import IOAllocationModel, InputModel
+    from encodapy.components.basic_component_config import (
+      InputData,
+      DataPointGeneral,
+      DataPointNumber
+    )
 
 
-    class NewComponentInputModel(InputModel):
+    class NewComponentInputData(InputData):
         """
         Input model for the new component
         """
 
-        input: IOAllocationModel = Field(
+        input_value: DataPointGeneral = Field(
             ...,
             description="Input of the new component",
-            json_schema_extra={"default": "$default_value", "unit": "$unit_value"},
+            json_schema_extra={"unit": "$unit_value"}
+        )
+        input_value_with_default = Field(
+            DataPointNumber(value = 1),
+            description="Input of the new component",
+            json_schema_extra={"unit": "$unit_value"}
         )
     ```
 
-    The value of the variable `"$unit_value"` must be a valid unit from the `encodapy.utils.units.DataUnits` such as `"CEL"` for °C.
+    The value of the variable `"$unit_value"` must be a valid unit from the `encodapy.utils.units.DataUnits` such as `"CEL"` for °C. If possible, the unit will also be transformed.
 
-    These two values will be added to the IOModel of the component.
-
-  - `NewComponentOutputModel(OutputModel)`: A definition of the possible output datapoints / results.
-
-    This BaseModell needs to contain a `Field`-Definition with the key: `json_schema_extra={"calculation": "$funtion_name_to_get_the_result"}`:
+  - `NewComponentOutputData(OutputData)`: A definition of the available output datapoints / results.
 
     ```python
-    from pydantic import Field
+    from pydantic import Field, Optional
 
-    from encodapy.components.basic_component_config import IOAllocationModel, OutputModel
+    from encodapy.components.basic_component_config import OutputData, DataPointGeneral
 
 
-    class NewComponentOutputModel(OutputModel):
+    class NewComponentOutputData(OutputData):
         """
         Output model for the new component
         """
   
-        result: IOAllocationModel = Field(
+        result: DataPointGeneral = Field(
             ...,
             description="Result of the new component",
-            json_schema_extra={"calculation": "$funtion_name_to_get_the_result"},
+            json_schema_extra={"unit": "$unit_value"}
+        )
+        optional_result: Optional[DataPointGeneral] = Field(
+            ...,
+            description="This is an optional result of the new component and does not need to be exported.",
+            json_schema_extra={"unit": "$unit_value"}
         )
     ```
 
-    **If you only want to use some of the possible results, you need to set them to  `Optional[IOAllocationModel]`**
+    **If you only want to use some of the possible results, you need to set them to  `Optional[IOAllocationModel]`** Therefore, there is no need to export them all in the service. If you add them all without 'Optional', you will get a 'ValidationError' if not all outputs are configured in the service configuration.
 
-    As with the `NewComponentInputModel`, you could also add information about the unit.
+    As with the `NewComponentInputData`, you could also add information about the unit. If possible, the unit will also be transformed.
   - `NewComponentDataModel(BaseModel)`: A BaseModel class which defines the required static data to check during the initilisazion. It should look like this:
     ```python
-    from pydantic import BaseModel
-    class NewComponentDataModel(BaseModel):
+    from encodapy.components.basic_component_config import ConfigData, DataPointGeneral
+    class NewComponentConfigData(ConfigData):
     """
     Model for the configuration data of the thermal storage service.
     """
-    $static_value: str = Field(
+    config_value: DataPointGeneral = Field(
         ...,
         description="Static value for the new component"
     )
-    $optional_static_value: Optional[str] = Field(
-        "default value",
+    optional_config_value: Optional[DataPointGeneral] = Field(
+        DataPointGeneral(value = 1),
         description="optional static value for the new component"
     )
     ```
     You do not need this definition if you don't want to use static data.  
     You could add optional data that does not need to be set in the configuration. This should resemble the second field in the model.
+  
+  All datapoints need to have the type `DataPointGeneral` or a specialized version of it. This type defines that the datapoints can have the following attributes:
+    - a `value`
+    - a `unit` (as `DataUnits`, e.g., `encodapy.utils.units.DataUnits`)
+    - a `time` (as a datetime object)
+
+  The following specialized versions restrict the type of `value` to ensure type consistency in calculations:
+    - `DataPointNumber` for numbers (`float`/`int`)
+    - `DataPointString` for text (`str`)
+    - `DataPointDict` for dictionaries (`dict`)
+    - `DataPointBool` for booleans (`bool`)
+
+  You can define your own datatype by subclassing `DataPointGeneral` if you need a specialized version. This approach is also useful for defining default values when the value involves more than just a number.
+  
 - If the new component requires preparation before the first run, this should be added to the `prepare_component()` function.
-- The new component requires the functions to calculate the results with the same names as mentioned in `NewComponentOutputModel(OutputModel)`, using the component's internal value storage and other background functions. These functions needs to return a tuple of (value, unit).
-- If you don't want to use the internal function `set_input_values(input_entities: list[InputDataEntityModel])`, you could add an individual function to handle the inputs. This basic function collects the data and enables you to query it using the function `self.input_values.get_input_data("$input_value_name")`.
+- The new component requires a function `calculate()` to calculate the results, using the component's internal value storage and other background functions. These functions needs to set the `self.output_data = NewComponentOutputData(...)`. 
+- The basic component will handle the inputs, configuration data and outputs.
+  - In order to use the autofil function in your IDE, you need to add a declaration of the types of `self.input_data`, `self.config_data` and `self.output_data`.
+  - This basic function collects the data and enables you to query it using the InputData-Model, which is based on a Pydantic BaseModel: `self.input_data.input_value`. If you don't want to use the internal function `set_input_values(input_entities: list[InputDataEntityModel])`, you could add an individual function to handle the inputs.
+  - This basic function collects the data and enables you to query it using the InputData model, which is based on a Pydantic BaseModel: `self.input_data.input_value`. If you do not want to use the internal function `set_input_values(input_entities: list[InputDataEntityModel])`, you can add a custom function to handle the inputs.
+  - The configuration data is available in the same way: `self.config_data.config_value`.
 - If the new component requires calibration, you should extend the function `calibrate()`. In the basic component, this function is only used to update static data.
 
 ### Using the New Component

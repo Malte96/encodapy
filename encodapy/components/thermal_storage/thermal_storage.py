@@ -147,7 +147,7 @@ class ThermalStorage(BasicComponent):
         """
         Function to get the temperature limits of the sensors in the thermal storage
         Args:
-            sensor (str): Name of the sensor in the thermal storage #TODO
+            sensor (int): ID of the sensor in the thermal storage (0=top, 1=second, ...)
         Returns:
             TemperatureLimits: Temperature limits of the sensors in the thermal storage
         """

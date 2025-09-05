@@ -2,7 +2,7 @@
 
 ## Overview
 
-- The Basic Controller provides a system for
+- The Basic Service provides a system to
   - read a configuration
   - receive data
   - start a calculation
@@ -12,7 +12,7 @@
   - MQTT
   - File
 - The controller has the functionality to read a configuration from JSON and ENV, validate it and return it as a model.
-- The framework provides components that can be used within a service.  
+- The framework provides components that can be used within a service. This is the recommended solution for running a functional service.
   For more information and code, see: [encodapy/components/README.md](./encodapy/components/README.md)
 
 - Examples and documentation for each part of the project are available under: [examples](./examples/)

@@ -142,7 +142,7 @@ class ExampleService(ControllerBasicService):
         heater_status = self.check_heater_command(
             temperature_setpoint=inputs["temperature_setpoint"],
             temperature_measured=inputs["temperature_measured"],
-            hysteresis=self.heater_config.config["temperature_hysteresis"],
+            hysteresis=self.heater_config.config.root["temperature_hysteresis"].value,
             heater_status_old=bool(inputs["heater_status"]),
         )
 

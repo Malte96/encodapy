@@ -162,7 +162,7 @@
                     "attribute": "storage__loading_potential"
                 }
             },
-            "staticdata": {
+            "config": {
                 "volume": {
                     "entity" : "thermal_storage",
                     "attribute": "volume"
@@ -174,11 +174,11 @@
                 "sensor_config": {
                     "entity" : "thermal_storage",
                     "attribute": "sensor_config"
+                },
+                "calculation_method" : {
+                    "value": "connection_limits"
                 }
-            },
-            "config": {
-                "calculation_method" : "connection_limits"
-                }
+            }
         }
         
     ],

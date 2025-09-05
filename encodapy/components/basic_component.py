@@ -4,7 +4,7 @@ Author: Martin Altenburger
 """
 
 from datetime import datetime, timezone
-from typing import Optional, Union, Type, Any, cast
+from typing import Optional, Union, Type, Any
 from loguru import logger
 from pydantic import ValidationError
 from encodapy.components.basic_component_config import (
@@ -203,7 +203,7 @@ class BasicComponent:
             if isinstance(datapoint, IOAllocationModel):
                 if static_data is None:
                     error_msg = (
-                        f"Config entry '{datapoint_name}' needs static data but its not provided " 
+                        f"Config entry '{datapoint_name}' needs static data but its not provided "
                         f"to the component {self.component_config.id}."
                     )
                     logger.error(error_msg)
@@ -322,7 +322,8 @@ class BasicComponent:
         Function to prepare the component.
         This function should be implemented in each component to prepare the component.
         """
-        logger.debug("Prepare component is not implemented in the base class")
+        logger.debug("Prepare component is not implemented in the base class"
+                     f" for {self.component_config.id}")
 
     def calculate(self):
         """
@@ -338,7 +339,8 @@ class BasicComponent:
             KeyError: If a required input data point is missing.
             RuntimeError: If the calculation cannot be performed for other reasons.
         """
-        logger.debug("Calculate is not implemented in the base class")
+        logger.debug("Calculate is not implemented in the base class"
+                     f" for {self.component_config.id}")
 
     def run(self, data: InputDataModel) -> list[DataTransferComponentModel]:
         """

@@ -1,24 +1,42 @@
 """
 Main file so start the example service
 """
+from typing import Type
 import asyncio
 import signal
 import os
 from loguru import logger
+from encodapy.service.basic_service import ControllerBasicService
 from encodapy.service.component_runner_service import ComponentRunnerService
 
 
-async def main():
+async def main(
+    service_class: Type[ControllerBasicService] = ComponentRunnerService):
     """
     Main function to start the example service
 
         - start the calibration
         - start the health check
         - start the service
+    Args:
+        service_class (Type[ControllerBasicService]): \
+            The service class to be started, defaults to ComponentRunnerService
+
+    The service class should have an optional parameter `shutdown_event` in the constructor \
+        to handle shutdown events.
     """
 
     shutdown_event = asyncio.Event()
-    service = ComponentRunnerService(shutdown_event=shutdown_event)
+    try:
+        service = service_class(shutdown_event=shutdown_event)
+    except TypeError:
+        # if the service_class does not have the shutdown_event parameter
+        # for backward compatibility, it is recommended to add it
+        service = service_class()
+        logger.warning(
+            "The service_class does not support the shutdown_event parameter. "
+            "Please update the service_class to support it for proper shutdown."
+        )
 
     task_for_calibration = asyncio.create_task(service.start_calibration())
     task_for_check_health = asyncio.create_task(service.check_health_status())
@@ -35,7 +53,6 @@ async def main():
         signal.signal(signal.SIGINT, lambda s, f: signal_handler())
 
         signal.signal(signal.SIGTERM, lambda s, f: signal_handler())
-        logger.debug("Signal handlers registered: SIGINT, SIGTERM")
     except (OSError, AttributeError) as e:
 
         signal.signal(signal.SIGINT, lambda s, f: signal_handler())
@@ -43,13 +60,16 @@ async def main():
 
     try:
 
-        service_tasks = [task_for_check_health, task_for_calibration, task_for_start_service]
+        service_tasks: list[asyncio.Task] = [
+            task_for_check_health,
+            task_for_calibration,
+            task_for_start_service
+            ]
 
-        main_gather = asyncio.gather(*service_tasks, return_exceptions=True)
         shutdown_task = asyncio.create_task(shutdown_event.wait())
 
         await asyncio.wait(
-            [main_gather, shutdown_task],
+            [*service_tasks, shutdown_task],
             return_when=asyncio.FIRST_COMPLETED
         )
 

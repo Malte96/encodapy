@@ -2,9 +2,8 @@
 Description: Configuration model for the two-point controller component.
 Author: Martin Altenburger
 """
-
-from typing import Optional, Union
-from pydantic import BaseModel, Field, model_validator
+from typing import Optional
+from pydantic import Field, model_validator
 from loguru import logger
 from encodapy.components.basic_component_config import (
     DataPointGeneral,
@@ -14,7 +13,6 @@ from encodapy.components.basic_component_config import (
     ConfigData,
 )
 from encodapy.utils.units import (
-    DataUnits,
     get_unit_adjustment_factor
 )
 
@@ -62,12 +60,12 @@ class TwoPointControllerConfigData(ConfigData):
         ...,
         description="Setpoint value for the two-point controller",
     )
-    command_enabled: DataPointGeneral = Field(
-        ...,
+    command_enabled: Optional[DataPointGeneral] = Field(
+        DataPointGeneral(value = 1),
         description="Value representing the enabled state of the control signal",
     )
-    command_disabled: DataPointGeneral = Field(
-        ...,
+    command_disabled: Optional[DataPointGeneral] = Field(
+        DataPointGeneral(value = 0),
         description="Value representing the disabled state of the control signal",
     )
     @model_validator(mode="after")
@@ -104,17 +102,3 @@ class TwoPointControllerConfigData(ConfigData):
             unit=hysteresis.unit
         )
         return self
-
-class TwoPointControllerValues(BaseModel):
-    """
-    Model for the values of the two-point controller component.
-
-    Contains:
-        current_value (float): The current value of the controlled variable.
-        current_unit (Optional[DataUnits]): The unit of the current value.
-        latest_control_signal (Union[str, float, int, bool]): The latest control signal output.
-    """
-
-    current_value: float
-    current_unit: Optional[DataUnits] = None
-    latest_control_signal: Union[str, float, int, bool]

@@ -133,8 +133,10 @@ class MQTTController(ControllerBasicService):
             )
 
         heater_status = self.check_heater_command(
-            temperature_setpoint=inputs["temperature_setpoint"] if isinstance(inputs["temperature_setpoint"], (int, float)) else 0.0,
-            temperature_measured=inputs["temperature_measured"] if isinstance(inputs["temperature_measured"], (int, float)) else 0.0,
+            temperature_setpoint=inputs["temperature_setpoint"] \
+                if isinstance(inputs["temperature_setpoint"], (int, float)) else 0.0,
+            temperature_measured=inputs["temperature_measured"] \
+                if isinstance(inputs["temperature_measured"], (int, float)) else 0.0,
             hysteresis=self.heater_config.config["temperature_hysteresis"]
             if self.heater_config.config
             and "temperature_hysteresis" in self.heater_config.config

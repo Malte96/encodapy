@@ -2,7 +2,6 @@
 Basic configuration for the components in the EnCoCaPy framework.
 Author: Martin Altenburger
 """
-from ast import In
 from typing import Dict, Optional, Any
 from datetime import datetime
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
@@ -10,7 +9,6 @@ from loguru import logger
 from encodapy.utils.units import DataUnits, get_unit_adjustment_factor
 
 # Models to hold the data
-
 class DataPointGeneral(BaseModel):
     """
     Model for datapoints of the controller component.

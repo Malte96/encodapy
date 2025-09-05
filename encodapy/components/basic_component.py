@@ -4,7 +4,7 @@ Author: Martin Altenburger
 """
 
 from datetime import datetime, timezone
-from typing import Optional, Union, Type, Any
+from typing import Optional, Union, Type, Any, cast
 from loguru import logger
 from pydantic import ValidationError
 from encodapy.components.basic_component_config import (
@@ -32,7 +32,6 @@ from encodapy.utils.models import (
     InputDataModel,
     StaticDataEntityModel,
 )
-from encodapy.utils.units import DataUnits, get_unit_adjustment_factor
 
 class BasicComponent:
     """
@@ -72,6 +71,7 @@ class BasicComponent:
         # Inputs and Outputs of the component itsel
         self.io_model: Optional[ComponentIOModel] = None
         self.input_data: InputData
+        self.output_data: OutputData
 
         self._prepare_i_o_config()
 
@@ -168,20 +168,14 @@ class BasicComponent:
             ComponentValidationError: If the static data configuration is invalid.
 
         """
-        if static_config is None:
-            logger.debug("No static config provided, skipping static data setup.")
-            return
-        if not isinstance(static_config, ConfigDataPoints):
-            logger.error("Invalid static config provided.")
-            raise ValueError("Invalid static config provided.")
-
-        if static_data is None \
-            and any(isinstance(value, IOAllocationModel) for value in static_config.root.values()):
-            logger.error(
-                "The component's static data could not be set: "
-                "static_data is None but required by static_config."
-            )
-            return
+        try:
+            assert static_config is not None, \
+                "No static config provided, skipping static data setup."
+            assert isinstance(static_config, ConfigDataPoints), \
+                "Invalid static config provided."
+        except AssertionError as e:
+            logger.error(f"Static config error: {e}")
+            raise ComponentValidationError(f"Static config error: {e}") from e
 
         config_model = get_component_config_data_model(
             component_type=self.component_config.type, model_subname="ConfigData"
@@ -193,26 +187,12 @@ class BasicComponent:
 
         static_config_data: dict[str, DataPointGeneral] = {}
 
-        for datapoint_name, datapoint_config in config_model.model_fields.items():
+        for datapoint_name, _ in config_model.model_fields.items():
 
-            if datapoint_name not in static_config.root.keys() and datapoint_config.is_required():
-                error_msg = (
-                    f"Config entry '{datapoint_name}' is missing in the configuration "
-                    f"of the component {self.component_config.id}."
-                )
-                logger.error(error_msg)
-                raise ComponentValidationError(error_msg)
-
-            unit_default = None
-            if datapoint_config.json_schema_extra is not None \
-                and isinstance(datapoint_config.json_schema_extra, dict) \
-                and "unit" in datapoint_config.json_schema_extra:
-                unit_default = DataUnits(datapoint_config.json_schema_extra["unit"])
-
-            if datapoint_name not in static_config.root.keys():
-                static_config_data[datapoint_name] = DataPointGeneral(
-                    value=datapoint_config.default,
-                    unit=unit_default
+            if datapoint_name not in static_config.root:
+                logger.debug(
+                    f"Static config {datapoint_name} not in static configuration, "
+                    "trying to skip it."
                 )
                 continue
             datapoint = static_config.root[datapoint_name]
@@ -233,46 +213,15 @@ class BasicComponent:
                     input_config=datapoint
                 )
 
-            value = static_config_data[datapoint_name].value
-            unit = static_config_data[datapoint_name].unit
-
-            if unit_default is not None and unit is not None and unit != unit_default:
-
-                if isinstance(value, (float, int)):
-                    unit_adjustment_factor = get_unit_adjustment_factor(
-                        unit_actual=unit,
-                        unit_target=unit_default
-                    )
-                    if unit_adjustment_factor is None:
-                        error_msg = (
-                            f"Config entry '{datapoint_name}' has an invalid unit conversion from "
-                            f"{static_config_data[datapoint_name].unit} to {unit_default}."
-                        )
-                        logger.error(error_msg)
-                        raise ComponentValidationError(error_msg)
-
-                    static_config_data[datapoint_name] = DataPointGeneral(
-                        value=value * unit_adjustment_factor,
-                        unit=unit_default
-                    )
-                else:
-                    error_msg = (
-                        f"Config entry '{datapoint_name}' has an invalid value type "
-                        "to convert units. "
-                        "This is only possible for numeric types (float or int)."
-                    )
-                    logger.error(error_msg)
-                    raise ComponentValidationError(error_msg)
-
         # we need to convert the data to a dict of the correct types
         # because the config data model could contain different types
+        static_config_raw: dict[str, Any] = {}
         for key, value in static_config_data.items():
-            static_config_data[key] = value.model_dump()
+            static_config_raw[key] = value.model_dump()
 
         try:
-
-            config_data_model = config_model.model_validate(
-                static_config_data
+            self.config_data = config_model.model_validate(
+                static_config_raw
             )
 
         except ValidationError as error:
@@ -282,8 +231,6 @@ class BasicComponent:
             )
             logger.error(error_msg)
             raise ComponentValidationError(error_msg) from error
-
-        self.config_data = config_data_model
 
     def get_component_input(
         self,
@@ -320,17 +267,16 @@ class BasicComponent:
             "Please check the configuration of the Inputs, Outputs and Static Data."
         )
 
-    def prepare_component(self):
-        """
-        Function to prepare the component.
-        This function should be implemented in each component to prepare the component.
-        """
-        logger.debug("Prepare component is not implemented in the base class")
-
     def set_input_data(self, input_data: InputDataModel) -> None:
         """
         Set the input values for the component from the provided input entities.
-        Needs to be implemented in each component.
+        The input values are extracted based on the component's input configuration.
+        Also static data is used as input.
+        
+        Input data is validated against the component's input model and stored in self.input_data.
+        
+        The validation ensures that the input data conforms to the expected structure and types.
+        Also the units are checked and converted if necessary.
 
         Args:
             input_data (InputDataModel): Input data model containing all necessary entities
@@ -357,18 +303,9 @@ class BasicComponent:
                     )
                 continue
 
-            input_datapoint = self.get_component_input(
+            input_values[datapoint_name] = self.get_component_input(
                 input_entities=input_datapoints,
                 input_config=datapoint_config
-            )
-            if input_datapoint.value is None:
-                input_datapoint.value = datapoint_config.default
-            if input_datapoint.unit is None:
-                input_datapoint.unit = datapoint_config.unit
-            input_values[datapoint_name] = DataPointGeneral(
-                value=input_datapoint.value,
-                unit=input_datapoint.unit,
-                time=input_datapoint.time
             )
 
         input_data_model = get_component_input_data_model(
@@ -379,6 +316,29 @@ class BasicComponent:
             input_values_raw[key] = value.model_dump()
 
         self.input_data = input_data_model.model_validate(input_values_raw)
+
+    def prepare_component(self):
+        """
+        Function to prepare the component.
+        This function should be implemented in each component to prepare the component.
+        """
+        logger.debug("Prepare component is not implemented in the base class")
+
+    def calculate(self):
+        """
+        Function to calculate the output of the component.
+        This function should be implemented in each component to calculate the output.
+        
+        The function should use the input data stored in self.input_data
+        and the static data stored in self.config_data to perform the calculation.
+        The result should be stored in self.output_data.
+        
+        Raises:
+            ValueError: If the calculation fails due to invalid input data.
+            KeyError: If a required input data point is missing.
+            RuntimeError: If the calculation cannot be performed for other reasons.
+        """
+        logger.debug("Calculate is not implemented in the base class")
 
     def run(self, data: InputDataModel) -> list[DataTransferComponentModel]:
         """
@@ -404,72 +364,63 @@ class BasicComponent:
             )
             return components
 
-        # TODO use the output model to hold and validate the output values
-        # would be easier to use
-        # no information about calculation function needed, only a calculation is required
-
-        # avoid: Instance of 'FieldInfo' has no 'model_fields' memberPylintE1101:no-member
         try:
-            _, component_output_model = self._get_input_and_output_config_models()
+            self.calculate()
+        except (ValueError, KeyError, RuntimeError) as e:
+            logger.error(
+                f"Calculation failed for {self.component_config.id}: {e}"
+            )
+            return components
 
-            if hasattr(self.io_model.output, 'model_dump'):
-                output_model = self.io_model.output.model_dump()
-            else:
-                raise ValidationError("Output model is not valid")
+        try:
+            output_model = get_component_output_data_model(
+                component_type=self.component_config.type
+                )
 
-            output = component_output_model.model_validate(output_model)
-        except ValidationError as e:
+            if not hasattr(self, 'output_data'):
+                raise ValueError("Output data is not set in the component.")
+
+            self.output_data = output_model.model_validate(
+                self.output_data.model_dump()
+            )
+
+        except KeyError as e:
+            logger.error(
+                f"Getting output model failed for {self.component_config.id}: {e}"
+            )
+            return components
+        except (ValidationError, ValueError) as e:
             logger.error(
                 f"Output validation failed for {self.component_config.id}: {e}"
             )
             return components
 
-        for output_datapoint_name, output_datapoint_info in output.model_fields.items():
-            if (
-                isinstance(output_datapoint_info.json_schema_extra, dict)
-                and "calculation" in output_datapoint_info.json_schema_extra
-            ):
-                calculation_function = output_datapoint_info.json_schema_extra[
-                    "calculation"
-                ]
-                if (
-                    isinstance(calculation_function, str)
-                    and calculation_function is not None
-                ):
-                    calculation_function = calculation_function.strip()
-                else:
-                    logger.warning(
-                        f"No calculation method found for {output_datapoint_name} "
-                        f"in {self.component_config.id}."
-                    )
-                    continue
-            else:
-                logger.warning(
-                    f"No calculation method found for {output_datapoint_name} "
-                    f"in {self.component_config.id}."
+        for datapoint_name, datapoint_config in self.io_model.output.__dict__.items():
+            if datapoint_config is None:
+                continue
+            try:
+                datapoint_config = IOAllocationModel.model_validate(datapoint_config)
+                datapoint = DataPointGeneral.model_validate(
+                    getattr(self.output_data, datapoint_name, None)
+                )
+            except ValidationError as e:
+                logger.error(
+                    f"Validating datapoint config failed for {datapoint_name}: {e}"
                 )
                 continue
-
-            output_datapoint_config: Optional[IOAllocationModel] = getattr(
-                self.io_model.output, output_datapoint_name
-            )
-
-            if output_datapoint_config is None:
-                continue
-
-            result_value, result_unit = getattr(self, calculation_function)()
 
             components.append(
                 DataTransferComponentModel(
-                    entity_id=output_datapoint_config.entity,
-                    attribute_id=output_datapoint_config.attribute,
-                    value=result_value,
-                    unit=result_unit,
-                    timestamp=datetime.now(timezone.utc),
+                    entity_id=datapoint_config.entity,
+                    attribute_id=datapoint_config.attribute,
+                    value=datapoint.value,
+                    unit=datapoint.unit,
+                    timestamp=datapoint.time or datetime.now(timezone.utc),
                 )
             )
+
             logger.debug(
-                f"Calculated {output_datapoint_name}: {result_value} {result_unit} "
+                f"Calculated {datapoint_name}: {datapoint.value} {datapoint.unit} "
                 f"for {self.component_config.id}."
             )
 

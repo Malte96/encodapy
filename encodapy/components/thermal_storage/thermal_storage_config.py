@@ -190,43 +190,56 @@ class ThermalStorageInputData(InputData):
     """
 
     temperature_1: DataPointNumber = Field(
-        ..., description="Input for the temperature of sensor 1 in the thermal storage"
+        ...,
+        description="Input for the temperature of sensor 1 in the thermal storage",
+        json_schema_extra={"unit": "CEL"}
     )
     temperature_2: DataPointNumber = Field(
-        ..., description="Input for the temperature of sensor 2 in the thermal storage"
+        ..., description="Input for the temperature of sensor 2 in the thermal storage",
+        json_schema_extra={"unit": "CEL"}
     )
     temperature_3: DataPointNumber = Field(
-        ..., description="Input for the temperature of sensor 3 in the thermal storage"
+        ..., description="Input for the temperature of sensor 3 in the thermal storage",
+        json_schema_extra={"unit": "CEL"}
     )
     temperature_4: Optional[DataPointNumber] = Field(
-        None, description="Input for the temperature of sensor 4 in the thermal storage"
+        None, description="Input for the temperature of sensor 4 in the thermal storage",
+        json_schema_extra={"unit": "CEL"}
     )
     temperature_5: Optional[DataPointNumber] = Field(
-        None, description="Input for the temperature of sensor 5 in the thermal storage"
+        None, description="Input for the temperature of sensor 5 in the thermal storage",
+        json_schema_extra={"unit": "CEL"}
     )
     temperature_6: Optional[DataPointNumber] = Field(
-        None, description="Input for the temperature of sensor 6 in the thermal storage"
+        None, description="Input for the temperature of sensor 6 in the thermal storage",
+        json_schema_extra={"unit": "CEL"}
     )
     temperature_7: Optional[DataPointNumber] = Field(
-        None, description="Input for the temperature of sensor 7 in the thermal storage"
+        None, description="Input for the temperature of sensor 7 in the thermal storage",
+        json_schema_extra={"unit": "CEL"}
     )
     temperature_8: Optional[DataPointNumber] = Field(
-        None, description="Input for the temperature of sensor 8 in the thermal storage"
+        None, description="Input for the temperature of sensor 8 in the thermal storage",
+        json_schema_extra={"unit": "CEL"}
     )
     temperature_9: Optional[DataPointNumber] = Field(
-        None, description="Input for the temperature of sensor 9 in the thermal storage"
+        None, description="Input for the temperature of sensor 9 in the thermal storage",
+        json_schema_extra={"unit": "CEL"}
     )
     temperature_10: Optional[DataPointNumber] = Field(
         None,
         description="Input for the temperature of sensor 10 in the thermal storage",
+        json_schema_extra={"unit": "CEL"}
     )
     load_temperature_in: Optional[DataPointNumber] = Field(
         None,
         description="Input for the return temperature into the thermal storage (consumer)",
+        json_schema_extra={"unit": "CEL"}
     )
     load_temperature_out: Optional[DataPointNumber] = Field(
         None,
         description="Input for the flow temperature from the thermal storage (consumer)",
+        json_schema_extra={"unit": "CEL"}
     )
 
     @model_validator(mode="after")
@@ -388,10 +401,11 @@ class ThermalStorageConfigData(ConfigData):
     """
     volume: DataPointNumber = Field(
         ...,
-        description="Volume of the thermal storage in liters"
+        description="Volume of the thermal storage in m³",
+        json_schema_extra={"unit": "MTQ"}
     )
     medium: DataPointMedium = Field(
-        ...,
+        DataPointMedium(value=Medium.WATER),
         description="Medium of the thermal storage"
     )
     sensor_config: DataPointSensorConfig = Field(

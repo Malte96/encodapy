@@ -93,6 +93,7 @@ class ComponentRunnerService(ControllerBasicService):
                 attribute.unit = result.unit
                 logger.debug(f"Update attribute: {attribute.id} with value: {result.value} "
                              f"and unit: {result.unit}")
+
                 return input_entity
 
         # Add a new attribute to the entity
@@ -152,8 +153,10 @@ class ComponentRunnerService(ControllerBasicService):
                 logger.error(f"Error occurred while running component "
                              f"{component.component_config.id}: {e}")
                 continue
-            self.add_results_to_input(data, component_results)
             all_component_results.extend(component_results)
+            if component != self.components[-1]:
+                self.add_results_to_input(data, component_results)
+
 
 
         return DataTransferModel(components=all_component_results)

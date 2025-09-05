@@ -18,7 +18,8 @@ from encodapy.components.thermal_storage.thermal_storage_config import (
     ThermalStorageCalculationMethods,
     ThermalStorageConfigData,
     ThermalStorageEnergyTypes,
-    ThermalStorageInputData
+    ThermalStorageInputData,
+    ThermalStorageOutputData
 )
 from encodapy.utils.mediums import get_medium_parameter
 from encodapy.utils.models import (
@@ -56,6 +57,7 @@ class ThermalStorage(BasicComponent):
         self.sensor_volumes: Optional[dict] = None
         self.config_data: ThermalStorageConfigData
         self.input_data: ThermalStorageInputData
+        self.output_data: ThermalStorageOutputData
 
         # Prepare Basic Parts / needs to be the latest part
         super().__init__(
@@ -422,3 +424,31 @@ class ThermalStorage(BasicComponent):
         self._check_input_configuration()
 
         self.sensor_volumes = self._calculate_volume_per_sensor()
+
+    def calculate(self):
+        """
+        Function to calculate the thermal storage values
+        """
+        storage__energy = self.get_storage_energy_current()
+        storage__energy_datapoint = DataPointNumber(
+            value=storage__energy[0],
+            unit=storage__energy[1],
+        )
+
+        state_of_charge = self.get_state_of_charge()
+        state_of_charge_datapoint = DataPointNumber(
+            value=state_of_charge[0],
+            unit=state_of_charge[1],
+        )
+
+        loading_potential = self.get_storage_loading_potential()
+        loading_potential_datapoint = DataPointNumber(
+            value=loading_potential[0],
+            unit=loading_potential[1],
+        )
+
+        self.output_data = ThermalStorageOutputData(
+            storage__energy=storage__energy_datapoint,
+            storage__level=state_of_charge_datapoint,
+            storage__loading_potential=loading_potential_datapoint,
+        )

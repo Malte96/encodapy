@@ -3,21 +3,18 @@ Description: Simple component of a two-point controller
 Author: Martin Altenburger
 """
 
-from typing import Dict, List, Optional, Union
-
+from typing import Optional, Union
 from loguru import logger
-from pandas import DataFrame
-
 from encodapy.components.basic_component import BasicComponent
-from encodapy.components.basic_component_config import ControllerComponentModel
+from encodapy.components.basic_component_config import ControllerComponentModel, DataPointGeneral
 from encodapy.components.two_point_controller.two_point_controller_config import (
     TwoPointControllerConfigData,
     TwoPointControllerInputData,
+    TwoPointControllerOutputData,
 )
 from encodapy.utils.models import (
     StaticDataEntityModel,
 )
-from encodapy.utils.units import DataUnits
 
 
 class TwoPointController(BasicComponent):
@@ -38,6 +35,7 @@ class TwoPointController(BasicComponent):
     ):
         self.config_data: TwoPointControllerConfigData
         self.input_data: TwoPointControllerInputData
+        self.output_data: TwoPointControllerOutputData
 
         super().__init__(
             component_id=component_id, config=config, static_data=static_data
@@ -46,9 +44,7 @@ class TwoPointController(BasicComponent):
 
     def get_control_signal(
         self,
-    ) -> tuple[
-        Union[str, float, int, bool, Dict, List, DataFrame, None], Optional[DataUnits]
-    ]:
+    ) -> DataPointGeneral:
         """Calculate the control signal based on current and setpoint values."""
 
         minimal_value = self.config_data.setpoint.value - self.config_data.hysteresis.value
@@ -74,15 +70,36 @@ class TwoPointController(BasicComponent):
             raise
 
         if self.input_data.current_value.value < minimal_value:
-            return self.config_data.command_enabled.value, self.config_data.command_enabled.unit
+            return DataPointGeneral(
+                value=self.config_data.command_enabled.value,
+                unit=self.config_data.command_enabled.unit,
+            )
 
         if self.input_data.current_value.value > float(self.config_data.setpoint.value):
-            return self.config_data.command_disabled.value, self.config_data.command_disabled.unit
+            return DataPointGeneral(
+                value=self.config_data.command_disabled.value,
+                unit=self.config_data.command_disabled.unit,
+            )
 
         if (
             self.input_data.latest_control_signal.value == self.config_data.command_enabled.value
             and self.input_data.current_value > minimal_value
         ):
-            return self.config_data.command_enabled.value, self.config_data.command_enabled.unit
+            return DataPointGeneral(
+                value=self.config_data.command_enabled.value,
+                unit=self.config_data.command_enabled.unit,
+            )
 
-        return self.config_data.command_disabled.value, self.config_data.command_disabled.unit
+        return DataPointGeneral(
+            value=self.config_data.command_disabled.value,
+            unit=self.config_data.command_disabled.unit,
+        )
+
+    def calculate(self):
+        """
+        Calculate the output data based on the input data and configuration.
+        """
+
+        self.output_data = TwoPointControllerOutputData(
+            control_signal=self.get_control_signal()
+        )

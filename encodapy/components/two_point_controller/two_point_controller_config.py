@@ -4,9 +4,8 @@ Author: Martin Altenburger
 """
 
 from typing import Optional, Union
-
-from pydantic import BaseModel, Field
-
+from pydantic import BaseModel, Field, model_validator
+from loguru import logger
 from encodapy.components.basic_component_config import (
     DataPointGeneral,
     DataPointNumber,
@@ -14,7 +13,10 @@ from encodapy.components.basic_component_config import (
     OutputData,
     ConfigData,
 )
-from encodapy.utils.units import DataUnits
+from encodapy.utils.units import (
+    DataUnits,
+    get_unit_adjustment_factor
+)
 
 
 class TwoPointControllerInputData(InputData):
@@ -43,10 +45,9 @@ class TwoPointControllerOutputData(OutputData):
         control_signal (DataPointNumber): The control signal output from the two-point controller.
     """
 
-    control_signal: DataPointNumber = Field(
+    control_signal: DataPointGeneral = Field(
         ...,
-        description="Control signal output from the two-point controller",
-        json_schema_extra={"calculation": "get_control_signal"},
+        description="Control signal output from the two-point controller"
     )
 
 class TwoPointControllerConfigData(ConfigData):
@@ -69,6 +70,40 @@ class TwoPointControllerConfigData(ConfigData):
         ...,
         description="Value representing the disabled state of the control signal",
     )
+    @model_validator(mode="after")
+    def check_unit_setpoint(self):
+        """
+        Validator to check if the units of hysteresis and setpoint are the same.
+        If not, it tries to convert the hysteresis to the unit of the setpoint.
+
+
+        """
+        hysteresis = DataPointNumber.model_validate(self.hysteresis)
+        setpoint = DataPointNumber.model_validate(self.setpoint)
+        if hysteresis.unit != setpoint.unit:
+            logger.warning(
+                f"Units of hysteresis ({hysteresis.unit}) and setpoint ({setpoint.unit}) "
+                "are not the same. Please check your configuration."
+            )
+            unit_adjustment_factor = get_unit_adjustment_factor(
+                unit_actual=hysteresis.unit,
+                unit_target=setpoint.unit
+            )
+            if unit_adjustment_factor is None:
+                logger.warning(
+                    f"Unit of hysteresis is {hysteresis.unit}, but expected {setpoint.unit}. "
+                    "Could not convert, because units are not compatible "
+                    "or no adjustment factor found."
+                )
+                return self
+
+            hysteresis.value *= unit_adjustment_factor
+            hysteresis.unit = setpoint.unit
+        self.hysteresis = DataPointNumber(
+            value=hysteresis.value,
+            unit=hysteresis.unit
+        )
+        return self
 
 class TwoPointControllerValues(BaseModel):
     """

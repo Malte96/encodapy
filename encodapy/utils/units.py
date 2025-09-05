@@ -112,8 +112,9 @@ def get_unit_adjustment_factor(unit_actual: DataUnits,
         unit_target (DataUnits): Target unit
 
     Returns:
-        float: Adjustment factor for the conversion of the units
+        Optional[float]: Adjustment factor for the conversion of the units, if found
     """
+
     if unit_actual is None:
         logger.warning("Actual unit is None, could not determine adjustment factor")
         return None
@@ -123,6 +124,7 @@ def get_unit_adjustment_factor(unit_actual: DataUnits,
     if unit_actual == unit_target:
         return 1.0
     # TODO: Real adjustment factors
-    raise NotImplementedError(
-        "Adjustment factors for the conversion of units are not implemented yet"
-    )
+    logger.warning(
+        f"Adjustment factor for the conversion of {unit_actual} to {unit_target} "
+        "not implemented yet")
+    return None

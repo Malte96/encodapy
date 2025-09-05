@@ -2,14 +2,15 @@
 Basic configuration for the components in the EnCoCaPy framework.
 Author: Martin Altenburger
 """
-from typing import Dict, List, Optional, Union, Any
+from ast import In
+from typing import Dict, Optional, Any
 from datetime import datetime
-from pandas import DataFrame
 from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
-
-from encodapy.utils.units import DataUnits
+from loguru import logger
+from encodapy.utils.units import DataUnits, get_unit_adjustment_factor
 
 # Models to hold the data
+
 class DataPointGeneral(BaseModel):
     """
     Model for datapoints of the controller component.
@@ -60,6 +61,18 @@ class DataPointDict(DataPointGeneral):
 
     value: dict
 
+class DataPointBool(DataPointGeneral):
+    """
+    Model for datapoints of the controller component.
+
+    Contains:
+        value: The value of the datapoint, which is a boolean
+        unit: Optional unit of the datapoint, if applicable
+        time: Optional timestamp of the datapoint, if applicable
+    """
+
+    value: bool
+
 # Models for the Input Configuration
 class IOAllocationModel(BaseModel):
     """
@@ -68,8 +81,6 @@ class IOAllocationModel(BaseModel):
     Contains:
         `entity`: ID of the entity to which the input or output is allocated
         `attribute`: ID of the attribute to which the input or output is allocated
-        `default`: Default value for the input or output
-        `unit`: Unit of the input or output
     """
 
     entity: str = Field(
@@ -78,10 +89,6 @@ class IOAllocationModel(BaseModel):
     attribute: str = Field(
         ..., description="ID of the attribute to which the input or output is allocated"
     )
-    default: Optional[Any] = Field(
-        None, description="Default value for the input or output"
-    )
-    unit: Optional[DataUnits] = Field(None, description="Unit of the input or output")
 
 
 class IOModell((RootModel[Dict[str, IOAllocationModel]])):  # pylint: disable=too-few-public-methods
@@ -123,39 +130,85 @@ class ControllerComponentModel(BaseModel):
     config: Optional[ConfigDataPoints] = None
 
 # Models for the internal input and output connections, needs to filled for the components
-class OutputData(BaseModel):
+class ComponentData(BaseModel):
+    """
+    Basemodel for the configuration of the datapoints of a component
+
+    Base for InputData, OutputData and ConfigData
+    
+    Provides a validator to check the units of the input values \
+        and convert them if necessary.
+    """
+    @model_validator(mode="after")
+    def check_unit_values(self) -> "ComponentData":
+        """
+        Check the units of the input values and convert them if necessary.
+        """
+        for name, field in self.model_fields.items():
+            value = getattr(self, name)
+            extra = field.json_schema_extra or {}
+            if not isinstance(extra, dict):
+                logger.warning(f"Extra for field {name} is not a dictionary: {extra}")
+                continue
+
+            if isinstance(value, DataPointGeneral):
+                if "unit" in extra.keys() and value.unit is None:
+                    value.unit = DataUnits(extra["unit"])
+                elif "unit" in extra.keys() and value.unit is not None \
+                    and value.unit != DataUnits(extra["unit"]):
+
+                    if value.value is None or not isinstance(value.value, (int, float)):
+                        logger.warning(
+                            f"Unit of {name} is {value.unit}, but expected {extra['unit']}. "
+                            f"Could not convert, because value is None or not a number."
+                        )
+                        continue
+                    unit_adjustment_factor = get_unit_adjustment_factor(
+                        unit_actual=value.unit,
+                        unit_target=DataUnits(extra["unit"])
+                    )
+                    if unit_adjustment_factor is None:
+                        logger.warning(
+                            f"Unit of {name} is {value.unit}, but expected {extra['unit']}. "
+                            f"Could not convert, because units are not compatible "
+                            "or no adjustment factor found."
+                        )
+                        continue
+                    value.value = value.value * unit_adjustment_factor
+                    value.unit = DataUnits(extra["unit"])
+        return self
+
+class OutputData(ComponentData):
     """
     Basemodel for the configuration of the outputs of a component
 
     Needs to be implemented by the user.
+    
+    Provides a validator to check the units of the input values \
+        and convert them if necessary.
     """
 
-class InputData(BaseModel):
+class InputData(ComponentData):
     """
     Basemodel for the configuration of the inputs of a component
+    
+    Needs to be implemented by the user.
+    
+    Provides a validator to check the units of the input values \
+        and convert them if necessary.
+    Only works if the value is a number (int or float) and the datapoint \
+        is a DataPointGeneral or a SubModel.
     """
-    #TODO remove this validator
-    # @model_validator(mode="after")
-    # def check_default_values(self) -> "InputModel":
-    #     """
-    #     Check the default_values
-    #     """
-    #     for name, field in self.model_fields.items():
-    #         value = getattr(self, name)
-    #         extra = field.json_schema_extra or {}
 
-    #         if isinstance(value, IOAllocationModel) and isinstance(extra, dict):
-    #             if "default" in extra and value.default is None:
-    #                 value.default = extra["default"]
-    #             if "unit" in extra and value.unit is None:
-    #                 value.unit = DataUnits(extra["unit"])
-
-    #     return self
-class ConfigData(BaseModel):
+class ConfigData(ComponentData):
     """
     Basemodel for the configuration data of a component
+    
+    Needs to be implemented by the user, if static configuration is needed.
+    
+    Provides a validator to check the units of the input values \
+        and convert them if necessary.
     """
-
 
 class ComponentIOModel(BaseModel):
     """

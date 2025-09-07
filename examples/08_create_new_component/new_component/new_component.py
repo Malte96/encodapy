@@ -4,6 +4,7 @@ from typing import Optional, Union
 from loguru import logger
 
 from encodapy.components.basic_component import BasicComponent, StaticDataEntityModel
+from encodapy.components.basic_component_config import DataPointGeneral
 from encodapy.config.models import ControllerComponentModel
 from encodapy.utils.models import InputDataModel
 from encodapy.utils.units import DataUnits
@@ -103,7 +104,15 @@ class NewComponent(BasicComponent):
         logger.debug("Calculating in NewComponent...")
 
         # Call the calculation functions and store the results in the output data model
-        self.output_data.a_result.value, self.output_data.a_result.unit = (
-            self.calculate_a_result()
+        # self.output_data.a_result.value, self.output_data.a_result.unit = (
+        #     self.calculate_a_result()
+        # )
+        # self.output_data.a_result.time = datetime.now()
+        # self.output_data.a_result = DataPointGeneral(
+        #     value=13, unit=DataUnits.KELVIN, time=datetime.now()
+        # )
+        a_result_datapoint = DataPointGeneral(
+            value=13, unit=DataUnits.DEGREECELSIUS, time=datetime.now()
         )
-        self.output_data.a_result.time = datetime.now()
+
+        self.output_data = NewComponentOutputData(a_result=a_result_datapoint)

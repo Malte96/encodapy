@@ -49,11 +49,11 @@ class NewComponentOutputData(OutputData):
         description="Result of the new component",
         json_schema_extra={"unit": "CEL"},
     )
-    optional_result: Optional[DataPointGeneral] = Field(
-        ...,
-        description="This is an optional result of the new component and does not need to be exported.",
-        json_schema_extra={"unit": "$unit_value"},
-    )
+    # optional_result: Optional[DataPointGeneral] = Field(
+    #     ...,
+    #     description="This is an optional result of the new component and does not need to be exported.",
+    #     json_schema_extra={"unit": "$unit_value"},
+    # )
     # TODO: SERVICE STOPS RUNNING: Needs to throw error if no matching calculation function is defined
     # b_result: IOAllocationModel = Field(
     #     ...,

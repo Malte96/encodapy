@@ -1,8 +1,6 @@
 """
 Description: This file contains the models for the use in the system controller itself.
 Authors: Martin Altenburger
-TODO: Is it possible to use the models from the configuration also for the system controller?\
-    Or could we use less modells?
 """
 
 from datetime import datetime
@@ -113,17 +111,6 @@ class InputDataModel(BaseModel):
     output_entities: list[OutputDataEntityModel]
     static_entities: list[StaticDataEntityModel]
 
-
-# class ContextDataModel(BaseModel):
-#     """
-#     Model for the context data of the system controller.
-
-#     Contains:
-#     - input_entitys: List of the context data entitys as ContexttDataEntityModel
-
-#     """
-
-#     context_entities: list[InputDataEntityModel]
 
 
 class OutputDataModel(BaseModel):

@@ -3,83 +3,15 @@ Basic configuration for the components in the EnCoCaPy framework.
 Author: Martin Altenburger
 """
 
-from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 from loguru import logger
-from pydantic import BaseModel, ConfigDict, Field, RootModel, model_validator
+from pydantic import BaseModel, Field, RootModel, model_validator
 
 from encodapy.utils.units import DataUnits, get_unit_adjustment_factor
-
-
-# Models to hold the data
-class DataPointGeneral(BaseModel):
-    """
-    Model for datapoints of the controller component.
-    
-    Contains:
-        value: The value of the datapoint, which can be of various types \
-            (string, float, int, boolean, dictionary, list, DataFrame, or None)
-        unit: Optional unit of the datapoint, if applicable
-        time: Optional timestamp of the datapoint, if applicable
-    """
-
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-
-    value: Any
-    unit: Optional[DataUnits] = None
-    time: Optional[datetime] = None
-
-
-class DataPointNumber(DataPointGeneral):
-    """
-    Model for datapoints of the controller component.
-
-    Contains:
-        value: The value of the datapoint, which is a number (float, int)
-        unit: Optional unit of the datapoint, if applicable
-        time: Optional timestamp of the datapoint, if applicable
-    """
-    value: float | int
-
-
-class DataPointString(DataPointGeneral):
-    """
-    Model for datapoints of the controller component.
-
-    Contains:
-        value: The value of the datapoint, which is a string
-        unit: Optional unit of the datapoint, if applicable
-        time: Optional timestamp of the datapoint, if applicable
-    """
-
-    value: str
-
-
-class DataPointDict(DataPointGeneral):
-    """
-    Model for datapoints of the controller component.
-
-    Contains:
-        value: The value of the datapoint, which is a dictionary
-        unit: Optional unit of the datapoint, if applicable
-        time: Optional timestamp of the datapoint, if applicable
-    """
-
-    value: dict
-
-
-class DataPointBool(DataPointGeneral):
-    """
-    Model for datapoints of the controller component.
-
-    Contains:
-        value: The value of the datapoint, which is a boolean
-        unit: Optional unit of the datapoint, if applicable
-        time: Optional timestamp of the datapoint, if applicable
-    """
-
-    value: bool
+from encodapy.utils.datapoints import (
+    DataPointGeneral
+)
 
 
 # Models for the Input Configuration

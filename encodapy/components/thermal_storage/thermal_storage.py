@@ -11,7 +11,9 @@ from encodapy.components.basic_component import BasicComponent
 from encodapy.components.basic_component_config import (
     ComponentValidationError,
     ControllerComponentModel,
-    DataPointNumber,
+)
+from encodapy.utils.datapoints import (
+    DataPointNumber
 )
 from encodapy.components.thermal_storage.thermal_storage_config import (
     TemperatureLimits,

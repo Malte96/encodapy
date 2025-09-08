@@ -6,11 +6,13 @@ from typing import Optional
 from pydantic import Field, model_validator
 from loguru import logger
 from encodapy.components.basic_component_config import (
-    DataPointGeneral,
-    DataPointNumber,
     InputData,
     OutputData,
     ConfigData,
+)
+from encodapy.utils.datapoints import (
+    DataPointGeneral,
+    DataPointNumber
 )
 from encodapy.utils.units import (
     get_unit_adjustment_factor
@@ -60,11 +62,11 @@ class TwoPointControllerConfigData(ConfigData):
         ...,
         description="Setpoint value for the two-point controller",
     )
-    command_enabled: Optional[DataPointGeneral] = Field(
+    command_enabled: DataPointGeneral = Field(
         DataPointGeneral(value = 1),
         description="Value representing the enabled state of the control signal",
     )
-    command_disabled: Optional[DataPointGeneral] = Field(
+    command_disabled: DataPointGeneral = Field(
         DataPointGeneral(value = 0),
         description="Value representing the disabled state of the control signal",
     )

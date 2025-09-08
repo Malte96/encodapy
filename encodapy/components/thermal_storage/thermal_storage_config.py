@@ -10,9 +10,12 @@ from encodapy.components.basic_component_config import (
     ComponentValidationError,
     InputData,
     OutputData,
+    ConfigData
+)
+from encodapy.utils.datapoints import (
     DataPointGeneral,
     DataPointNumber,
-    ConfigData
+    DataPointMedium
 )
 from encodapy.utils.mediums import Medium
 
@@ -340,16 +343,6 @@ class DataPointCalculationMethod(DataPointGeneral):
     """
 
     value: ThermalStorageCalculationMethods
-class DataPointMedium(DataPointGeneral):
-    """
-    Model for datapoints of the controller component which define the medium.
-
-    Contains:
-        value: The value of the datapoint, which is a Medium representing the medium
-        unit: Optional unit of the datapoint, if applicable
-        time: Optional timestamp of the datapoint, if applicable
-    """
-    value: Medium
 
 class DataPointSensorConfig(DataPointGeneral):
     """

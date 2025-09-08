@@ -6,7 +6,7 @@ Author: Martin Altenburger
 from typing import Optional, Union
 from loguru import logger
 from encodapy.components.basic_component import BasicComponent
-from encodapy.components.basic_component_config import ControllerComponentModel, DataPointGeneral
+from encodapy.components.basic_component_config import ControllerComponentModel
 from encodapy.components.two_point_controller.two_point_controller_config import (
     TwoPointControllerConfigData,
     TwoPointControllerInputData,
@@ -14,6 +14,9 @@ from encodapy.components.two_point_controller.two_point_controller_config import
 )
 from encodapy.utils.models import (
     StaticDataEntityModel,
+)
+from encodapy.utils.datapoints import (
+    DataPointGeneral
 )
 
 
@@ -83,7 +86,7 @@ class TwoPointController(BasicComponent):
 
         if (
             self.input_data.latest_control_signal.value == self.config_data.command_enabled.value
-            and self.input_data.current_value > minimal_value
+            and self.input_data.current_value.value > minimal_value
         ):
             return DataPointGeneral(
                 value=self.config_data.command_enabled.value,

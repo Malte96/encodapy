@@ -73,43 +73,22 @@ class StorageSensorConfig(BaseModel):
     )
     limits: TemperatureLimits
 
-
-class ConnectionSensorConfig(BaseModel):
-    """
-    Configuration for the connection sensor in the thermal storage
-
-    Contains:
-        `name`: Name of the thermal sensor on the connection (heat demand)
-    """
-
-    name: str = Field(
-        ..., description="Name of the thermal sensor on the connection (heat demand)"
-    )
-
-
 class ThermalStorageTemperatureSensors(BaseModel):
     """
     Configuration for the temperature sensors in the thermal storage
     
     Contains:
         `storage_sensors`: List of temperature sensors in the thermal storage
-        `load_connection_sensor_out`: Thermal sensor on the load connection \
-            outflow from thermal storage
-        `load_connection_sensor_in`: Thermal sensor on the load connection \
-            inflow to thermal storage
+    
+    It is required to set at least 3 sensors and no more than 10 sensors. The heights of the sensors
+    must be between 0 and 100 percent and in ascending order.
+    
+    It is possible to add more information to sensors, thats the reason why this model is used.
     """
 
     storage_sensors: list[StorageSensorConfig] = Field(
         ..., description="List of temperature sensors (3–10 sensors)"
     )
-    # load_connection_sensor_out: Optional[ConnectionSensorConfig] = Field(
-    #     None,
-    #     description="Thermal sensor on the load connection, outflow from thermal storage",
-    # )
-    # load_connection_sensor_in: Optional[ConnectionSensorConfig] = Field(
-    #     None,
-    #     description="Thermal sensor on the load connection, inflow to thermal storage",
-    # )
 
     @model_validator(mode="after")
     def check_storage_tank_sensors(self) -> "ThermalStorageTemperatureSensors":
@@ -132,7 +111,7 @@ class ThermalStorageTemperatureSensors(BaseModel):
             raise ValueError("No more than 10 storage sensors are allowed.")
 
         storage_sensor_height_ref = 0.0
-        for storage_sensor in self.storage_sensors:  # pylint: disable=E1133
+        for _, storage_sensor in enumerate(self.storage_sensors):
             if storage_sensor.height < 0.0 or storage_sensor.height > 100.0:
                 raise ValueError(
                     "Height of the sensor must be between 0 and 100 percent."
@@ -143,23 +122,14 @@ class ThermalStorageTemperatureSensors(BaseModel):
 
         return self
 
-    # def check_connection_sensors(self) -> None:
-    #     """
-    #     Check the connection sensors:
-    #         - If they are needed, they must have a name
+    def get_number_of_sensors(self) -> int:
+        """
+        Get the number of storage sensors configured in the thermal storage.
 
-    #     Raises:
-    #         ValueError: if the connection sensors are not set correctly
-    #     """
-
-    #     if self.load_connection_sensor_out is None:
-    #         raise ComponentValidationError(
-    #             "The load connection sensor outflow must have a name."
-    #         )
-    #     if self.load_connection_sensor_in is None:
-    #         raise ComponentValidationError(
-    #             "The load connection sensor inflow must have a name."
-    #         )
+        Returns:
+            int: Number of storage sensors configured.
+        """
+        return len(self.storage_sensors)
 
 
 class ThermalStorageInputData(InputData):

@@ -34,27 +34,6 @@ class TimeUnitsSeconds(Enum):
     DAY = datetime.timedelta(days=1).total_seconds()
     MONTH = datetime.timedelta(days=30).total_seconds()
 
-
-def get_time_unit_seconds(time_unit: Union[TimeUnits, str]) -> Optional[float]:
-    """Funktion to get the seconds for a time unit
-
-    Args:
-        time_unit (Union[TimeUnits, str]): time unit / Name of the time unit
-
-    Returns:
-        Union[int, None]: Number of seconds for the time unit\
-            or None if the time unit is not available
-    """
-    if isinstance(time_unit, TimeUnits):
-        return TimeUnitsSeconds[time_unit.name].value
-
-    if time_unit in [unit.value for unit in TimeUnits]:
-        return TimeUnitsSeconds[TimeUnits(time_unit).name].value
-
-    logger.warning(f"Time unit {time_unit} not available")
-    return None
-
-
 class DataUnits(Enum):
     """
     Possible units for the data
@@ -70,6 +49,7 @@ class DataUnits(Enum):
     # Time
     SECOND = "SEC"  # "seconds"
     HOUR = "HUR"  # "hour"
+    MINUTE = "MIN"  # "minute"
 
     # Temperature
     DEGREECELSIUS = "CEL"  # "°C"
@@ -127,4 +107,31 @@ def get_unit_adjustment_factor(unit_actual: DataUnits,
     logger.warning(
         f"Adjustment factor for the conversion of {unit_actual} to {unit_target} "
         "not implemented yet")
+    return None
+
+def get_time_unit_seconds(time_unit: Union[TimeUnits, str, DataUnits]) -> Optional[float]:
+    """Funktion to get the seconds for a time unit
+
+    Args:
+        time_unit (Union[TimeUnits, str, DataUnits]): time unit / Name of the time unit \
+            If you use DataUnits, only the units which are also in TimeUnits are valid
+
+    Returns:
+        Union[int, None]: Number of seconds for the time unit\
+            or None if the time unit is not available
+    """
+    if isinstance(time_unit, TimeUnits):
+        return TimeUnitsSeconds[time_unit.name].value
+
+    if time_unit in [unit.value for unit in TimeUnits]:
+        return TimeUnitsSeconds[TimeUnits(time_unit).name].value
+
+    if isinstance(time_unit, DataUnits):
+        return TimeUnitsSeconds[TimeUnits[time_unit.name].name].value
+
+    if time_unit in [unit.name for unit in DataUnits]:
+        if DataUnits(time_unit).name in [unit.name for unit in TimeUnits]:
+            return TimeUnitsSeconds[TimeUnits(DataUnits(time_unit).name).name].value
+
+    logger.warning(f"Time unit {time_unit} not available")
     return None

@@ -40,6 +40,7 @@ class DataPointNumber(DataPointGeneral):
         unit: Optional unit of the datapoint, if applicable
         time: Optional timestamp of the datapoint, if applicable
     """
+    value: float | int
 
 
 class DataPointString(DataPointGeneral):

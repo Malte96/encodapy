@@ -196,6 +196,8 @@ An example of how a Pydantic model can be used to validate the configuration of 
     **If you only want to use some of the possible results, you need to set them to  `Optional[DataPoint model]`** Therefore, there is no need to export them all in the service. If you add them all without 'Optional', you will get a 'ValidationError' if not all outputs are configured in the service configuration.
 
     As with the `NewComponentInputData`, you could also add information about the unit. If possible, the unit will also be transformed.
+
+    The data points in this base model must be set in the `calculate()` function of each component so that the base component can handle them.
   - `NewComponentConfigData(ConfigData)`: A definition of the required static data to check during the initilisazion. It should look like this:
 
     ```python
@@ -232,6 +234,7 @@ An example of how a Pydantic model can be used to validate the configuration of 
   
 - If the new component requires preparation before the first run, this should be added to the `prepare_component()` function.
 - The new component requires a function `calculate()` to calculate the results, using the component's internal value storage and other background functions. These functions needs to set the `self.output_data = NewComponentOutputData(...)`.
+  This data will be used by the basic component and the basic service/component runner service to create the output for the different interfaces.
 - The basic component will handle the inputs, configuration data and outputs.
   - In order to use the autofil function in your IDE, you need to add a declaration of the types of `self.input_data`, `self.config_data` and `self.output_data`.
   - This basic function collects the data and enables you to query it using the InputData model, which is based on a Pydantic BaseModel: `self.input_data.input_value`. If you do not want to use the internal function `set_input_values(input_entities: list[InputDataEntityModel])`, you can add a custom function to handle the inputs.

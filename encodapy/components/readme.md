@@ -166,6 +166,8 @@ An example of how a Pydantic model can be used to validate the configuration of 
         )
     ```
 
+    See https://docs.pydantic.dev/latest/concepts/models/#basic-model-usage for information on the general usage of optional fields and default values.
+
     The value of the variable `"$unit_value"` must be a valid unit from the `encodapy.utils.units.DataUnits` such as `"CEL"` for °C. If possible, the unit will also be transformed.
 
   - `NewComponentOutputData(OutputData)`: A definition of the available output datapoints / results.

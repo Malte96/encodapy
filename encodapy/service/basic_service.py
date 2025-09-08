@@ -571,7 +571,21 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         Main function for converting the data
         """
+
+        sampling_time = (
+            self.config.controller_settings.time_settings.calculation.sampling_time
+            * get_time_unit_seconds(
+                self.config.controller_settings.time_settings.calculation.sampling_time_unit
+            )
+        )
+
         logger.info("Start the Service")
+        # Hold the sampling time at the beginning,
+        # so that the mqtt interfaces is ready and data is available
+        if self.config.interfaces.mqtt:
+            await self._hold_sampling_time(
+                    start_time=datetime.now(), hold_time=sampling_time
+                )
 
         while not self.shutdown_event.is_set():
             logger.debug("Start the Prozess")
@@ -591,12 +605,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
             await self._set_health_timestamp()
 
-            sampling_time = (
-                self.config.controller_settings.time_settings.calculation.sampling_time
-                * get_time_unit_seconds(
-                    self.config.controller_settings.time_settings.calculation.sampling_time_unit
-                )
-            )
             await self._hold_sampling_time(
                 start_time=start_time, hold_time=sampling_time
             )

@@ -143,7 +143,9 @@ An example of how a Pydantic model can be used to validate the configuration of 
     from pydantic import Field
 
     from encodapy.components.basic_component_config import (
-      InputData,
+      InputData
+    )
+    from encodapy.utils.datapoints import (
       DataPointGeneral,
       DataPointNumber
     )
@@ -175,8 +177,8 @@ An example of how a Pydantic model can be used to validate the configuration of 
     ```python
     from pydantic import Field, Optional
 
-    from encodapy.components.basic_component_config import OutputData, DataPointGeneral
-
+    from encodapy.components.basic_component_config import OutputData
+    from encodapy.utils.datapoints import DataPointGeneral
 
     class NewComponentOutputData(OutputData):
         """
@@ -203,7 +205,9 @@ An example of how a Pydantic model can be used to validate the configuration of 
   - `NewComponentConfigData(ConfigData)`: A definition of the required static data to check during the initilisazion. It should look like this:
 
     ```python
-    from encodapy.components.basic_component_config import ConfigData, DataPointGeneral
+    from encodapy.components.basic_component_config import ConfigData
+    from encodapy.utils.datapoints import DataPointGeneral
+
     class NewComponentConfigData(ConfigData):
     """
     Model for the configuration data of the thermal storage service.
@@ -221,7 +225,7 @@ An example of how a Pydantic model can be used to validate the configuration of 
     You do not need this definition if you don't want to use static data.  
     You could add optional data that does not need to be set in the configuration. This should resemble the second field in the model.
   
-  All datapoints need to have the type `DataPointGeneral` or a specialized version of it. This type defines that the datapoints can have the following attributes:
+  All datapoints need to have the type `DataPointGeneral` (see `encodapy.utils.datapoints`) or a specialized version of it. This type defines that the datapoints can have the following attributes:
   - a `value`
   - a `unit` (as `DataUnits`, e.g., `encodapy.utils.units.DataUnits`)
   - a `time` (as a datetime object)
@@ -231,6 +235,7 @@ An example of how a Pydantic model can be used to validate the configuration of 
   - `DataPointString` for text (`str`)
   - `DataPointDict` for dictionaries (`dict`)
   - `DataPointBool` for booleans (`bool`)
+  - `DataPointMedium` for mediums (see `encodapy.utils.mediums`)
 
   You can define your own datatype by subclassing `DataPointGeneral` if you need a specialized version. This approach is also useful for defining default values when the value involves more than just a number.
   

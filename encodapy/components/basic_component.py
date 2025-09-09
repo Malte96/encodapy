@@ -4,11 +4,16 @@ Author: Martin Altenburger
 """
 
 from datetime import datetime, timezone
-from typing import Any, Optional, Type, Union
-
+from typing import (
+    Any,
+    Optional,
+    Type,
+    Union,
+    TypeVar, 
+    Generic
+)
 from loguru import logger
 from pydantic import ValidationError
-
 from encodapy.components.basic_component_config import (
     ComponentIOModel,
     ComponentValidationError,
@@ -33,9 +38,13 @@ from encodapy.utils.models import (
     InputDataModel,
     StaticDataEntityModel,
 )
+# Type variables for component data models
+# - these are used for type hinting in the BasicComponent class
+TYPE_CONFIG_DATA = TypeVar('TYPE_CONFIG_DATA', bound=ConfigData) # pylint: disable=invalid-name
+TYPE_INPUT_DATA = TypeVar('TYPE_INPUT_DATA', bound=InputData) # pylint: disable=invalid-name
+TYPE_OUTPUT_DATA = TypeVar('TYPE_OUTPUT_DATA', bound=OutputData) # pylint: disable=invalid-name
 
-
-class BasicComponent:
+class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA]):
     """
     Base class for all components in the encodapy package.
     This class provides basic functionality that can be extended by specific components.
@@ -66,14 +75,14 @@ class BasicComponent:
                 self.get_component_config(config=config, component_id=component_id)
             )
 
-        self.config_data: ConfigData
+        self.config_data: TYPE_CONFIG_DATA
         self.set_component_config_data(
             static_data=static_data, static_config=self.component_config.config
         )
         # Inputs and Outputs of the component itsel
         self.io_model: Optional[ComponentIOModel] = None
-        self.input_data: InputData
-        self.output_data: OutputData
+        self.input_data: TYPE_INPUT_DATA
+        self.output_data: TYPE_OUTPUT_DATA
 
         self._prepare_i_o_config()
 

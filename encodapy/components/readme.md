@@ -240,12 +240,12 @@ An example of how a Pydantic model can be used to validate the configuration of 
   You can define your own datatype by subclassing `DataPointGeneral` if you need a specialized version. This approach is also useful for defining default values when the value involves more than just a number.
   
 - If the new component requires preparation before the first run, this should be added to the `prepare_component()` function.
-- The new component requires a function `calculate()` to calculate the results, using the component's internal value storage and other background functions. These functions needs to set the `self.output_data = NewComponentOutputData(...)`.
-  This data will be used by the basic component and the basic service/component runner service to create the output for the different interfaces.
 - The basic component will handle the inputs, configuration data and outputs.
   - In order to use the autofil function in your IDE, you need to add a declaration of the types of `self.input_data`, `self.config_data` and `self.output_data`.
   - This basic function collects the data and enables you to query it using the InputData model, which is based on a Pydantic BaseModel: `self.input_data.input_value`. If you do not want to use the internal function `set_input_values(input_entities: list[InputDataEntityModel])`, you can add a custom function to handle the inputs.
   - The configuration data is available in the same way: `self.config_data.config_value`.
+  - The new component requires a function `calculate()` to calculate the results, using the component's internal value storage and other background functions. These functions needs to set the `self.output_data = NewComponentOutputData(...)`.
+  This data will be used by the basic component and the basic service/component runner service to create the output for the different interfaces.
 - If the new component requires calibration, you should extend the function `calibrate()`. In the basic component, this function is only used to update static data.
 
 ### Using the New Component

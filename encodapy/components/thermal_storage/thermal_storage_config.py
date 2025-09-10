@@ -18,6 +18,7 @@ from encodapy.utils.datapoints import (
     DataPointMedium
 )
 from encodapy.utils.mediums import Medium
+from encodapy.utils.units import DataUnits
 
 
 class TemperatureLimits(BaseModel):

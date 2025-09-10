@@ -60,6 +60,8 @@ class DataUnits(Enum):
     MTQ = "MTQ"  # "m³"
     MQH = "MQH"  # "m³/h"
     MQS = "MQS"  # "m³/s"
+    E32 = "E32"  # "l/h" (E32 is the unit code for liters per hour)
+    L2 = "L2"  # "l/m" (L2 is the unit code for liters per minute)
 
     # Energy / Power
     WTT = "WTT"  # "W"
@@ -75,7 +77,7 @@ class DataUnits(Enum):
     MTS = "MTS"  # "m/s"
 
     # unitless
-    PERCENT = "P1"  # "%"    #TODO Change it
+    PERCENT = "P1"  # "%"
 
     # Electrical
     OHM = "OHM"  # "Ohm"

@@ -9,8 +9,9 @@ from typing import (
     Optional,
     Type,
     Union,
-    TypeVar, 
-    Generic
+    TypeVar,
+    Generic,
+    cast
 )
 from loguru import logger
 from pydantic import ValidationError
@@ -235,7 +236,9 @@ class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA
             static_config_raw[key] = value.model_dump()
 
         try:
-            self.config_data = config_model.model_validate(static_config_raw)
+            self.config_data = cast(TYPE_CONFIG_DATA,
+                                    config_model.model_validate(static_config_raw)
+                                    )
 
         except ValidationError as error:
             error_msg = (
@@ -304,6 +307,9 @@ class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA
 
         input_values: dict[str, DataPointGeneral] = {}
 
+        input_data_model = get_component_input_data_model(
+            component_type=self.component_config.type
+        )
         for datapoint_name, datapoint_config in self.io_model.input.__dict__.items():
             if datapoint_config is None:
                 continue
@@ -316,18 +322,23 @@ class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA
                 )
                 continue
 
-            input_values[datapoint_name] = self.get_component_input(
+            datapoint = self.get_component_input(
                 input_entities=input_datapoints, input_config=datapoint_config
             )
 
-        input_data_model = get_component_input_data_model(
-            component_type=self.component_config.type
-        )
+            # Skip optional datapoints with no value
+            if not input_data_model.model_fields[datapoint_name].is_required() \
+                and datapoint.value is None:
+                continue
+            input_values[datapoint_name] = datapoint
+
         input_values_raw: dict[str, Any] = {}
         for key, value in input_values.items():
             input_values_raw[key] = value.model_dump()
 
-        self.input_data = input_data_model.model_validate(input_values_raw)
+        self.input_data = cast(TYPE_INPUT_DATA,
+                               input_data_model.model_validate(input_values_raw)
+                               )
 
     def prepare_component(self):
         """
@@ -396,9 +407,9 @@ class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA
             if not hasattr(self, "output_data"):
                 raise ValueError("Output data is not set in the component.")
 
-            self.output_data = output_model.model_validate(
+            self.output_data = cast(TYPE_OUTPUT_DATA, output_model.model_validate(
                 self.output_data.model_dump()
-            )
+            ))
 
         except KeyError as e:
             logger.error(

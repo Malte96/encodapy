@@ -118,7 +118,7 @@ An example of how a Pydantic model can be used to validate the configuration of 
         component_id: str,
         static_data: Optional[list[StaticDataEntityModel]] = None,
     ) -> None:
-        # Add the necessary instance variables here (you need to store the input data in the component)
+        # Add the necessary instance variables here
         self.example_variable:float = 1
         
         # Add the type declaration for the following variables so that autofill works properly
@@ -218,7 +218,7 @@ An example of how a Pydantic model can be used to validate the configuration of 
     )
     optional_config_value: Optional[DataPointGeneral] = Field(
         DataPointGeneral(value = 1),
-        description="optional static value for the new component"
+        description="Optional static value for the new component"
     )
     ```
 

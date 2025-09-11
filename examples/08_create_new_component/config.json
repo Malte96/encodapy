@@ -59,21 +59,17 @@
                 }
             },
             "outputs": {
-                "a_result": {
+                "result": {
                     "entity": "mqtt_output_entity",
                     "attribute": "result_data"
                 },
                 "optional_result": {
                     "entity": "mqtt_output_entity",
                     "attribute": "optional_result_data"
-                },
-                "b_result": {
-                    "entity": "mqtt_output_entity",
-                    "attribute": "result_data"
                 }
             },
             "config": {
-                "a_config_value": {
+                "config_value": {
                     "value": 5,
                     "unit": "KEL"
                 }

@@ -1,3 +1,7 @@
+"""
+Defines the NewComponent class.
+"""
+
 from datetime import datetime
 from typing import Optional, Union
 
@@ -21,22 +25,13 @@ class NewComponent(BasicComponent):
     Class for a new component
     """
 
-    # # Inputs:
-    # a_input: float
-    # another_input: float
-    # optional_input: float
-
-    # # Outputs:
-    # a_result: float
-    # another_result: float
-
     def __init__(
         self,
         config: Union[ControllerComponentModel, list[ControllerComponentModel]],
         component_id: str,
         static_data: Optional[list[StaticDataEntityModel]] = None,
     ) -> None:
-        # Add the necessary instance variables here (you need to store the input data in the component)
+        # Add the necessary instance variables here
         self.example_variable: float = 1
 
         # Add the type declaration for the following variables so that autofill works properly
@@ -103,16 +98,12 @@ class NewComponent(BasicComponent):
         """
         logger.debug("Calculating in NewComponent...")
 
-        # Call the calculation functions and store the results in the output data model
-        # self.output_data.a_result.value, self.output_data.a_result.unit = (
-        #     self.calculate_a_result()
-        # )
-        # self.output_data.a_result.time = datetime.now()
-        # self.output_data.a_result = DataPointGeneral(
-        #     value=13, unit=DataUnits.KELVIN, time=datetime.now()
-        # )
         a_result_datapoint = DataPointGeneral(
             value=13, unit=DataUnits.DEGREECELSIUS, time=datetime.now()
         )
 
-        self.output_data = NewComponentOutputData(a_result=a_result_datapoint)
+        optional_result_datapoint = DataPointGeneral(
+            value=42, unit=DataUnits.DEGREECELSIUS, time=datetime.now()
+        )
+
+        self.output_data = NewComponentOutputData(result=a_result_datapoint, optional_result=optional_result_datapoint)

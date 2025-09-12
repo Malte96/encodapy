@@ -90,7 +90,9 @@ For more details, see the [examples](#examples)
 - Frist, create a configuration, then start the service:
   - as shown in [examples/07_component_runner](./examples/07_component_runner/)
   - by running the service with the [main.py](./service_main/main.py).
-- If you need additional components, please see [encodapy/components](./encodapy/components/)
+- If you need additional components, please see [encodapy/components](./encodapy/components/):
+  - You can use components from `encodapy/components` or create your own
+  - An easy way to build your own component is shown in [examples/08_create_new_component](./examples/08_create_new_component/)
 
 ### Examples
 

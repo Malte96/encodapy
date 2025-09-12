@@ -8,6 +8,7 @@ The example uses a connection to a FIWARE platform, which is needed (see [n5geh.
 - [configure_fiware_platform.ipynb](./configure_fiware_platform.ipynb): Notebook to add the needed configuration and values to the fiware platform
 - [config.json](./config.json): Configuration for the service - see [01_config](./../01_config/)
 - [run_components.ipynb](./run_components.ipynb): Notebook to run the service (also possible to run the [service_main/main.py](./../../service_main/main.pyy) with the necessary envs)
+- [main.py](./main.py): Main function to run the service
 
 ## Usage
 To run the example, you need to add a [.env](.env):

@@ -80,7 +80,8 @@ class TwoPointControllerConfigData(ConfigData):
         """
         hysteresis = DataPointNumber.model_validate(self.hysteresis)
         setpoint = DataPointNumber.model_validate(self.setpoint)
-        if hysteresis.unit != setpoint.unit:
+        if hysteresis.unit != setpoint.unit \
+            and hysteresis.unit is not None and setpoint.unit is not None:
             logger.warning(
                 f"Units of hysteresis ({hysteresis.unit}) and setpoint ({setpoint.unit}) "
                 "are not the same. Please check your configuration."

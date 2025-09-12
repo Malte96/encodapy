@@ -1,7 +1,7 @@
 """
 Main file so start the example service
 """
-from typing import Type
+from typing import Type, cast
 import asyncio
 import signal
 import os
@@ -67,9 +67,10 @@ async def main(
             ]
 
         shutdown_task = asyncio.create_task(shutdown_event.wait())
+        main_gather = asyncio.gather(*service_tasks, return_exceptions=True)
 
         await asyncio.wait(
-            [*service_tasks, shutdown_task],
+            [cast(asyncio.Task, main_gather), shutdown_task],
             return_when=asyncio.FIRST_COMPLETED
         )
 

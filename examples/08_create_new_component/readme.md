@@ -19,7 +19,7 @@ As this example component is configured using the MQTT interface, the environmen
 
 The example consists of the following files:
 
-- [new_component.py](./new_component/new_component.py): Defines the NewComponent class.
+- [new_component.py](./new_component/new_component.py): Defines the NewComponent class. (Note the CamelCase notation of the class)
 - [new_component_config.py](./new_component/new_component_config.py): Defines the configuration, input, and output models for the new component.
 - [config.json](./new_component/config.json): Example configuration for the service, including the new component.
 - [main.py](main.py): Entry point to run the example service.

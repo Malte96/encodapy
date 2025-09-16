@@ -295,7 +295,7 @@ class ThermalStorage(BasicComponent):
             ThermalStorageEnergyTypes.CURRENT
         ), DataUnits.WHR
 
-    def get_storage_loading_potential(self) -> tuple[float, DataUnits]:
+    def get_storage_loading_potential_nominal(self) -> tuple[float, DataUnits]:
         """
         Function to get the loading potential of the thermal storage, \
             which is the difference between the nominal and current energy content.
@@ -385,6 +385,30 @@ class ThermalStorage(BasicComponent):
 
         return round(state_of_charge, 2), DataUnits.PERCENT
 
+    def get_storage__mean_temperature_maximal(self) -> DataPointNumber:
+        """
+        Function to calculate the mean maximal temperature of the thermal storage
+        Using the maximal temperature of each sensor and \
+        weighting it with the volume of the sensor
+
+        Returns:
+            DataPointNumber: Mean maximal temperature of the thermal storage in °C
+        """
+        max_temperatures: list[float] = []
+        storage_volume = self.config_data.volume.value
+        for index, storage_sensor \
+            in enumerate(self.config_data.sensor_config.value.storage_sensors):
+
+            sensor_volume = self._get_sensor_volume(sensor=index)
+
+            max_temperatures.append(storage_sensor.limits.maximal_temperature
+                                    * sensor_volume)
+
+        return DataPointNumber(
+            value=round(sum(max_temperatures) / storage_volume, 2),
+            unit=DataUnits.DEGREECELSIUS
+        )
+
 
     def _check_input_configuration(self):
         """
@@ -443,7 +467,7 @@ class ThermalStorage(BasicComponent):
             unit=state_of_charge[1],
         )
 
-        loading_potential = self.get_storage_loading_potential()
+        loading_potential = self.get_storage_loading_potential_nominal()
         loading_potential_datapoint = DataPointNumber(
             value=loading_potential[0],
             unit=loading_potential[1],
@@ -452,5 +476,5 @@ class ThermalStorage(BasicComponent):
         self.output_data = ThermalStorageOutputData(
             storage__energy=storage__energy_datapoint,
             storage__level=state_of_charge_datapoint,
-            storage__loading_potential=loading_potential_datapoint,
+            storage__loading_potential_nominal=loading_potential_datapoint
         )

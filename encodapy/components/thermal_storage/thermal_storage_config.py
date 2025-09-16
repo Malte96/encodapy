@@ -18,7 +18,6 @@ from encodapy.utils.datapoints import (
     DataPointMedium
 )
 from encodapy.utils.mediums import Medium
-from encodapy.utils.units import DataUnits
 
 
 class TemperatureLimits(BaseModel):
@@ -274,28 +273,27 @@ class ThermalStorageOutputData(OutputData):
         which is defined in the `json_schema_extra` field as `calculation`.
 
     Contains:
-        `storage__level`: Optional[DataPointNumber] = Output for storage charge in percent \
+        `storage__level`: Optional[DataPointNumber] : Output for storage charge in percent \
             (0-100) (optional)
-        `storage__energy`: Optional[DataPointNumber] = Output for storage energy in kWh \
-            (optional)
-        `storage__loading_potential`: Optional[DataPointNumber] = \
+        `storage__energy`: Optional[DataPointNumber] : Output for storage energy in Wh (optional)
+        `storage__loading_potential_nominal`: Optional[DataPointNumber] : \
             Output for storage loading potential in Wh (optional)
     """
 
     storage__level: Optional[DataPointNumber] = Field(
         None,
         description="Output for storage charge in percent (0-100)",
-        json_schema_extra={"calculation": "get_state_of_charge"},
+        json_schema_extra={"unit": "P1"},
     )
     storage__energy: Optional[DataPointNumber] = Field(
         None,
         description="Output for storage energy in Wh",
-        json_schema_extra={"calculation": "get_storage_energy_current"},
+        json_schema_extra={"unit": "WHR"},
     )
-    storage__loading_potential: Optional[DataPointNumber] = Field(
+    storage__loading_potential_nominal: Optional[DataPointNumber] = Field(
         None,
         description="Output for storage loading potential in Wh",
-        json_schema_extra={"calculation": "get_storage_loading_potential"},
+        json_schema_extra={"unit": "WHR"},
     )
 
 
@@ -360,6 +358,14 @@ class DataPointSensorConfig(DataPointGeneral):
 class ThermalStorageConfigData(ConfigData):
     """
     Model for the configuration data of the thermal storage service.
+    
+    Contains:
+        `volume`: DataPointNumber : Volume of the thermal storage in m³
+        `medium`: DataPointMedium : Medium of the thermal storage
+        `sensor_config`: DataPointSensorConfig : \
+            Sensor configuration of the thermal storage
+        `calculation_method`: DataPointCalculationMethod : \
+            Calculation method for the thermal storage
     """
     volume: DataPointNumber = Field(
         ...,

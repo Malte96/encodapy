@@ -20,9 +20,9 @@ This module provides a structured way to define and manage components for use wi
 
 ### Available Components
 
-- `ThermalStorage`: Thermal storage component to calculate the stored energy using temperature sensors.  
+- ThermalStorage (`thermal_storage`): Thermal storage component to calculate the stored energy using temperature sensors.  
   An example can be found under: [`examples/06_thermal_storage_service`](../../examples/06_thermal_storage_service/)
-- `TwoPointController`: Two-Point-Controller component for the steering of the loading process of a thermal storage or other processes.  
+- TwoPointController (`two_point_controller`): Two-Point-Controller component for the steering of the loading process of a thermal storage or other processes.  
   An example can be found under: [`examples/07_component_runner`](../../examples/07_component_runner/)
 
 ---
@@ -263,3 +263,4 @@ An example of how a Pydantic model can be used to validate the configuration of 
     ]
   ...
 ```
+- Be careful: the module path must contain at least one dot. Otherwise, the framework will not recognise the component as an individual one.

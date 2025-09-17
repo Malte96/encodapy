@@ -154,22 +154,23 @@ def get_component_io_model(
         raise TypeError(error_msg)
 
     # 1. Create the fields for the new model
-    felder: Dict[str, Tuple[Any, Any]] = {}
+    fields: Dict[str, Tuple[Any, Any]] = {}
     for datapoint_name, datapoint_info in component_data_model.model_fields.items():
-        felder[datapoint_name] = (
+        fields[datapoint_name] = (
             IOAllocationModel
             if datapoint_info.is_required()
             else Optional[IOAllocationModel],
             Field(
-                default=datapoint_info.default,
+                default=None if not datapoint_info.is_required() else ...,
                 description=datapoint_info.description,
                 json_schema_extra=datapoint_info.json_schema_extra,
             ),
         )
+
     # 2. Create the new model dynamically
     component_config_model = create_model(
         f"IO_{component_data_model.__name__}",
-        **cast(Dict[str, Any], felder),
+        **cast(Dict[str, Any], fields),
         __base__=component_data_model,
     )
     # 3. copy methods (if any)

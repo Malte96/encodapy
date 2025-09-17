@@ -7,7 +7,7 @@ Author: Maximilian Beyer
 import json
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Union
 
 import paho.mqtt.client as mqtt
@@ -325,7 +325,7 @@ class MqttConnection:
                 "MQTT message store is not initialized. Call prepare_mqtt_connection() first."
             )
 
-        current_time = datetime.now()
+        current_time = datetime.now(timezone.utc)
 
         debug_message = (
             f"MQTT connection received message on {message.topic} at {current_time}."

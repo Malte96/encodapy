@@ -1,6 +1,7 @@
 """
 Main file so start the example service
 """
+
 from typing import Type, cast
 import asyncio
 import signal
@@ -10,8 +11,7 @@ from encodapy.service.basic_service import ControllerBasicService
 from encodapy.service.component_runner_service import ComponentRunnerService
 
 
-async def main(
-    service_class: Type[ControllerBasicService] = ComponentRunnerService):
+async def main(service_class: Type[ControllerBasicService] = ComponentRunnerService):
     """
     Main function to start the example service
 
@@ -42,7 +42,6 @@ async def main(
     task_for_check_health = asyncio.create_task(service.check_health_status())
     task_for_start_service = asyncio.create_task(service.start_service())
 
-
     def signal_handler():
         """Handler für SIGTERM und SIGINT Signale"""
         logger.debug("Shutdown signal received, end service properly...")
@@ -63,33 +62,34 @@ async def main(
         service_tasks: list[asyncio.Task] = [
             task_for_check_health,
             task_for_calibration,
-            task_for_start_service
-            ]
+            task_for_start_service,
+        ]
 
         shutdown_task = asyncio.create_task(shutdown_event.wait())
         main_gather = asyncio.gather(*service_tasks, return_exceptions=True)
 
         await asyncio.wait(
             [cast(asyncio.Task, main_gather), shutdown_task],
-            return_when=asyncio.FIRST_COMPLETED
+            return_when=asyncio.FIRST_COMPLETED,
         )
-
 
         if service_tasks:
             try:
                 done, pending = await asyncio.wait(
-                    service_tasks,
-                    timeout=30.0,
-                    return_when=asyncio.ALL_COMPLETED
+                    service_tasks, timeout=30.0, return_when=asyncio.ALL_COMPLETED
                 )
 
                 if pending:
-                    logger.error("Service could not be terminated properly: "
-                                 f"{len(pending)} Tasks hang.")
+                    logger.error(
+                        "Service could not be terminated properly: "
+                        f"{len(pending)} Tasks hang."
+                    )
                     logger.debug(f"Some tasks successfully finished: {len(done)}")
 
-                    raise TimeoutError("Service could not be terminated properly: "
-                                       f"{len(pending)} Tasks hang.")
+                    raise TimeoutError(
+                        "Service could not be terminated properly: "
+                        f"{len(pending)} Tasks hang."
+                    )
             except Exception as e:
                 logger.error(f"Error when exiting the service: {e}")
                 raise
@@ -103,6 +103,7 @@ async def main(
             logger.warning("Forcing process exit due to hanging tasks")
             os._exit(1)
         raise
+
 
 if __name__ == "__main__":
     asyncio.run(main())

@@ -12,16 +12,14 @@ from encodapy.components.basic_component_config import (
     ComponentValidationError,
     ControllerComponentModel,
 )
-from encodapy.utils.datapoints import (
-    DataPointNumber
-)
+from encodapy.utils.datapoints import DataPointNumber
 from encodapy.components.thermal_storage.thermal_storage_config import (
     TemperatureLimits,
     ThermalStorageCalculationMethods,
     ThermalStorageConfigData,
     ThermalStorageEnergyTypes,
     ThermalStorageInputData,
-    ThermalStorageOutputData
+    ThermalStorageOutputData,
 )
 from encodapy.utils.mediums import get_medium_parameter
 from encodapy.utils.models import (
@@ -86,11 +84,15 @@ class ThermalStorage(BasicComponent):
             else:
                 sensor_height_new = (
                     storage_sensor.height
-                    + self.config_data.sensor_config.value.storage_sensors[index + 1].height
+                    + self.config_data.sensor_config.value.storage_sensors[
+                        index + 1
+                    ].height
                 ) / 2
 
             sensor_volumes[index] = (
-                (sensor_height_new - sensor_height_ref) / 100 * self.config_data.volume.value
+                (sensor_height_new - sensor_height_ref)
+                / 100
+                * self.config_data.volume.value
             )
             sensor_height_ref = sensor_height_new
 
@@ -154,10 +156,14 @@ class ThermalStorage(BasicComponent):
             TemperatureLimits: Temperature limits of the sensors in the thermal storage
         """
 
-        config_limits = self.config_data.sensor_config.value.storage_sensors[sensor_id].limits
+        config_limits = self.config_data.sensor_config.value.storage_sensors[
+            sensor_id
+        ].limits
 
-        if self.config_data.calculation_method.value \
-            == ThermalStorageCalculationMethods.STATIC_LIMITS:
+        if (
+            self.config_data.calculation_method.value
+            == ThermalStorageCalculationMethods.STATIC_LIMITS
+        ):
             return config_limits
 
         if (
@@ -170,7 +176,9 @@ class ThermalStorage(BasicComponent):
 
             return limits
 
-        logger.warning(f"Unknown calculation method: {self.config_data.calculation_method.value}")
+        logger.warning(
+            f"Unknown calculation method: {self.config_data.calculation_method.value}"
+        )
 
         return config_limits
 
@@ -193,10 +201,14 @@ class ThermalStorage(BasicComponent):
 
             temperature_sensor = f"temperature_{index+1}"
             try:
-                temperature: DataPointNumber = getattr(self.input_data, temperature_sensor)
+                temperature: DataPointNumber = getattr(
+                    self.input_data, temperature_sensor
+                )
             except AttributeError as e:
-                error_msg = (f"Temperature sensor '{temperature_sensor}' "
-                             "not found in input data.")
+                error_msg = (
+                    f"Temperature sensor '{temperature_sensor}' "
+                    "not found in input data."
+                )
                 logger.error(error_msg)
                 raise AttributeError(error_msg) from e
 
@@ -227,8 +239,7 @@ class ThermalStorage(BasicComponent):
 
             elif energy_type is ThermalStorageEnergyTypes.CURRENT:
                 temperature_difference = (
-                    temperature.value
-                    - sensor_limits.minimal_temperature
+                    temperature.value - sensor_limits.minimal_temperature
                 )
 
             else:
@@ -252,9 +263,10 @@ class ThermalStorage(BasicComponent):
             tuple[float, DataUnits]: Nominal energy content of the thermal storage in Wh
         """
 
-        return self.get_storage_energy_content(
-            ThermalStorageEnergyTypes.NOMINAL
-        ), DataUnits.WHR
+        return (
+            self.get_storage_energy_content(ThermalStorageEnergyTypes.NOMINAL),
+            DataUnits.WHR,
+        )
 
     def get_storage_energy_minimum(self) -> tuple[float, DataUnits]:
         """
@@ -265,9 +277,10 @@ class ThermalStorage(BasicComponent):
         Raises:
             ValueError: If the thermal storage is not usable or the sensor values are not set
         """
-        return self.get_storage_energy_content(
-            ThermalStorageEnergyTypes.MINIMAL
-        ), DataUnits.WHR
+        return (
+            self.get_storage_energy_content(ThermalStorageEnergyTypes.MINIMAL),
+            DataUnits.WHR,
+        )
 
     def get_storage_energy_maximum(self) -> tuple[float, DataUnits]:
         """
@@ -278,9 +291,10 @@ class ThermalStorage(BasicComponent):
         Raises:
             ValueError: If the thermal storage is not usable or the sensor values are not set
         """
-        return self.get_storage_energy_content(
-            ThermalStorageEnergyTypes.MAXIMAL
-        ), DataUnits.WHR
+        return (
+            self.get_storage_energy_content(ThermalStorageEnergyTypes.MAXIMAL),
+            DataUnits.WHR,
+        )
 
     def get_storage_energy_current(self) -> tuple[float, DataUnits]:
         """
@@ -291,9 +305,10 @@ class ThermalStorage(BasicComponent):
         Raises:
             ValueError: If the thermal storage is not usable or the sensor values are not set
         """
-        return self.get_storage_energy_content(
-            ThermalStorageEnergyTypes.CURRENT
-        ), DataUnits.WHR
+        return (
+            self.get_storage_energy_content(ThermalStorageEnergyTypes.CURRENT),
+            DataUnits.WHR,
+        )
 
     def get_storage_loading_potential_nominal(self) -> tuple[float, DataUnits]:
         """
@@ -320,10 +335,11 @@ class ThermalStorage(BasicComponent):
         """
 
         super().set_input_data(input_data=input_data)
-        if self.config_data.calculation_method.value is \
-            ThermalStorageCalculationMethods.CONNECTION_LIMITS:
+        if (
+            self.config_data.calculation_method.value
+            is ThermalStorageCalculationMethods.CONNECTION_LIMITS
+        ):
             self.input_data.check_load_connection_sensors()
-
 
     def _check_temperatur_of_highest_sensor(self, state_of_charge: float) -> float:
         """
@@ -346,10 +362,7 @@ class ThermalStorage(BasicComponent):
             * 0.1
         )
 
-        if (
-            self.input_data.temperature_1.value
-            < temperature_limits.minimal_temperature
-        ):
+        if self.input_data.temperature_1.value < temperature_limits.minimal_temperature:
             return 0
         if self.input_data.temperature_1.value < ref_value:
             return (
@@ -396,19 +409,20 @@ class ThermalStorage(BasicComponent):
         """
         max_temperatures: list[float] = []
         storage_volume = self.config_data.volume.value
-        for index, storage_sensor \
-            in enumerate(self.config_data.sensor_config.value.storage_sensors):
+        for index, storage_sensor in enumerate(
+            self.config_data.sensor_config.value.storage_sensors
+        ):
 
             sensor_volume = self._get_sensor_volume(sensor=index)
 
-            max_temperatures.append(storage_sensor.limits.maximal_temperature
-                                    * sensor_volume)
+            max_temperatures.append(
+                storage_sensor.limits.maximal_temperature * sensor_volume
+            )
 
         return DataPointNumber(
             value=round(sum(max_temperatures) / storage_volume, 2),
-            unit=DataUnits.DEGREECELSIUS
+            unit=DataUnits.DEGREECELSIUS,
         )
-
 
     def _check_input_configuration(self):
         """
@@ -476,5 +490,5 @@ class ThermalStorage(BasicComponent):
         self.output_data = ThermalStorageOutputData(
             storage__energy=storage__energy_datapoint,
             storage__level=state_of_charge_datapoint,
-            storage__loading_potential_nominal=loading_potential_datapoint
+            storage__loading_potential_nominal=loading_potential_datapoint,
         )

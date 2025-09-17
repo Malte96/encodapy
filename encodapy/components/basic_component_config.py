@@ -9,9 +9,7 @@ from loguru import logger
 from pydantic import BaseModel, Field, RootModel, model_validator
 
 from encodapy.utils.units import DataUnits, get_unit_adjustment_factor
-from encodapy.utils.datapoints import (
-    DataPointGeneral
-)
+from encodapy.utils.datapoints import DataPointGeneral
 
 
 # Models for the Input Configuration
@@ -32,7 +30,9 @@ class IOAllocationModel(BaseModel):
     )
 
 
-class IOModell((RootModel[Dict[str, IOAllocationModel]])):  # pylint: disable=too-few-public-methods
+class IOModell(
+    (RootModel[Dict[str, IOAllocationModel]])
+):  # pylint: disable=too-few-public-methods
     """
     Model for the input, staticdata and output of a component.
 
@@ -44,7 +44,9 @@ class IOModell((RootModel[Dict[str, IOAllocationModel]])):  # pylint: disable=to
     """
 
 
-class ConfigDataPoints((RootModel[Dict[str, IOAllocationModel | DataPointGeneral]])):  # pylint: disable=too-few-public-methods
+class ConfigDataPoints(
+    (RootModel[Dict[str, IOAllocationModel | DataPointGeneral]])
+):  # pylint: disable=too-few-public-methods
     """
     Model for the configuration of config data points.
     """

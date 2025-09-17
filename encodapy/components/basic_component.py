@@ -4,15 +4,7 @@ Author: Martin Altenburger
 """
 
 from datetime import datetime, timezone
-from typing import (
-    Any,
-    Optional,
-    Type,
-    Union,
-    TypeVar,
-    Generic,
-    cast
-)
+from typing import Any, Optional, Type, Union, TypeVar, Generic, cast
 from loguru import logger
 from pydantic import ValidationError
 from encodapy.components.basic_component_config import (
@@ -39,13 +31,21 @@ from encodapy.utils.models import (
     InputDataModel,
     StaticDataEntityModel,
 )
+
 # Type variables for component data models
 # - these are used for type hinting in the BasicComponent class
-TYPE_CONFIG_DATA = TypeVar('TYPE_CONFIG_DATA', bound=ConfigData) # pylint: disable=invalid-name
-TYPE_INPUT_DATA = TypeVar('TYPE_INPUT_DATA', bound=InputData) # pylint: disable=invalid-name
-TYPE_OUTPUT_DATA = TypeVar('TYPE_OUTPUT_DATA', bound=OutputData) # pylint: disable=invalid-name
+TypeConfigData = TypeVar(
+    "TypeConfigData", bound=ConfigData
+)  # pylint: disable=invalid-name
+TypeInputData = TypeVar(
+    "TypeInputData", bound=InputData
+)  # pylint: disable=invalid-name
+TypeOutputData = TypeVar(
+    "TypeOutputData", bound=OutputData
+)  # pylint: disable=invalid-name
 
-class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA]):
+
+class BasicComponent(Generic[TypeConfigData, TypeInputData, TypeOutputData]):
     """
     Base class for all components in the encodapy package.
     This class provides basic functionality that can be extended by specific components.
@@ -76,14 +76,14 @@ class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA
                 self.get_component_config(config=config, component_id=component_id)
             )
 
-        self.config_data: TYPE_CONFIG_DATA
+        self.config_data: TypeConfigData
         self.set_component_config_data(
             static_data=static_data, static_config=self.component_config.config
         )
         # Inputs and Outputs of the component itsel
         self.io_model: Optional[ComponentIOModel] = None
-        self.input_data: TYPE_INPUT_DATA
-        self.output_data: TYPE_OUTPUT_DATA
+        self.input_data: TypeInputData
+        self.output_data: TypeOutputData
 
         self._prepare_i_o_config()
 
@@ -185,12 +185,12 @@ class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA
 
         """
         try:
-            assert static_config is not None, (
-                "No static config provided, skipping static data setup."
-            )
-            assert isinstance(static_config, ConfigDataPoints), (
-                "Invalid static config provided."
-            )
+            assert (
+                static_config is not None
+            ), "No static config provided, skipping static data setup."
+            assert isinstance(
+                static_config, ConfigDataPoints
+            ), "Invalid static config provided."
         except AssertionError as e:
             logger.error(f"Static config error: {e}")
             raise ComponentValidationError(f"Static config error: {e}") from e
@@ -236,9 +236,9 @@ class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA
             static_config_raw[key] = value.model_dump()
 
         try:
-            self.config_data = cast(TYPE_CONFIG_DATA,
-                                    config_model.model_validate(static_config_raw)
-                                    )
+            self.config_data = cast(
+                TypeConfigData, config_model.model_validate(static_config_raw)
+            )
 
         except ValidationError as error:
             error_msg = (
@@ -327,8 +327,10 @@ class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA
             )
 
             # Skip optional datapoints with no value
-            if not input_data_model.model_fields[datapoint_name].is_required() \
-                and datapoint.value is None:
+            if (
+                not input_data_model.model_fields[datapoint_name].is_required()
+                and datapoint.value is None
+            ):
                 continue
             input_values[datapoint_name] = datapoint
 
@@ -336,9 +338,9 @@ class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA
         for key, value in input_values.items():
             input_values_raw[key] = value.model_dump()
 
-        self.input_data = cast(TYPE_INPUT_DATA,
-                               input_data_model.model_validate(input_values_raw)
-                               )
+        self.input_data = cast(
+            TypeInputData, input_data_model.model_validate(input_values_raw)
+        )
 
     def prepare_component(self):
         """
@@ -407,9 +409,10 @@ class BasicComponent(Generic[TYPE_CONFIG_DATA, TYPE_INPUT_DATA, TYPE_OUTPUT_DATA
             if not hasattr(self, "output_data"):
                 raise ValueError("Output data is not set in the component.")
 
-            self.output_data = cast(TYPE_OUTPUT_DATA, output_model.model_validate(
-                self.output_data.model_dump()
-            ))
+            self.output_data = cast(
+                TypeOutputData,
+                output_model.model_validate(self.output_data.model_dump()),
+            )
 
         except KeyError as e:
             logger.error(

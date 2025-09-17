@@ -3,6 +3,7 @@ Description: This module contains the definition of a small example service \
     in the form of a heat controller based on a two point controller with hysteresis.
 Author: Martin Altenburger, Maximilian Beyer
 """
+
 # pylintrc: There are different examples that may be similar, but this is OK.
 # pylint: disable=duplicate-code
 
@@ -133,21 +134,31 @@ class MQTTController(ControllerBasicService):
             )
 
         heater_status = self.check_heater_command(
-            temperature_setpoint=inputs["temperature_setpoint"] \
-                if isinstance(inputs["temperature_setpoint"], (int, float)) else 0.0,
-            temperature_measured=inputs["temperature_measured"] \
-                if isinstance(inputs["temperature_measured"], (int, float)) else 0.0,
-            hysteresis=self.heater_config.config["temperature_hysteresis"]
-            if self.heater_config.config
-            and "temperature_hysteresis" in self.heater_config.config
-            else 5,
+            temperature_setpoint=(
+                inputs["temperature_setpoint"]
+                if isinstance(inputs["temperature_setpoint"], (int, float))
+                else 0.0
+            ),
+            temperature_measured=(
+                inputs["temperature_measured"]
+                if isinstance(inputs["temperature_measured"], (int, float))
+                else 0.0
+            ),
+            hysteresis=(
+                self.heater_config.config["temperature_hysteresis"]
+                if self.heater_config.config
+                and "temperature_hysteresis" in self.heater_config.config
+                else 5
+            ),
             heater_status_old=bool(inputs["heater_status_current"]),
         )
 
         return DataTransferModel(
             components=[
                 DataTransferComponentModel(
-                    entity_id=self.heater_config.outputs.root["heater_status_recommand"].entity,
+                    entity_id=self.heater_config.outputs.root[
+                        "heater_status_recommand"
+                    ].entity,
                     attribute_id=self.heater_config.outputs.root[
                         "heater_status_recommand"
                     ].attribute,

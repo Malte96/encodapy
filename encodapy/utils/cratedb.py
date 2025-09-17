@@ -7,6 +7,7 @@ import crate.client
 import pandas as pd
 from filip.models.ngsi_v2.context import ContextEntity
 
+
 class CrateDBConnection:
     """
     Class for a connection to a CrateDB
@@ -112,9 +113,8 @@ class CrateDBConnection:
         """
 
         attributes_db = self.query_existing_attributes(
-            service=service,
-            entity_type=entity.type,
-            attributes=attributes)
+            service=service, entity_type=entity.type, attributes=attributes
+        )
 
         connection = self.get_database_connection()
         cursor = connection.cursor()
@@ -129,11 +129,10 @@ class CrateDBConnection:
             else:
                 attrs += '"' + str(attribute) + '", '
 
-            if attribute != 'time_index' and attrs_not_null != "":
+            if attribute != "time_index" and attrs_not_null != "":
                 attrs_not_null += ' OR "' + str(attribute) + '" IS NOT NULL'
-            elif attribute != 'time_index':
+            elif attribute != "time_index":
                 attrs_not_null += '"' + str(attribute) + '" IS NOT NULL'
-
 
         cursor.execute(
             f"SELECT {attrs} FROM mt{service}.et{entity.type} "

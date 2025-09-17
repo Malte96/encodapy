@@ -3,7 +3,7 @@
     "interfaces": {
         "mqtt": true,
         "fiware": false,
-        "file": false
+        "file": true
     },
     "inputs": [
         {
@@ -19,6 +19,15 @@
                 },
                 {
                     "id": "another_input_data"
+                }
+            ]
+        },
+        {
+            "id": "file_input_entity",
+            "interface": "file",
+            "attributes": [
+                {
+                    "id": "input_data"
                 }
             ]
         }
@@ -39,7 +48,8 @@
             "commands": []
         }
     ],
-    "staticdata": [],
+    "staticdata": [
+    ],
     "controller_components": [
         {
             "id": "new_component",
@@ -50,7 +60,7 @@
                     "attribute": "general_data"
                 },
                 "a_number_input": {
-                    "entity": "mqtt_input_entity",
+                    "entity": "file_input_entity",
                     "attribute": "input_data"
                 },
                 "another_number_input": {

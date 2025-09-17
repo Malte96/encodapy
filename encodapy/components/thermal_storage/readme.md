@@ -8,7 +8,7 @@ The component uses measurement values from temperature sensors to calculate the 
 ### Outputs
 - Storage charge in percent (0–100): `storage__level`
 - Storage energy content in Wh: `storage__energy`
-- Additional storable energy in Wh: `storage__loading_potential`
+- Additional storable energy in Wh: `storage__loading_potential_nominal`
 
 A overview is avaiable als Pydantic BaseModel `ThermalStorageOutputData` in in [thermal_storage_config.py](./thermal_storage_config.py).
 

@@ -5,6 +5,7 @@ Authors: Martin Altenburger
 
 from enum import Enum
 
+
 class Interfaces(Enum):
     """
     Enum class for the interfaces

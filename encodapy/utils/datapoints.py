@@ -1,13 +1,16 @@
 """
-Description: This module contains models for various types of datapoints used in the controller component.
+Description: This module contains models for various types \
+    of datapoints used in the controller component.
 Author: Martin Altenburger
 """
+
 from datetime import datetime
 from typing import Any, Optional
+from pydantic import BaseModel, ConfigDict
 from encodapy.utils.units import DataUnits
 from encodapy.utils.mediums import Medium
 
-from pydantic import BaseModel, ConfigDict
+
 # Models to hold the data
 class DataPointGeneral(BaseModel):
     """
@@ -36,6 +39,7 @@ class DataPointNumber(DataPointGeneral):
         unit: Optional unit of the datapoint, if applicable
         time: Optional timestamp of the datapoint, if applicable
     """
+
     value: float | int
 
 
@@ -77,6 +81,7 @@ class DataPointBool(DataPointGeneral):
 
     value: bool
 
+
 class DataPointMedium(DataPointGeneral):
     """
     Model for datapoints of the controller component which define the medium.
@@ -86,4 +91,5 @@ class DataPointMedium(DataPointGeneral):
         unit: Optional unit of the datapoint, if applicable
         time: Optional timestamp of the datapoint, if applicable
     """
+
     value: Medium

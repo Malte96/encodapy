@@ -3,13 +3,11 @@ Description: This module contains the definition of a service to calculate \
     the energy in a thermal storage based on the temperature sensors.
 Author: Martin Altenburger
 """
+
 from loguru import logger
 from encodapy.components.thermal_storage import ThermalStorage
 from encodapy.service import ControllerBasicService
-from encodapy.utils.models import (
-    InputDataModel,
-    DataTransferModel
-    )
+from encodapy.utils.models import InputDataModel, DataTransferModel
 
 
 class ThermalStorageService(ControllerBasicService):
@@ -18,7 +16,7 @@ class ThermalStorageService(ControllerBasicService):
 
     """
 
-    def __init__(self)-> None:
+    def __init__(self) -> None:
         """
         Constructor for the ThermalStorageService
         """
@@ -34,13 +32,10 @@ class ThermalStorageService(ControllerBasicService):
         self.thermal_storage = ThermalStorage(
             config=self.config.controller_components,
             component_id="thermal_storage",
-            static_data=self.staticdata
-            )
+            static_data=self.staticdata,
+        )
 
-
-    async def calculation(self,
-                          data: InputDataModel
-                          )-> DataTransferModel:
+    async def calculation(self, data: InputDataModel) -> DataTransferModel:
         """
         Function to do the calculation
 
@@ -52,10 +47,7 @@ class ThermalStorageService(ControllerBasicService):
 
         return DataTransferModel(components=component_results)
 
-
-    async def calibration(self,
-                          data: InputDataModel
-                          )-> None:
+    async def calibration(self, data: InputDataModel) -> None:
         """
         Function to do the calibration of the thermal storage service. 
         This function prepares the thermal storage component with the static data, \

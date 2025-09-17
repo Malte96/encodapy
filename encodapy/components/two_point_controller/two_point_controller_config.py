@@ -2,7 +2,7 @@
 Description: Configuration model for the two-point controller component.
 Author: Martin Altenburger
 """
-from typing import Optional
+
 from pydantic import Field, model_validator
 from loguru import logger
 from encodapy.components.basic_component_config import (
@@ -10,13 +10,8 @@ from encodapy.components.basic_component_config import (
     OutputData,
     ConfigData,
 )
-from encodapy.utils.datapoints import (
-    DataPointGeneral,
-    DataPointNumber
-)
-from encodapy.utils.units import (
-    get_unit_adjustment_factor
-)
+from encodapy.utils.datapoints import DataPointGeneral, DataPointNumber
+from encodapy.utils.units import get_unit_adjustment_factor
 
 
 class TwoPointControllerInputData(InputData):
@@ -46,14 +41,15 @@ class TwoPointControllerOutputData(OutputData):
     """
 
     control_signal: DataPointGeneral = Field(
-        ...,
-        description="Control signal output from the two-point controller"
+        ..., description="Control signal output from the two-point controller"
     )
+
 
 class TwoPointControllerConfigData(ConfigData):
     """
     Model for the configuration data of the thermal storage service.
     """
+
     hysteresis: DataPointNumber = Field(
         ...,
         description="Hysteresis value for the two-point controller",
@@ -63,13 +59,14 @@ class TwoPointControllerConfigData(ConfigData):
         description="Setpoint value for the two-point controller",
     )
     command_enabled: DataPointGeneral = Field(
-        DataPointGeneral(value = 1),
+        DataPointGeneral(value=1),
         description="Value representing the enabled state of the control signal",
     )
     command_disabled: DataPointGeneral = Field(
-        DataPointGeneral(value = 0),
+        DataPointGeneral(value=0),
         description="Value representing the disabled state of the control signal",
     )
+
     @model_validator(mode="after")
     def check_unit_setpoint(self):
         """
@@ -80,15 +77,17 @@ class TwoPointControllerConfigData(ConfigData):
         """
         hysteresis = DataPointNumber.model_validate(self.hysteresis)
         setpoint = DataPointNumber.model_validate(self.setpoint)
-        if hysteresis.unit != setpoint.unit \
-            and hysteresis.unit is not None and setpoint.unit is not None:
+        if (
+            hysteresis.unit != setpoint.unit
+            and hysteresis.unit is not None
+            and setpoint.unit is not None
+        ):
             logger.warning(
                 f"Units of hysteresis ({hysteresis.unit}) and setpoint ({setpoint.unit}) "
                 "are not the same. Please check your configuration."
             )
             unit_adjustment_factor = get_unit_adjustment_factor(
-                unit_actual=hysteresis.unit,
-                unit_target=setpoint.unit
+                unit_actual=hysteresis.unit, unit_target=setpoint.unit
             )
             if unit_adjustment_factor is None:
                 logger.warning(
@@ -100,8 +99,5 @@ class TwoPointControllerConfigData(ConfigData):
 
             hysteresis.value *= unit_adjustment_factor
             hysteresis.unit = setpoint.unit
-        self.hysteresis = DataPointNumber(
-            value=hysteresis.value,
-            unit=hysteresis.unit
-        )
+        self.hysteresis = DataPointNumber(value=hysteresis.value, unit=hysteresis.unit)
         return self

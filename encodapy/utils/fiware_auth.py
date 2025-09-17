@@ -47,8 +47,9 @@ class BaererToken:
             return True
 
         response = requests.get(
-            url=f"""{self.token_url}/tokeninfo""", params={"access_token": self.token},
-            timeout=10
+            url=f"""{self.token_url}/tokeninfo""",
+            params={"access_token": self.token},
+            timeout=10,
         )
 
         if response.status_code == 200:

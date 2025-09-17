@@ -1,5 +1,5 @@
 """
-Description: This file contains the class FiwareConnections, 
+Description: This file contains the class FiwareConnections,
 which is used to store the connection parameters for the Fiware and CrateDB connections.
 Author: Paul Seidel
 """
@@ -21,7 +21,7 @@ from encodapy.config import (
     InputModel,
     OutputModel,
     StaticDataModel,
-    StaticDataFile
+    StaticDataFile,
 )
 from encodapy.utils.models import (
     InputDataAttributeModel,
@@ -86,7 +86,7 @@ class FileConnection:
 
         return (
             OutputDataEntityModel(id=output_id, attributes_status=timestamps),
-            timestamp_latest_output
+            timestamp_latest_output,
         )
 
     def get_data_from_file(
@@ -110,7 +110,9 @@ class FileConnection:
                 None if no data is available
         """
 
-        file_extension = pathlib.Path(self.file_params["PATH_OF_INPUT_FILE"]).suffix.lower()
+        file_extension = pathlib.Path(
+            self.file_params["PATH_OF_INPUT_FILE"]
+        ).suffix.lower()
 
         if file_extension == FileExtensionTypes.CSV.value:
             logger.info(f"load config for {file_extension} -file")
@@ -173,7 +175,6 @@ class FileConnection:
                     f"of entity {entity.id} not supported."
                 )
             elif attribute.type == AttributeTypes.VALUE:
-
                 attributes_values.append(
                     InputDataAttributeModel(
                         id=attribute.id,
@@ -222,7 +223,7 @@ class FileConnection:
         path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
         time_format = self.file_params["TIME_FORMAT_FILE"]
         try:
-            #read data from json file and timestamp
+            # read data from json file and timestamp
             with open(path_of_file, encoding="utf-8") as f:
                 data = json.load(f)
         except FileNotFoundError:
@@ -234,12 +235,12 @@ class FileConnection:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
 
                 for input_data in data:
-                    time = datetime.strptime(input_data['time'], time_format)
-                    if attribute.id_interface == input_data['id_interface']:
+                    time = datetime.strptime(input_data["time"], time_format)
+                    if attribute.id_interface == input_data["id_interface"]:
                         attributes_values.append(
                             InputDataAttributeModel(
                                 id=attribute.id,
-                                data=input_data['value'],
+                                data=input_data["value"],
                                 data_type=AttributeTypes.TIMESERIES,
                                 data_available=True,
                                 latest_timestamp_input=time,
@@ -270,7 +271,7 @@ class FileConnection:
     ) -> Union[DataUnits, None]:
         """
         Extracts the unit from the metadata dictionary.
-        
+
         Args:
             metadata (Union[dict[str, str], None]): Metadata dictionary or None.
         Returns:
@@ -280,13 +281,9 @@ class FileConnection:
         if metadata is None:
             return None
         if not isinstance(metadata, dict):
-            logger.warning(
-                f"Metadata is not a dictionary: {metadata}"
-            )
+            logger.warning(f"Metadata is not a dictionary: {metadata}")
             return None
-        metadata_lowercase = {
-            k.lower(): v for k, v in metadata.items()
-        }
+        metadata_lowercase = {k.lower(): v for k, v in metadata.items()}
         unit = metadata_lowercase.get("unitcode", None)
         if unit:
             return DataUnits(unit)
@@ -313,7 +310,7 @@ class FileConnection:
         attributes_values = []
 
         try:
-            #read data from json file and timestamp
+            # read data from json file and timestamp
             with open(static_data_path, encoding="utf-8") as f:
                 static_data = json.load(f)
         except FileNotFoundError:
@@ -337,18 +334,17 @@ class FileConnection:
                     if item_attribute.id == attribute.id:
 
                         attributes_values.append(
-                                InputDataAttributeModel(
-                                    id=attribute.id,
-                                    data=item_attribute.value,
-                                    unit=self._get_unit_from_file(item_attribute.metadata),
-                                    data_type=AttributeTypes.VALUE,
-                                    data_available=True,
-                                    latest_timestamp_input=None,
-                                    )
-                                )
+                            InputDataAttributeModel(
+                                id=attribute.id,
+                                data=item_attribute.value,
+                                unit=self._get_unit_from_file(item_attribute.metadata),
+                                data_type=AttributeTypes.VALUE,
+                                data_available=True,
+                                latest_timestamp_input=None,
+                            )
+                        )
 
         return StaticDataEntityModel(id=entity.id, attributes=attributes_values)
-
 
     def send_data_to_json_file(
         self,
@@ -380,12 +376,13 @@ class FileConnection:
                 {
                     "id_interface": output.id_interface,
                     "value": output.value,
-                    "time": output.timestamp.isoformat(' '),
+                    "time": output.timestamp.isoformat(" "),
                 }
             )
 
-        with open(f"./results/outputs_{str(output_entity.id)}.json",
-                  "w", encoding="utf-8") as outputfile:
+        with open(
+            f"./results/outputs_{str(output_entity.id)}.json", "w", encoding="utf-8"
+        ) as outputfile:
             json.dump(outputs, outputfile)
 
         for command in output_commands:
@@ -393,7 +390,7 @@ class FileConnection:
                 {
                     "id_interface": command.id_interface,
                     "value": command.value,
-                    "time": command.timestamp.isoformat(' '),
+                    "time": command.timestamp.isoformat(" "),
                 }
             )
 

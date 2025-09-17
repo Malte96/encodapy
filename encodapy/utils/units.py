@@ -34,10 +34,11 @@ class TimeUnitsSeconds(Enum):
     DAY = datetime.timedelta(days=1).total_seconds()
     MONTH = datetime.timedelta(days=30).total_seconds()
 
+
 class DataUnits(Enum):
     """
     Possible units for the data
-    Units which are defined by Unit Code (https://unece.org/trade/cefact/UNLOCODE-Download 
+    Units which are defined by Unit Code (https://unece.org/trade/cefact/UNLOCODE-Download
     or https://github.com/RWTH-EBC/FiLiP/blob/master/filip/data/unece-units/units_of_measure.csv)
     or here: https://unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_rev3_Annex3e.pdf
     TODO:
@@ -84,9 +85,9 @@ class DataUnits(Enum):
     VLT = "VLT"  # "V"
 
 
-def get_unit_adjustment_factor(unit_actual: DataUnits,
-                               unit_target: DataUnits
-                               ) -> Optional[float]:
+def get_unit_adjustment_factor(
+    unit_actual: DataUnits, unit_target: DataUnits
+) -> Optional[float]:
     """Function to get the adjustment factor for the conversion of units
 
     Args:
@@ -108,10 +109,14 @@ def get_unit_adjustment_factor(unit_actual: DataUnits,
     # TODO: Real adjustment factors
     logger.warning(
         f"Adjustment factor for the conversion of {unit_actual} to {unit_target} "
-        "not implemented yet")
+        "not implemented yet"
+    )
     return None
 
-def get_time_unit_seconds(time_unit: Union[TimeUnits, str, DataUnits]) -> Optional[float]:
+
+def get_time_unit_seconds(
+    time_unit: Union[TimeUnits, str, DataUnits],
+) -> Optional[float]:
     """Funktion to get the seconds for a time unit
 
     Args:

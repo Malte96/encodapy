@@ -157,9 +157,11 @@ def get_component_io_model(
     fields: Dict[str, Tuple[Any, Any]] = {}
     for datapoint_name, datapoint_info in component_data_model.model_fields.items():
         fields[datapoint_name] = (
-            IOAllocationModel
-            if datapoint_info.is_required()
-            else Optional[IOAllocationModel],
+            (
+                IOAllocationModel
+                if datapoint_info.is_required()
+                else Optional[IOAllocationModel]
+            ),
             Field(
                 default=None if not datapoint_info.is_required() else ...,
                 description=datapoint_info.description,

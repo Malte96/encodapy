@@ -15,9 +15,7 @@ from encodapy.components.two_point_controller.two_point_controller_config import
 from encodapy.utils.models import (
     StaticDataEntityModel,
 )
-from encodapy.utils.datapoints import (
-    DataPointGeneral
-)
+from encodapy.utils.datapoints import DataPointGeneral
 
 
 class TwoPointController(BasicComponent):
@@ -44,30 +42,41 @@ class TwoPointController(BasicComponent):
             component_id=component_id, config=config, static_data=static_data
         )
 
-
     def get_control_signal(
         self,
     ) -> DataPointGeneral:
         """Calculate the control signal based on current and setpoint values."""
 
-        minimal_value = self.config_data.setpoint.value - self.config_data.hysteresis.value
+        minimal_value = (
+            self.config_data.setpoint.value - self.config_data.hysteresis.value
+        )
 
         # Raise errors if units do not match
         try:
-            assert self.config_data.hysteresis.unit == self.config_data.setpoint.unit, \
-                f"Units of hysteresis ({self.config_data.hysteresis.unit}) " \
+            assert self.config_data.hysteresis.unit == self.config_data.setpoint.unit, (
+                f"Units of hysteresis ({self.config_data.hysteresis.unit}) "
                 f"and setpoint ({self.config_data.setpoint.unit}) must be the same!"
-            assert self.input_data.current_value.unit == self.config_data.setpoint.unit, \
-                f"Units of current_value ({self.input_data.current_value.unit}) " \
+            )
+            assert (
+                self.input_data.current_value.unit == self.config_data.setpoint.unit
+            ), (
+                f"Units of current_value ({self.input_data.current_value.unit}) "
                 f"and setpoint ({self.config_data.setpoint.unit}) must be the same!"
-            assert self.input_data.latest_control_signal.unit \
-                == self.config_data.command_enabled.unit, \
-                f"Units of latest_control_signal ({self.input_data.latest_control_signal.unit}) " \
+            )
+            assert (
+                self.input_data.latest_control_signal.unit
+                == self.config_data.command_enabled.unit
+            ), (
+                f"Units of latest_control_signal ({self.input_data.latest_control_signal.unit}) "
                 f"and command_enabled ({self.config_data.command_enabled.unit}) must be the same!"
-            assert self.input_data.latest_control_signal.unit \
-                == self.config_data.command_disabled.unit, \
-                f"Units of latest_control_signal ({self.input_data.latest_control_signal.unit}) " \
+            )
+            assert (
+                self.input_data.latest_control_signal.unit
+                == self.config_data.command_disabled.unit
+            ), (
+                f"Units of latest_control_signal ({self.input_data.latest_control_signal.unit}) "
                 f"and command_disabled ({self.config_data.command_disabled.unit}) must be the same!"
+            )
         except AssertionError as e:
             logger.error(f"Unit assertion error in {self.component_config.id}: {e}")
             raise
@@ -85,7 +94,8 @@ class TwoPointController(BasicComponent):
             )
 
         if (
-            self.input_data.latest_control_signal.value == self.config_data.command_enabled.value
+            self.input_data.latest_control_signal.value
+            == self.config_data.command_enabled.value
             and self.input_data.current_value.value > minimal_value
         ):
             return DataPointGeneral(

@@ -4,6 +4,7 @@ Author: Martin Altenburger
 """
 
 import os
+import sys
 from asyncio import sleep
 from datetime import datetime
 from typing import Union, Optional
@@ -24,6 +25,7 @@ from encodapy.service.communication import (
     FiwareConnection,
     MqttConnection,
 )
+from encodapy.utils.error_handling import ConfigError, InterfaceNotActive
 from encodapy.utils.health import update_health_file
 from encodapy.utils.logging import LoggerControl
 from encodapy.utils.models import (
@@ -44,8 +46,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
     """
 
-    def __init__(self,
-                 shutdown_event: Optional[asyncio.Event]=None) -> None:
+    def __init__(self, shutdown_event: Optional[asyncio.Event] = None) -> None:
         FiwareConnection.__init__(self)
         FileConnection.__init__(self)
         MqttConnection.__init__(self)
@@ -69,7 +70,16 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             "CONFIG_PATH", DefaultEnvVariables.CONFIG_PATH.value
         )
 
-        self.config = ConfigModel.from_json(file_path=config_path)
+        try:
+            self.config = ConfigModel.from_json(file_path=config_path)
+        except (
+            FileNotFoundError,
+            ValidationError,
+            ConfigError,
+            InterfaceNotActive,
+        ) as e:
+            logger.error(f"Error loading configuration file: {e}")
+            sys.exit(1)
 
         if self.config.interfaces.fiware:
             self.load_fiware_params()
@@ -584,8 +594,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         # so that the mqtt interfaces is ready and data is available
         if self.config.interfaces.mqtt:
             await self._hold_sampling_time(
-                    start_time=datetime.now(), hold_time=sampling_time
-                )
+                start_time=datetime.now(), hold_time=sampling_time
+            )
 
         while not self.shutdown_event.is_set():
             logger.debug("Start the Prozess")
@@ -641,7 +651,6 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 start_time=start_time, hold_time=sampling_time
             )
         logger.debug("Calibration was stopped")
-
 
     async def check_health_status(self):
         """

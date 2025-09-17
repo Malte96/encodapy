@@ -12,6 +12,7 @@ from encodapy.components.basic_component_config import (
     OutputData,
 )
 from encodapy.utils.datapoints import DataPointGeneral, DataPointNumber
+from encodapy.utils.units import DataUnits
 
 
 class NewComponentInputData(InputData):
@@ -21,17 +22,18 @@ class NewComponentInputData(InputData):
 
     a_general_input: DataPointGeneral = Field(
         ...,
-        description="A general input of the new component",
-        json_schema_extra={"default": "Hello new component!"},
+        description="""A general input of the new component,
+        Any values allowed, None from MQTT also allowed""",
     )
     a_number_input: DataPointNumber = Field(
-        DataPointNumber(value=30),
+        ...,
         description="A number input of the new component",
         json_schema_extra={"unit": "CEL"},
     )
     another_number_input: DataPointNumber = Field(
-        DataPointNumber(value=10),
-        description="Another number input of the new component",
+        DataPointNumber(value=10, unit=DataUnits.KELVIN),
+        description="""Another number input of the new component,
+        with a default value of 10 so no value from inputs is required""",
         json_schema_extra={"unit": "KEL"},
     )
 
@@ -48,7 +50,8 @@ class NewComponentOutputData(OutputData):
     )
     optional_result: Optional[DataPointGeneral] = Field(
         ...,
-        description="This is an optional result of the new component and does not need to be exported.",
+        description="""This is an optional result of the new component
+        and does not need to be exported.""",
         json_schema_extra={"unit": "CEL"},
     )
 

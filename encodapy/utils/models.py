@@ -1,8 +1,6 @@
 """
 Description: This file contains the models for the use in the system controller itself.
 Authors: Martin Altenburger
-TODO: Is it possible to use the models from the configuration also for the system controller?\
-    Or could we use less modells?
 """
 
 from datetime import datetime
@@ -14,6 +12,7 @@ from filip.models.ngsi_v2.context import ContextEntity
 from encodapy.config.models import AttributeModel, CommandModel
 from encodapy.config.types import AttributeTypes
 from encodapy.utils.units import DataUnits
+
 
 class InputDataAttributeModel(BaseModel):
     """
@@ -114,18 +113,6 @@ class InputDataModel(BaseModel):
     static_entities: list[StaticDataEntityModel]
 
 
-# class ContextDataModel(BaseModel):
-#     """
-#     Model for the context data of the system controller.
-
-#     Contains:
-#     - input_entitys: List of the context data entitys as ContexttDataEntityModel
-
-#     """
-
-#     context_entities: list[InputDataEntityModel]
-
-
 class OutputDataModel(BaseModel):
     """
     Model for the output data of the system controller.
@@ -204,9 +191,11 @@ class FiwareDatapointParameter(BaseModel):
     Args:
         BaseModel (BaseModel): Pydantic BaseModel of a datapoint in fiware
     """
+
     entity: ContextEntity
     attribute: AttributeModel
     metadata: list[NamedMetadata]
+
 
 class FiwareAuth(BaseModel):
     """
@@ -217,10 +206,12 @@ class FiwareAuth(BaseModel):
         token_url (str): The token url
         baerer_token (str): The baerer token
     """
-    client_id:Optional[str]=None
-    client_secret:Optional[str]=None
-    token_url:Optional[str]=None
-    baerer_token:Optional[str]=None
+
+    client_id: Optional[str] = None
+    client_secret: Optional[str] = None
+    token_url: Optional[str] = None
+    baerer_token: Optional[str] = None
+
 
 class FiwareParameter(BaseModel):
     """
@@ -231,10 +222,12 @@ class FiwareParameter(BaseModel):
         service_path (str): The service path
         authentication (Optional[Union[FiwareAuth, None]]): The authentication
     """
-    cb_url:str
-    service:str
-    service_path:str
+
+    cb_url: str
+    service: str
+    service_path: str
     authentication: Optional[Union[FiwareAuth, None]] = None
+
 
 class DatabaseParameter(BaseModel):
     """
@@ -245,10 +238,12 @@ class DatabaseParameter(BaseModel):
         crate_db_pw (Optional[str]): The CrateDB password
         crate_db_ssl (Optional[bool]): The CrateDB ssl
     """
-    crate_db_url:str
-    crate_db_user:Optional[Union[str, None]]=None
-    crate_db_pw:Optional[str]=""
-    crate_db_ssl:Optional[bool]=True
+
+    crate_db_url: str
+    crate_db_user: Optional[Union[str, None]] = None
+    crate_db_pw: Optional[str] = ""
+    crate_db_ssl: Optional[bool] = True
+
 
 class FiwareConnectionParameter(BaseModel):
     """
@@ -257,5 +252,6 @@ class FiwareConnectionParameter(BaseModel):
         fiware_params (FiwareParameter): The Fiware parameters
         database_params (DatabaseParameter): The database parameters
     """
-    fiware_params:FiwareParameter
-    database_params:DatabaseParameter
+
+    fiware_params: FiwareParameter
+    database_params: DatabaseParameter

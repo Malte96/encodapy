@@ -2,30 +2,41 @@
 Description: Configuration models for the thermal storage component
 Author: Martin Altenburger
 """
+
 from typing import Optional
 from enum import Enum
 from pydantic import BaseModel, Field
 from pydantic.functional_validators import model_validator
-from encodapy.components.components_basic_config import IOAllocationModel, ComponentValidationError
+from encodapy.components.basic_component_config import (
+    ComponentValidationError,
+    InputData,
+    OutputData,
+    ConfigData,
+)
+from encodapy.utils.datapoints import DataPointGeneral, DataPointNumber, DataPointMedium
+from encodapy.utils.mediums import Medium
+
 
 class TemperatureLimits(BaseModel):
     """
     Configuration of the temperature limits in the termal storage, contains:
         - `minimal_temperature`: Minimal temperature in the thermal storage in °C
         - `maximal_temperature`: Maximal temperature in the thermal storage in °C
-        
+        - `reference_temperature`: Reference temperature in the storage in °C (default: 0°C)
+
     Raises:
         ValueError: if the minimal temperature is heighter than the maximal temperature
     """
+
     minimal_temperature: float = Field(
-        ...,
-        description="Minimal temperature in the thermal storage in °C")
+        ..., description="Minimal temperature in the thermal storage in °C"
+    )
     maximal_temperature: float = Field(
-        ...,
-        description="Maximal temperature in the storage in °C")
+        ..., description="Maximal temperature in the storage in °C"
+    )
     reference_temperature: float = Field(
-        0,
-        description="Reference temperature in the storage in °C")
+        0, description="Reference temperature in the storage in °C"
+    )
 
     @model_validator(mode="after")
     def check_timerange_parameters(self) -> "TemperatureLimits":
@@ -38,56 +49,48 @@ class TemperatureLimits(BaseModel):
             TemperatureLimits: The model with the validated parameters
         """
 
-        if self.minimal_temperature > self.maximal_temperature :
-            raise ValueError("The minimal temperature should be lower than the maximal temperature")
+        if self.minimal_temperature > self.maximal_temperature:
+            raise ValueError(
+                "The minimal temperature should be lower than the maximal temperature"
+            )
 
         return self
+
 
 class StorageSensorConfig(BaseModel):
     """
     Configuration for the storage sensor in the thermal storage
 
     Contains:
-        `name`: Name of the sensor in the thermal storage
         `height`: Height of the sensor in percent (0=top, 100=bottom)
         `limits`: Temperature limits for the sensor
     """
-    # name: str = Field(..., description="Name of the sensor in the thermal storage")
-    height: float = Field(..., ge=0, le=100,
-                          description="Height of the sensor in percent (0=top, 100=bottom)")
+
+    height: float = Field(
+        ...,
+        ge=0,
+        le=100,
+        description="Height of the sensor in percent (0=top, 100=bottom)",
+    )
     limits: TemperatureLimits
 
-class ConnectionSensorConfig(BaseModel):
-    """
-    Configuration for the connection sensor in the thermal storage
-    
-    Contains:
-        `name`: Name of the thermal sensor on the connection (heat demand)
-    """
-    name: str = Field(...,
-                      description="Name of the thermal sensor on the connection (heat demand)")
 
 class ThermalStorageTemperatureSensors(BaseModel):
     """
     Configuration for the temperature sensors in the thermal storage
-    
+
     Contains:
         `storage_sensors`: List of temperature sensors in the thermal storage
-        `load_connection_sensor_out`: Thermal sensor on the load connection \
-            outflow from thermal storage
-        `load_connection_sensor_in`: Thermal sensor on the load connection \
-            inflow to thermal storage
+
+    It is required to set at least 3 sensors and no more than 10 sensors. The heights of the sensors
+    must be between 0 and 100 percent and in ascending order.
+
+    It is possible to add more information to sensors, thats the reason why this model is used.
     """
 
     storage_sensors: list[StorageSensorConfig] = Field(
-        ...,
-        description="List of temperature sensors (3–10 sensors)")
-    load_connection_sensor_out: Optional[ConnectionSensorConfig] = Field(
-        None,
-        description="Thermal sensor on the load connection, outflow from thermal storage")
-    load_connection_sensor_in: Optional[ConnectionSensorConfig] = Field(
-        None,
-        description="Thermal sensor on the load connection, inflow to thermal storage")
+        ..., description="List of temperature sensors (3–10 sensors)"
+    )
 
     @model_validator(mode="after")
     def check_storage_tank_sensors(self) -> "ThermalStorageTemperatureSensors":
@@ -110,64 +113,28 @@ class ThermalStorageTemperatureSensors(BaseModel):
             raise ValueError("No more than 10 storage sensors are allowed.")
 
         storage_sensor_height_ref = 0.0
-        for storage_sensor in self.storage_sensors: # pylint: disable=E1133
+        for _, storage_sensor in enumerate(self.storage_sensors):
             if storage_sensor.height < 0.0 or storage_sensor.height > 100.0:
-                raise ValueError("Height of the sensor must be between 0 and 100 percent.")
+                raise ValueError(
+                    "Height of the sensor must be between 0 and 100 percent."
+                )
             if storage_sensor.height < storage_sensor_height_ref:
                 raise ValueError("Sensor heights must be in ascending order.")
             storage_sensor_height_ref = storage_sensor.height
 
         return self
 
-    def check_connection_sensors(self) -> None:
+    def get_number_of_sensors(self) -> int:
         """
-        TODO use this
-        Check the connection sensors:
-            - If they are needed, they must have a name
+        Get the number of storage sensors configured in the thermal storage.
 
-        Raises:
-            ValueError: if the connection sensors are not set correctly
+        Returns:
+            int: Number of storage sensors configured.
         """
-
-        if self.load_connection_sensor_out is None:
-            raise ComponentValidationError("The load connection sensor outflow must have a name.")
-        if self.load_connection_sensor_in is None:
-            raise ComponentValidationError("The load connection sensor inflow must have a name.")
+        return len(self.storage_sensors)
 
 
-class TemperatureSensorValues(BaseModel):
-    """
-    Model for the temperature sensor values in the thermal storage
-    
-    Contains:
-        `storage_sensors` (list[float]): \
-            Temperature values of the storage sensors in the thermal storage
-        `load_temperature_in` (Optional[float]): \
-            Temperature value of the load connection sensor inflow
-        `load_temperature_out` (Optional[float]): \
-            Temperature value of the load connection sensor outflow
-    """
-
-    storage_sensors: list[float] = Field(
-        ...,
-        description="Temperature values of the storage sensors in the thermal storage in °C")
-    load_temperature_in: Optional[float] = Field(
-        ...,
-        description="Temperature value of the load connection sensor inflow in °C")
-    load_temperature_out: Optional[float] = Field(
-        ...,
-        description="Temperature value of the load connection sensor outflow in °C")
-
-    def check_connection_sensors(self):
-        """
-        Check the connection sensors for availability.
-        """
-        if self.load_temperature_in is None:
-            raise ComponentValidationError("The load connection sensor inflow must be available.")
-        if self.load_temperature_out is None:
-            raise ComponentValidationError("The load connection sensor outflow must be available.")
-
-class InputModel(BaseModel):
+class ThermalStorageInputData(InputData):
     """
     Model for the input of the thermal storage service, containing the temperature sensors
     in the thermal storage.
@@ -176,72 +143,85 @@ class InputModel(BaseModel):
         no sensors are allowed to be missing between the others.
 
     Contains:
-        `temperature_1` (IOAllocationModel): first temperature sensor
-        `temperature_2` (IOAllocationModel): second temperature sensor
-        `temperature_3` (IOAllocationModel): third temperature sensor
-        `temperature_4` (Optional[IOAllocationModel]): fourth temperature sensor (optional)
-        `temperature_5` (Optional[IOAllocationModel]): fifth temperature sensor (optional)
-        `temperature_6` (Optional[IOAllocationModel]): sixth temperature sensor (optional)
-        `temperature_7` (Optional[IOAllocationModel]): seventh temperature sensor (optional)
-        `temperature_8` (Optional[IOAllocationModel]): eighth temperature sensor (optional)
-        `temperature_9` (Optional[IOAllocationModel]): ninth temperature sensor (optional)
-        `temperature_10` (Optional[IOAllocationModel]): tenth temperature sensor (optional)
-        `temperature_in` (Optional[IOAllocationModel]): consumer return temperature sensor \
+        `temperature_1` (DataPointNumber): first temperature sensor
+        `temperature_2` (DataPointNumber): second temperature sensor
+        `temperature_3` (DataPointNumber): third temperature sensor
+        `temperature_4` (Optional[DataPointNumber]): fourth temperature sensor (optional)
+        `temperature_5` (Optional[DataPointNumber]): fifth temperature sensor (optional)
+        `temperature_6` (Optional[DataPointNumber]): sixth temperature sensor (optional)
+        `temperature_7` (Optional[DataPointNumber]): seventh temperature sensor (optional)
+        `temperature_8` (Optional[DataPointNumber]): eighth temperature sensor (optional)
+        `temperature_9` (Optional[DataPointNumber]): ninth temperature sensor (optional)
+        `temperature_10` (Optional[DataPointNumber]): tenth temperature sensor (optional)
+        `temperature_in` (Optional[DataPointNumber]): consumer return temperature sensor \
             (optional)
-        `temperature_out` (Optional[IOAllocationModel]): consumer flow temperature sensor \
+        `temperature_out` (Optional[DataPointNumber]): consumer flow temperature sensor \
             (optional)
     """
-    temperature_1: IOAllocationModel = Field(
+
+    temperature_1: DataPointNumber = Field(
         ...,
-        description="Input for the temperature of sensor 1 in the thermal storage"
+        description="Input for the temperature of sensor 1 in the thermal storage",
+        json_schema_extra={"unit": "CEL"},
     )
-    temperature_2: IOAllocationModel = Field(
+    temperature_2: DataPointNumber = Field(
         ...,
-        description="Input for the temperature of sensor 2 in the thermal storage"
+        description="Input for the temperature of sensor 2 in the thermal storage",
+        json_schema_extra={"unit": "CEL"},
     )
-    temperature_3: IOAllocationModel = Field(
+    temperature_3: DataPointNumber = Field(
         ...,
-        description="Input for the temperature of sensor 3 in the thermal storage"
+        description="Input for the temperature of sensor 3 in the thermal storage",
+        json_schema_extra={"unit": "CEL"},
     )
-    temperature_4: Optional[IOAllocationModel] = Field(
+    temperature_4: Optional[DataPointNumber] = Field(
         None,
-        description="Input for the temperature of sensor 4 in the thermal storage"
+        description="Input for the temperature of sensor 4 in the thermal storage",
+        json_schema_extra={"unit": "CEL"},
     )
-    temperature_5: Optional[IOAllocationModel] = Field(
+    temperature_5: Optional[DataPointNumber] = Field(
         None,
-        description="Input for the temperature of sensor 5 in the thermal storage"
+        description="Input for the temperature of sensor 5 in the thermal storage",
+        json_schema_extra={"unit": "CEL"},
     )
-    temperature_6: Optional[IOAllocationModel] = Field(
+    temperature_6: Optional[DataPointNumber] = Field(
         None,
-        description="Input for the temperature of sensor 6 in the thermal storage"
+        description="Input for the temperature of sensor 6 in the thermal storage",
+        json_schema_extra={"unit": "CEL"},
     )
-    temperature_7: Optional[IOAllocationModel] = Field(
+    temperature_7: Optional[DataPointNumber] = Field(
         None,
-        description="Input for the temperature of sensor 7 in the thermal storage"
+        description="Input for the temperature of sensor 7 in the thermal storage",
+        json_schema_extra={"unit": "CEL"},
     )
-    temperature_8: Optional[IOAllocationModel] = Field(
+    temperature_8: Optional[DataPointNumber] = Field(
         None,
-        description="Input for the temperature of sensor 8 in the thermal storage"
+        description="Input for the temperature of sensor 8 in the thermal storage",
+        json_schema_extra={"unit": "CEL"},
     )
-    temperature_9: Optional[IOAllocationModel] = Field(
+    temperature_9: Optional[DataPointNumber] = Field(
         None,
-        description="Input for the temperature of sensor 9 in the thermal storage"
+        description="Input for the temperature of sensor 9 in the thermal storage",
+        json_schema_extra={"unit": "CEL"},
     )
-    temperature_10: Optional[IOAllocationModel] = Field(
+    temperature_10: Optional[DataPointNumber] = Field(
         None,
-        description="Input for the temperature of sensor 10 in the thermal storage"
+        description="Input for the temperature of sensor 10 in the thermal storage",
+        json_schema_extra={"unit": "CEL"},
     )
-    load_temperature_in: Optional[IOAllocationModel] = Field(
+    load_temperature_in: Optional[DataPointNumber] = Field(
         None,
-        description="Input for the return temperature into the thermal storage (consumer)"
+        description="Input for the return temperature into the thermal storage (consumer)",
+        json_schema_extra={"unit": "CEL"},
     )
-    load_temperature_out: Optional[IOAllocationModel] = Field(
+    load_temperature_out: Optional[DataPointNumber] = Field(
         None,
-        description="Input for the flow temperature from the thermal storage (consumer)"
+        description="Input for the flow temperature from the thermal storage (consumer)",
+        json_schema_extra={"unit": "CEL"},
     )
 
     @model_validator(mode="after")
-    def check_storage_temperature_sensors(self) -> "InputModel":
+    def check_storage_temperature_sensors(self) -> "ThermalStorageInputData":
         """
         Check that the storage sensors are configured.
         """
@@ -249,23 +229,33 @@ class InputModel(BaseModel):
         for key, value in self.__dict__.items():
             if key.startswith("temperature") and value is None:
                 previous_key = False
-            if key.startswith("temperature") and value is not None and previous_key is False:
-                raise ComponentValidationError(f"Temperature sensor {key} is configured, "
-                                               "but the previous sensor is not configured. "
-                                               "Please check the configuration.")
+            if (
+                key.startswith("temperature")
+                and value is not None
+                and previous_key is False
+            ):
+                raise ComponentValidationError(
+                    f"Temperature sensor {key} is configured, "
+                    "but the previous sensor is not configured. "
+                    "Please check the configuration."
+                )
         return self
 
     def check_load_connection_sensors(self) -> None:
         """
         Check if the load connection sensors are set
-        
+
         Raises:
             ValueError: If any of the load connection sensors are not configured.
         """
         if self.load_temperature_in is None:
-            raise ComponentValidationError("Load temperature inflow sensor is not configured.")
+            raise ComponentValidationError(
+                "Load temperature inflow sensor is not configured."
+            )
         if self.load_temperature_out is None:
-            raise ComponentValidationError("Load temperature outflow sensor is not configured.")
+            raise ComponentValidationError(
+                "Load temperature outflow sensor is not configured."
+            )
 
     def get_number_storage_sensors(self) -> int:
         """
@@ -274,52 +264,58 @@ class InputModel(BaseModel):
         Returns:
             int: Number of storage sensors configured.
         """
-        return sum(1 for key, value in self.__dict__.items()
-                   if key.startswith("temperature") and value is not None)
+        return sum(
+            1
+            for key, value in self.__dict__.items()
+            if key.startswith("temperature") and value is not None
+        )
 
-class OutputModel(BaseModel):
+
+class ThermalStorageOutputData(OutputData):
     """
     Model for the output of the thermal storage service, containing the temperature sensors
     in the thermal storage.
-    
-    Contains:
-        `storage__level`: Optional[IOAllocationModel] = Output for storage charge in percent \
-            (0-100) (optional)
-        `storage__energy`: Optional[IOAllocationModel] = Output for storage energy in kWh \
-            (optional)
-    """
-    storage__level: Optional[IOAllocationModel] = Field(
-        None,
-        description="Output for storage charge in percent (0-100)")
-    storage__energy: Optional[IOAllocationModel] = Field(
-        None,
-        description="Output for storage energy in Wh")
 
-class ThermalStorageIO(BaseModel):
-    """
-    Model for the input and output of the thermal storage service.
-    
+    Each output data point is associated with a specific calculation method, \
+        which is defined in the `json_schema_extra` field as `calculation`.
+
     Contains:
-        `input`: InputModel = Input configuration for the thermal storage service
-        `output`: OutputModel = Output configuration for the thermal storage service
+        `storage__level`: Optional[DataPointNumber] : Output for storage charge in percent \
+            (0-100) (optional)
+        `storage__energy`: Optional[DataPointNumber] : Output for storage energy in Wh (optional)
+        `storage__loading_potential_nominal`: Optional[DataPointNumber] : \
+            Output for storage loading potential in Wh (optional)
     """
-    input: InputModel = Field(
-        ...,
-        description="Input configuration for the thermal storage service")
-    output: OutputModel = Field(
-        ...,
-        description="Output configuration for the thermal storage service")
+
+    storage__level: Optional[DataPointNumber] = Field(
+        None,
+        description="Output for storage charge in percent (0-100)",
+        json_schema_extra={"unit": "P1"},
+    )
+    storage__energy: Optional[DataPointNumber] = Field(
+        None,
+        description="Output for storage energy in Wh",
+        json_schema_extra={"unit": "WHR"},
+    )
+    storage__loading_potential_nominal: Optional[DataPointNumber] = Field(
+        None,
+        description="Output for storage loading potential in Wh",
+        json_schema_extra={"unit": "WHR"},
+    )
+
 
 class ThermalStorageCalculationMethods(Enum):
     """
     Enum for the calculation methods of the thermal storage service.
-    
+
     Contains:
         - STATIC_LIMITS: Static limits given by the configuration
         - RETURN_LIMITS: Uses the temperature sensors from the in- and outflow as limits
     """
+
     STATIC_LIMITS = "static_limits"
     CONNECTION_LIMITS = "connection_limits"
+
 
 class ThermalStorageEnergyTypes(Enum):
     """
@@ -335,7 +331,67 @@ class ThermalStorageEnergyTypes(Enum):
         Current ("current"): Current energy of the thermal storage \
             based on the current temperatures
     """
+
     NOMINAL = "nominal"
     MINIMAL = "minimal"
     MAXIMAL = "maximal"
     CURRENT = "current"
+
+
+class DataPointCalculationMethod(DataPointGeneral):
+    """
+    Model for datapoints of the controller component which define the calculation method.
+
+    Contains:
+        value: The value of the datapoint, which is a string representing the calculation method
+        unit: Optional unit of the datapoint, if applicable
+        time: Optional timestamp of the datapoint, if applicable
+    """
+
+    value: ThermalStorageCalculationMethods
+
+
+class DataPointSensorConfig(DataPointGeneral):
+    """
+    Model for datapoints of the controller component which define the sensor configuration.
+
+    Contains:
+        value: The value of the datapoint, which is a SensorConfig \
+            representing the sensor configuration
+        unit: Optional unit of the datapoint, if applicable
+        time: Optional timestamp of the datapoint, if applicable
+    """
+
+    value: ThermalStorageTemperatureSensors
+
+
+class ThermalStorageConfigData(ConfigData):
+    """
+    Model for the configuration data of the thermal storage service.
+    
+    Contains:
+        `volume`: DataPointNumber : Volume of the thermal storage in m³
+        `medium`: DataPointMedium : Medium of the thermal storage
+        `sensor_config`: DataPointSensorConfig : \
+            Sensor configuration of the thermal storage
+        `calculation_method`: DataPointCalculationMethod : \
+            Calculation method for the thermal storage
+    """
+
+    volume: DataPointNumber = Field(
+        ...,
+        description="Volume of the thermal storage in m³",
+        json_schema_extra={"unit": "MTQ"},
+    )
+    medium: DataPointMedium = Field(
+        DataPointMedium(value=Medium.WATER), description="Medium of the thermal storage"
+    )
+    sensor_config: DataPointSensorConfig = Field(
+        ..., description="Sensor configuration of the thermal storage"
+    )
+    calculation_method: DataPointCalculationMethod = Field(
+        DataPointCalculationMethod(
+            value=ThermalStorageCalculationMethods.STATIC_LIMITS
+        ),
+        description="Calculation method for the thermal storage",
+    )

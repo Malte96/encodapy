@@ -4,12 +4,13 @@ Author: Martin Altenburger
 """
 
 import os
+import sys
 from asyncio import sleep
 from datetime import datetime
-from typing import Union
-
+from typing import Union, Optional
+import asyncio
 from loguru import logger
-
+from pydantic import ValidationError
 from encodapy.config import (
     AttributeModel,
     CommandModel,
@@ -24,6 +25,7 @@ from encodapy.service.communication import (
     FiwareConnection,
     MqttConnection,
 )
+from encodapy.utils.error_handling import ConfigError, InterfaceNotActive
 from encodapy.utils.health import update_health_file
 from encodapy.utils.logging import LoggerControl
 from encodapy.utils.models import (
@@ -44,11 +46,12 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
     """
 
-    def __init__(self) -> None:
+    def __init__(self, shutdown_event: Optional[asyncio.Event] = None) -> None:
         FiwareConnection.__init__(self)
         FileConnection.__init__(self)
         MqttConnection.__init__(self)
 
+        self.shutdown_event = shutdown_event or asyncio.Event()
         self.logger = LoggerControl()
 
         self.reload_staticdata = False
@@ -67,7 +70,16 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             "CONFIG_PATH", DefaultEnvVariables.CONFIG_PATH.value
         )
 
-        self.config = ConfigModel.from_json(file_path=config_path)
+        try:
+            self.config = ConfigModel.from_json(file_path=config_path)
+        except (
+            FileNotFoundError,
+            ValidationError,
+            ConfigError,
+            InterfaceNotActive,
+        ) as e:
+            logger.error(f"Error loading configuration file: {e}")
+            sys.exit(1)
 
         if self.config.interfaces.fiware:
             self.load_fiware_params()
@@ -105,12 +117,22 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
         # Load the static data from the configuration, \
         # maybe it is needed for the preparation of components
-        self.staticdata = self.reload_static_data(
-            method=DataQueryTypes.CALIBRATION, staticdata=[]
-        )
+        try:
+            self.staticdata = self.reload_static_data(
+                method=DataQueryTypes.CALIBRATION, staticdata=[]
+            )
+        except (KeyError, ValueError, TypeError) as e:
+            logger.error(f"Error reloading static data: {e}")
+            self.cleanup_service()
+            raise
 
         # Prepare the individual start of the service
-        self.prepare_start()
+        try:
+            self.prepare_start()
+        except (KeyError, ValueError, TypeError, ValidationError) as e:
+            logger.error(f"Error preparing the start of the service: {e}")
+            self.cleanup_service()
+            raise
 
     def prepare_start(self):
         """
@@ -417,6 +439,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 "The sampling time must be increased!"
             )
         while ((datetime.now() - start_time).total_seconds()) < hold_time:
+            if self.shutdown_event.is_set():
+                break
             await sleep(0.01)
 
     async def calculation(
@@ -543,13 +567,37 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
                 break
         return output_cmds
 
+    def cleanup_service(self):
+        """
+        Cleanup the service resources:
+            - MQTT Client
+        If more resources are added in the future, make sure to clean them up here.
+        """
+
+        self.stop_mqtt_client()
+        logger.debug("Service stopped, cleanup finished.")
+
     async def start_service(self):
         """
         Main function for converting the data
         """
-        logger.info("Start the Service")
 
-        while True:
+        sampling_time = (
+            self.config.controller_settings.time_settings.calculation.sampling_time
+            * get_time_unit_seconds(
+                self.config.controller_settings.time_settings.calculation.sampling_time_unit
+            )
+        )
+
+        logger.info("Start the Service")
+        # Hold the sampling time at the beginning,
+        # so that the mqtt interfaces is ready and data is available
+        if self.config.interfaces.mqtt:
+            await self._hold_sampling_time(
+                start_time=datetime.now(), hold_time=sampling_time
+            )
+
+        while not self.shutdown_event.is_set():
             logger.debug("Start the Prozess")
             start_time = datetime.now()
 
@@ -567,15 +615,12 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
             await self._set_health_timestamp()
 
-            sampling_time = (
-                self.config.controller_settings.time_settings.calculation.sampling_time
-                * get_time_unit_seconds(
-                    self.config.controller_settings.time_settings.calculation.sampling_time_unit
-                )
-            )
             await self._hold_sampling_time(
                 start_time=start_time, hold_time=sampling_time
             )
+
+        logger.debug("Service will be stopped, running cleanup")
+        self.cleanup_service()
 
     async def start_calibration(self):
         """
@@ -583,8 +628,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
 
         if self.config.controller_settings.time_settings.calibration is None:
-            logger.error(
-                "No Information about the calibration time in the configuration."
+            logger.info(
+                "No Information about the calibration time in the configuration. "
+                "Calibration will not be performed."
             )
             return
 
@@ -595,7 +641,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             )
         )
 
-        while True:
+        while not self.shutdown_event.is_set():
             logger.debug("Start Calibration")
             start_time = datetime.now()
             data_input = await self.get_data(method=DataQueryTypes.CALIBRATION)
@@ -604,13 +650,14 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
             await self._hold_sampling_time(
                 start_time=start_time, hold_time=sampling_time
             )
+        logger.debug("Calibration was stopped")
 
     async def check_health_status(self):
         """
         Function to check the health-status of the service
         """
         logger.debug("Start the the Health-Check")
-        while True:
+        while not self.shutdown_event.is_set():
             start_time = datetime.now()
             sampling_time = (
                 self.config.controller_settings.time_settings.calculation.sampling_time

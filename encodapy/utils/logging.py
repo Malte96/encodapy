@@ -8,9 +8,10 @@ import sys
 from loguru import logger
 from encodapy.config.default_values import DefaultEnvVariables
 
+
 class LoggerControl:
     """
-        LoggerControl class for the control of the log level of the application.
+    LoggerControl class for the control of the log level of the application.
     """
 
     def __init__(self) -> None:

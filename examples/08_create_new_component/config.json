@@ -1,0 +1,99 @@
+{
+    "name": "a_new_component",
+    "interfaces": {
+        "mqtt": true,
+        "fiware": false,
+        "file": true
+    },
+    "inputs": [
+        {
+            "id": "mqtt_input_entity",
+            "interface": "mqtt",
+            "id_interface": "input-topic",
+            "attributes": [
+                {
+                    "id": "general_data"
+                },
+                {
+                    "id": "input_data"
+                },
+                {
+                    "id": "another_input_data"
+                }
+            ]
+        },
+        {
+            "id": "file_input_entity",
+            "interface": "file",
+            "attributes": [
+                {
+                    "id": "input_data"
+                }
+            ]
+        }
+    ],
+    "outputs": [
+        {
+            "id": "mqtt_output_entity",
+            "interface": "mqtt",
+            "id_interface": "output-topic",
+            "attributes": [
+                {
+                    "id": "result_data"
+                },
+                {
+                    "id": "optional_result_data"
+                }
+            ],
+            "commands": []
+        }
+    ],
+    "staticdata": [
+    ],
+    "controller_components": [
+        {
+            "id": "new_component",
+            "type": "examples.08_create_new_component.new_component",
+            "inputs": {
+                "a_general_input":{
+                    "entity": "mqtt_input_entity",
+                    "attribute": "general_data"
+                },
+                "a_number_input": {
+                    "entity": "file_input_entity",
+                    "attribute": "input_data"
+                },
+                "another_number_input": {
+                    "entity": "mqtt_input_entity",
+                    "attribute": "another_input_data"
+                }
+            },
+            "outputs": {
+                "result": {
+                    "entity": "mqtt_output_entity",
+                    "attribute": "result_data"
+                },
+                "optional_result": {
+                    "entity": "mqtt_output_entity",
+                    "attribute": "optional_result_data"
+                }
+            },
+            "config": {
+                "config_value": {
+                    "value": 5,
+                    "unit": "KEL"
+                }
+            }
+        }
+    ],
+    "controller_settings": {
+        "time_settings": {
+            "calculation": {
+                "timerange": 1,
+                "timerange_unit": "minute",
+                "sampling_time": 10,
+                "sampling_time_unit": "second"
+            }
+        }
+    }
+}

@@ -18,9 +18,9 @@ from encodapy.utils.models import (
     InputDataEntityModel,
     InputDataModel,
 )
-from encodapy.components.components_basic_config import (
+from encodapy.components.basic_component_config import (
     ControllerComponentModel,
-    IOAllocationModel
+    IOAllocationModel,
 )
 
 
@@ -142,7 +142,7 @@ class ExampleService(ControllerBasicService):
         heater_status = self.check_heater_command(
             temperature_setpoint=inputs["temperature_setpoint"],
             temperature_measured=inputs["temperature_measured"],
-            hysteresis=self.heater_config.config["temperature_hysteresis"],
+            hysteresis=self.heater_config.config.root["temperature_hysteresis"].value,
             heater_status_old=bool(inputs["heater_status"]),
         )
 
@@ -150,7 +150,9 @@ class ExampleService(ControllerBasicService):
             components=[
                 DataTransferComponentModel(
                     entity_id=self.heater_config.outputs.root["heater_status"].entity,
-                    attribute_id=self.heater_config.outputs.root["heater_status"].attribute,
+                    attribute_id=self.heater_config.outputs.root[
+                        "heater_status"
+                    ].attribute,
                     value=heater_status,
                     timestamp=datetime.now(timezone.utc),
                 )

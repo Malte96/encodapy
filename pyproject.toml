@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "encodapy"
-version = "0.5.1"
+version = "0.6.0"
 description = "EnCoDaPy – Energy Control and Data Preparation in Python."
 readme = "README.md"
 repository = "https://github.com/gewv-tu-dresden/encodapy"
@@ -37,6 +37,7 @@ pylint = ">=3.2.6"
 build = ">=1.2.2.post1"
 ipykernel = ">=6.29.5"
 pandas-stubs = "^2.3.0.250703"
+black = "^25.1.0"
 
 [build-system]
 requires = ["poetry-core"]

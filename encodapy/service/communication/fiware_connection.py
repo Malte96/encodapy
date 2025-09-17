@@ -1,5 +1,5 @@
 """
-Description: This file contains the class FiwareConnections, 
+Description: This file contains the class FiwareConnections,
 which is used to store the connection parameters for the Fiware and CrateDB connections.
 Author: Martin Altenburger
 """
@@ -24,7 +24,6 @@ from filip.models.ngsi_v2.context import (
     NamedCommand,
     NamedContextAttribute,
 )
-
 from encodapy.config import (
     AttributeModel,
     AttributeTypes,
@@ -34,7 +33,7 @@ from encodapy.config import (
     InputModel,
     OutputModel,
     TimerangeTypes,
-    ConfigModel
+    ConfigModel,
 )
 from encodapy.utils.error_handling import NoCredentials, InterfaceNotActive
 from encodapy.utils.cratedb import CrateDBConnection
@@ -49,13 +48,14 @@ from encodapy.utils.models import (
     FiwareAuth,
     FiwareParameter,
     DatabaseParameter,
-    FiwareConnectionParameter
+    FiwareConnectionParameter,
 )
 from encodapy.utils.units import (
     DataUnits,
     get_time_unit_seconds,
     get_unit_adjustment_factor,
 )
+
 
 class FiwareConnection:
     """
@@ -89,10 +89,12 @@ class FiwareConnection:
                 fiware_auth = FiwareAuth(
                     client_id=os.environ.get("FIWARE_CLIENT_ID"),
                     client_secret=os.environ.get("FIWARE_CLIENT_PW"),
-                    token_url=os.environ.get("FIWARE_TOKEN_URL"))
+                    token_url=os.environ.get("FIWARE_TOKEN_URL"),
+                )
             elif os.environ.get("FIWARE_BAERER_TOKEN") is not None:
                 fiware_auth = FiwareAuth(
-                    baerer_token= os.environ.get("FIWARE_BAERER_TOKEN"))
+                    baerer_token=os.environ.get("FIWARE_BAERER_TOKEN")
+                )
             else:
                 logger.error("No authentication credentials available")
                 raise NoCredentials
@@ -100,28 +102,34 @@ class FiwareConnection:
             fiware_auth = None
 
         fiware_params = FiwareParameter(
-            cb_url=os.environ.get("CB_URL",
-                                  DefaultEnvVariables.CB_URL.value),
-            service=os.environ.get("FIWARE_SERVICE",
-                                   DefaultEnvVariables.FIWARE_SERVICE.value),
-            service_path=os.environ.get("FIWARE_SERVICE_PATH",
-                                        DefaultEnvVariables.FIWARE_SERVICE_PATH.value),
-            authentication=fiware_auth)
+            cb_url=os.environ.get("CB_URL", DefaultEnvVariables.CB_URL.value),
+            service=os.environ.get(
+                "FIWARE_SERVICE", DefaultEnvVariables.FIWARE_SERVICE.value
+            ),
+            service_path=os.environ.get(
+                "FIWARE_SERVICE_PATH", DefaultEnvVariables.FIWARE_SERVICE_PATH.value
+            ),
+            authentication=fiware_auth,
+        )
 
         database_params = DatabaseParameter(
-            crate_db_url=os.environ.get("CRATE_DB_URL",
-                                        DefaultEnvVariables.CRATE_DB_URL.value),
-            crate_db_user=os.environ.get("CRATE_DB_USER",
-                                         DefaultEnvVariables.CRATE_DB_USER.value),
-            crate_db_pw=os.environ.get("CRATE_DB_PW",
-                                        DefaultEnvVariables.CRATE_DB_PW.value),
-            crate_db_ssl=os.environ.get("CRATE_DB_SSL",
-                                        str(DefaultEnvVariables.CRATE_DB_SSL.value)).lower()
-            in ("true", "1", "t"))
+            crate_db_url=os.environ.get(
+                "CRATE_DB_URL", DefaultEnvVariables.CRATE_DB_URL.value
+            ),
+            crate_db_user=os.environ.get(
+                "CRATE_DB_USER", DefaultEnvVariables.CRATE_DB_USER.value
+            ),
+            crate_db_pw=os.environ.get(
+                "CRATE_DB_PW", DefaultEnvVariables.CRATE_DB_PW.value
+            ),
+            crate_db_ssl=os.environ.get(
+                "CRATE_DB_SSL", str(DefaultEnvVariables.CRATE_DB_SSL.value)
+            ).lower()
+            in ("true", "1", "t"),
+        )
 
         self.fiware_conn_params = FiwareConnectionParameter(
-            fiware_params=fiware_params,
-            database_params=database_params
+            fiware_params=fiware_params, database_params=database_params
         )
 
     def check_fiware_connection(self) -> None:
@@ -132,8 +140,10 @@ class FiwareConnection:
             raise InterfaceNotActive("ContextBrokerClient is not active")
 
         if len(self.cb_client.get_entity_list()) == 0:
-            logger.error("No entities were found in the ContextBrokerClient. "
-                           "Ensure that the configuration for the FIWARE entities is valid.")
+            logger.error(
+                "No entities were found in the ContextBrokerClient. "
+                "Ensure that the configuration for the FIWARE entities is valid."
+            )
 
     def prepare_fiware_connection(self):
         """
@@ -144,9 +154,7 @@ class FiwareConnection:
         if fiware_auth is not None:
 
             if fiware_auth.baerer_token is not None:
-                self.fiware_token_client = BaererToken(
-                    token=fiware_auth.baerer_token
-                )
+                self.fiware_token_client = BaererToken(token=fiware_auth.baerer_token)
             else:
                 self.fiware_token_client = BaererToken(
                     client_id=fiware_auth.client_id,
@@ -166,7 +174,7 @@ class FiwareConnection:
 
         self.cb_client = ContextBrokerClient(
             url=self.fiware_conn_params.fiware_params.cb_url,
-            fiware_header=self.fiware_header
+            fiware_header=self.fiware_header,
         )
         self.check_fiware_connection()
 
@@ -183,7 +191,7 @@ class FiwareConnection:
         """
         if self.fiware_conn_params.fiware_params.authentication is not None and (
             self.fiware_token_client.check_token() is False
-            ):
+        ):
             self.fiware_header.__dict__["authorization"] = (
                 self.fiware_token_client.baerer_token
             )
@@ -216,8 +224,11 @@ class FiwareConnection:
         for attr in list(output_attributes_entity.keys()):
             if attr not in list(output_attributes_controller.keys()):
                 continue
-            if (output_attributes_entity[attr].metadata.get("TimeInstant") is not None
-                and output_attributes_entity[attr].metadata.get("TimeInstant").value is not None):
+            if (
+                output_attributes_entity[attr].metadata.get("TimeInstant") is not None
+                and output_attributes_entity[attr].metadata.get("TimeInstant").value
+                is not None
+            ):
                 timestamps.append(
                     OutputDataAttributeModel(
                         id=output_attributes_controller[attr],
@@ -379,8 +390,9 @@ class FiwareConnection:
 
             attributes_values.extend(
                 self.get_data_from_datebase(
-                    entity=ContextEntity(id=entity.id_interface,
-                                         type=fiware_input_entity_type),
+                    entity=ContextEntity(
+                        id=entity.id_interface, type=fiware_input_entity_type
+                    ),
                     entity_attributes=attributes_timeseries,
                     method=method,
                     timestamp_latest_output=timestamp_latest_output,
@@ -409,32 +421,30 @@ class FiwareConnection:
             tuple[str, str]: Timestamps for the input data query (from_date, to_date)
         """
         if timerange_type is TimerangeTypes.ABSOLUTE or last_timestamp is None:
-            from_date = (
-                time_now - timedelta(seconds=timerange_value)
-            ).strftime("%Y-%m-%dT%H:%M:%S%z")
+            from_date = (time_now - timedelta(seconds=timerange_value)).strftime(
+                "%Y-%m-%dT%H:%M:%S%z"
+            )
             return from_date, None
 
         timeframe = (time_now - last_timestamp).total_seconds() / 60
 
         if timerange_type is TimerangeTypes.RELATIVE:
             if timeframe < timerange_value:
-                from_date = (
-                    time_now
-                    - timedelta(seconds=timerange_value)
-                ).strftime("%Y-%m-%dT%H:%M:%S%z")
+                from_date = (time_now - timedelta(seconds=timerange_value)).strftime(
+                    "%Y-%m-%dT%H:%M:%S%z"
+                )
                 return from_date, None
 
             from_date = last_timestamp.strftime("%Y-%m-%dT%H:%M:%S%z")
-            to_date = (
-                last_timestamp
-                + timedelta(seconds=timerange_value)
-            ).strftime("%Y-%m-%dT%H:%M:%S%z")
+            to_date = (last_timestamp + timedelta(seconds=timerange_value)).strftime(
+                "%Y-%m-%dT%H:%M:%S%z"
+            )
             return from_date, to_date
 
         # Fallback to absolute if no type is specified
-        from_date = (
-            time_now - timedelta(seconds=timerange_value)
-        ).strftime("%Y-%m-%dT%H:%M:%S%z")
+        from_date = (time_now - timedelta(seconds=timerange_value)).strftime(
+            "%Y-%m-%dT%H:%M:%S%z"
+        )
         return from_date, None
 
     def _calculate_timerange_min_max(
@@ -480,9 +490,9 @@ class FiwareConnection:
             return from_date, None
 
         from_date = last_timestamp.strftime("%Y-%m-%dT%H:%M:%S%z")
-        to_date = (
-            last_timestamp + timedelta(seconds=timerange_max )
-        ).strftime("%Y-%m-%dT%H:%M:%S%z")
+        to_date = (last_timestamp + timedelta(seconds=timerange_max)).strftime(
+            "%Y-%m-%dT%H:%M:%S%z"
+        )
         return from_date, to_date
 
     def _handle_calculation_method(
@@ -505,7 +515,8 @@ class FiwareConnection:
             return self._calculate_timerange(
                 time_now,
                 last_timestamp,
-                calculation.timerange * get_time_unit_seconds(calculation.timerange_unit),
+                calculation.timerange
+                * get_time_unit_seconds(calculation.timerange_unit),
                 calculation.timerange_type,
             )
         if (
@@ -516,15 +527,18 @@ class FiwareConnection:
                 return self._calculate_timerange(
                     time_now,
                     last_timestamp,
-                    calculation.timerange_max * get_time_unit_seconds(calculation.timerange_unit),
+                    calculation.timerange_max
+                    * get_time_unit_seconds(calculation.timerange_unit),
                     calculation.timerange_type,
                 )
 
             return self._calculate_timerange_min_max(
                 time_now,
                 last_timestamp,
-                calculation.timerange_min * get_time_unit_seconds(calculation.timerange_unit),
-                calculation.timerange_max * get_time_unit_seconds(calculation.timerange_unit),
+                calculation.timerange_min
+                * get_time_unit_seconds(calculation.timerange_unit),
+                calculation.timerange_max
+                * get_time_unit_seconds(calculation.timerange_unit),
             )
 
         logger.error(
@@ -533,9 +547,7 @@ class FiwareConnection:
         return None, None
 
     def _calculate_dates(
-        self,
-        method: DataQueryTypes,
-        last_timestamp: Union[datetime, None]
+        self, method: DataQueryTypes, last_timestamp: Union[datetime, None]
     ) -> tuple[str, str]:
         """Function to calculate the dates for the input data query
 
@@ -567,9 +579,7 @@ class FiwareConnection:
         return from_date, to_date
 
     def _handle_calibration_method(
-        self,
-        time_now: datetime,
-        last_timestamp: Union[datetime, None]
+        self, time_now: datetime, last_timestamp: Union[datetime, None]
     ) -> tuple[str, str]:
         """Funtion to calculate the dates for the calibration method
             - Use the last timestamp of the output entity as the from_date if available
@@ -775,8 +785,13 @@ class FiwareConnection:
         """
         if len(fiware_datapoint.attribute.value) == 0:
             return
-        if fiware_datapoint.attribute.id not in fiware_datapoint.attribute.value.columns:
-            logger.error(f"Attribute {fiware_datapoint.attribute.id} not in the dataframe.")
+        if (
+            fiware_datapoint.attribute.id
+            not in fiware_datapoint.attribute.value.columns
+        ):
+            logger.error(
+                f"Attribute {fiware_datapoint.attribute.id} not in the dataframe."
+            )
             return
         df = fiware_datapoint.attribute.value.sort_index()
         attrs_timeseries = []
@@ -888,22 +903,22 @@ class FiwareConnection:
                 factor_unit_adjustment = get_unit_adjustment_factor(
                     unit_actual=attribute.unit, unit_target=fiware_unit
                 )
-
             if isinstance(attribute.value, pd.DataFrame):
 
                 attrs.append(
                     await self.prepare_timeseries_for_fiware(
-                        fiware_datapoint = FiwareDatapointParameter(
-                            entity=ContextEntity(id= fiware_entity.id,
-                                                 type= fiware_entity.type),
+                        fiware_datapoint=FiwareDatapointParameter(
+                            entity=ContextEntity(
+                                id=fiware_entity.id, type=fiware_entity.type
+                            ),
                             attribute=attribute,
-                            metadata=meta_data),
+                            metadata=meta_data,
+                        ),
                         datatype=datatype,
                         factor_unit_adjustment=factor_unit_adjustment,
                     )
                 )
                 continue
-
             meta_data.append(
                 NamedMetadata(
                     name="TimeInstant",
@@ -911,7 +926,6 @@ class FiwareConnection:
                     value=attribute.timestamp.strftime("%Y-%m-%dT%H:%M:%S%z"),
                 )
             )
-
             attrs.append(
                 NamedContextAttribute(
                     name=attribute.id_interface,
@@ -938,10 +952,13 @@ class FiwareConnection:
         output_points = attrs + cmds
 
         if len(output_points) == 0:
-            logger.debug("No output data available for sending to the FIWARE platform.")
+            logger.debug(
+                "There is no output data available to send to the FIWARE platform "
+                f"for the entity {fiware_entity.id}."
+            )
             return
 
-        if len(attrs)>0:
+        if len(attrs) > 0:
             i = 0
             while i < 3:
                 try:
@@ -961,14 +978,14 @@ class FiwareConnection:
 
                 i += 1
 
-        if len(cmds)>0:
+        if len(cmds) > 0:
             i = 0
             while i < 3:
                 try:
                     self.cb_client.update_existing_entity_attributes(
                         entity_id=fiware_entity.id,
                         entity_type=fiware_entity.type,
-                        attrs= cmds,
+                        attrs=cmds,
                     )
                     break
                 except requests.exceptions.HTTPError as err:

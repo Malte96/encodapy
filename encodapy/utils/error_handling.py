@@ -46,6 +46,7 @@ class NoCredentials(Exception):
         self.message = message
         super().__init__(self.message)
 
+
 class InterfaceNotActive(Exception):
     """Exception raised if the interface is not active.
 

@@ -115,13 +115,13 @@ class FileConnection:
         ).suffix.lower()
 
         if file_extension == FileExtensionTypes.CSV.value:
-            logger.info(f"load config for {file_extension} -file")
+            logger.debug(f"load inputdata from {file_extension} -file")
             data = self.get_data_from_csv_file(method=method, entity=entity)
         elif file_extension == FileExtensionTypes.JSON.value:
-            logger.info(f"load config for {file_extension} -file")
+            logger.debug(f"load inputdata from {file_extension} -file")
             data = self.get_data_from_json_file(method=method, entity=entity)
         else:
-            logger.info(f"File extension {file_extension} is not supported")
+            logger.debug(f"File extension {file_extension} is not supported")
             raise NotSupportedError
 
         return data

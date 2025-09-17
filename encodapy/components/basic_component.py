@@ -80,7 +80,7 @@ class BasicComponent(Generic[TypeConfigData, TypeInputData, TypeOutputData]):
         self.set_component_config_data(
             static_data=static_data, static_config=self.component_config.config
         )
-        # Inputs and Outputs of the component itsel
+        # Inputs and Outputs of the component itself
         self.io_model: Optional[ComponentIOModel] = None
         self.input_data: TypeInputData
         self.output_data: TypeOutputData

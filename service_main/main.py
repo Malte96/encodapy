@@ -43,7 +43,7 @@ async def main(service_class: Type[ControllerBasicService] = ComponentRunnerServ
     task_for_start_service = asyncio.create_task(service.start_service())
 
     def signal_handler():
-        """Handler für SIGTERM und SIGINT Signale"""
+        """Handler for SIGTERM and SIGINT signals"""
         logger.debug("Shutdown signal received, end service properly...")
         shutdown_event.set()
 

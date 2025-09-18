@@ -236,6 +236,7 @@ class FileConnection:
             elif attribute.type == AttributeTypes.VALUE:
                 data_type=AttributeTypes.VALUE
             else:
+                data_type=None
                 logger.warning(
                     f"Attribute type {attribute.type} for attribute {attribute.id}"
                     f"of entity {entity.id} not supported."

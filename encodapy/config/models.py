@@ -449,7 +449,8 @@ class StaticDataFileAttribute(BaseModel):
 
     id: str
     value: Union[str, float, int, bool, Dict, List, DataFrame, None]
-    metadata: Optional[Dict] = None
+    unit: Optional[str] = None
+    time: Optional[str] = None
 
 
 class StaticDataFileEntity(BaseModel):

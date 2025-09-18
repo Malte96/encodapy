@@ -337,10 +337,11 @@ class FileConnection:
                             InputDataAttributeModel(
                                 id=attribute.id,
                                 data=item_attribute.value,
-                                unit=self._get_unit_from_file(item_attribute.metadata),
+                                unit=item_attribute.unit,
+                                #unit=self._get_unit_from_file(item_attribute.metadata),
                                 data_type=AttributeTypes.VALUE,
                                 data_available=True,
-                                latest_timestamp_input=None,
+                                latest_timestamp_input=item_attribute.time,
                             )
                         )
 

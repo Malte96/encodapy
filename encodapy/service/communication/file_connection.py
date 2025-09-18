@@ -233,19 +233,26 @@ class FileConnection:
         for attribute in entity.attributes:
             if attribute.type == AttributeTypes.TIMESERIES:
                 # attributes_timeseries[attribute.id] = attribute.id_interface
-
-                for input_data in data:
-                    time = datetime.strptime(input_data["time"], time_format)
-                    if attribute.id_interface == input_data["id_interface"]:
-                        attributes_values.append(
-                            InputDataAttributeModel(
-                                id=attribute.id,
-                                data=input_data["value"],
-                                data_type=AttributeTypes.TIMESERIES,
-                                data_available=True,
-                                latest_timestamp_input=time,
+                try:
+                    for attr in data[0]['attributes']:
+                        if attr['id'] == attribute.id_interface:
+                            logger.debug(attr['value'])
+                            time = datetime.strptime(attr["time"], time_format)
+                            attributes_values.append(
+                                InputDataAttributeModel(
+                                    id=attribute.id,
+                                    data=attr["value"],
+                                    data_type=AttributeTypes.TIMESERIES,
+                                    data_available=True,
+                                    latest_timestamp_input=time,
+                                )
                             )
-                        )
+                except KeyError as e:
+                    logger.error(
+                        f"Error: Key {e} not found in the input file ({path_of_file})"
+                    )
+                    return None
+                
             elif attribute.type == AttributeTypes.VALUE:
 
                 attributes_values.append(

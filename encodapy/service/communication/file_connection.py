@@ -366,32 +366,43 @@ class FileConnection:
             - Is it better to set the results-folder via env?
         """
         outputs = []
+        output_attr = []
         commands = []
         logger.debug("Write outputs to json-output-files")
 
         if not os.path.exists("./results"):
             os.makedirs("./results")
-
+        
         for output in output_attributes:
-            outputs.append(
+            output_attr.append(
                 {
-                    "id_interface": output.id_interface,
+                    "id": output.id_interface,
                     "value": output.value,
-                    "time": output.timestamp.isoformat(" "),
+                    "unit": output.unit.value,
+                    "time": output.timestamp.isoformat(" ")
                 }
             )
-
-        with open(
-            f"./results/outputs_{str(output_entity.id)}.json", "w", encoding="utf-8"
-        ) as outputfile:
-            json.dump(outputs, outputfile)
+        outputs.append(
+            {
+                "id": output_entity.id,
+                "attributes" : output_attr
+            }
+        )
+        try:
+            with open(
+                f"./results/outputs_{str(output_entity.id)}.json", "w", encoding="utf-8"
+            ) as outputfile:
+                json.dump(outputs, outputfile)
+        except Exception as e:
+            logger.error(f"Error writing output file: {e}")
 
         for command in output_commands:
             commands.append(
                 {
                     "id_interface": command.id_interface,
                     "value": command.value,
-                    "time": command.timestamp.isoformat(" "),
+                    "unit": command.unit.value,
+                    "time": command.timestamp.isoformat(" ")                    
                 }
             )
 

@@ -232,43 +232,34 @@ class FileConnection:
             return None
         for attribute in entity.attributes:
             if attribute.type == AttributeTypes.TIMESERIES:
-                # attributes_timeseries[attribute.id] = attribute.id_interface
-                try:
-                    for attr in data[0]['attributes']:
-                        if attr['id'] == attribute.id_interface:
-                            logger.debug(attr['value'])
-                            time = datetime.strptime(attr["time"], time_format)
-                            attributes_values.append(
-                                InputDataAttributeModel(
-                                    id=attribute.id,
-                                    data=attr["value"],
-                                    data_type=AttributeTypes.TIMESERIES,
-                                    data_available=True,
-                                    latest_timestamp_input=time,
-                                )
-                            )
-                except KeyError as e:
-                    logger.error(
-                        f"Error: Key {e} not found in the input file ({path_of_file})"
-                    )
-                    return None
-                
+                data_type=AttributeTypes.TIMESERIES
             elif attribute.type == AttributeTypes.VALUE:
-
-                attributes_values.append(
-                    InputDataAttributeModel(
-                        id=attribute.id,
-                        data=data[attribute.id_interface].iloc[0],
-                        data_type=AttributeTypes.VALUE,
-                        data_available=True,
-                        latest_timestamp_input=data.index[0],
-                    )
-                )
+                data_type=AttributeTypes.VALUE
             else:
                 logger.warning(
                     f"Attribute type {attribute.type} for attribute {attribute.id}"
                     f"of entity {entity.id} not supported."
                 )
+
+            try:
+                for attr in data[0]['attributes']:
+                    if attr['id'] == attribute.id_interface:
+                        logger.debug(attr['value'])
+                        time = datetime.strptime(attr["time"], time_format)
+                        attributes_values.append(
+                            InputDataAttributeModel(
+                                id=attribute.id,
+                                data=attr["value"],
+                                data_type=data_type,
+                                data_available=True,
+                                latest_timestamp_input=time,
+                            )
+                        )
+            except KeyError as e:
+                logger.error(
+                    f"Error: Key {e} not found in the input file ({path_of_file})"
+                )
+                return None            
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 

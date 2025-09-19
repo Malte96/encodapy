@@ -155,7 +155,6 @@ class FileConnection:
             # Add tz to time index, if not in iso format
             data["Time"] = [self._read_time_from_string(item) for item in data["Time"]]
             data.set_index("Time", inplace=True)
-            print(data)
         except (FileNotFoundError, PermissionError) as e:
             logger.error(f"Could not open file ({path_of_file}): {e}")
             return None

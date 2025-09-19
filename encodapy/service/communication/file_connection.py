@@ -410,10 +410,14 @@ class FileConnection:
                 {
                     "id_interface": command.id_interface,
                     "value": command.value,
-                    "unit": command.unit.value,
-                    "time": command.timestamp.isoformat(" ")                    
+                    "unit": None if command.unit is None else command.unit.value,
+                    "time": None if command.timestamp is None else command.timestamp.isoformat(" ")             
                 }
             )
-
-        with open("./results/commands.json", "w", encoding="utf-8") as commandfile:
-            json.dump(commands, commandfile)
+        try:
+            with open(f"./results/commands_{str(output_entity.id)}.json", "w", encoding="utf-8"
+            ) as commandfile:
+                json.dump(commands, commandfile)
+        except (FileNotFoundError, PermissionError) as e:
+            logger.error(f"Error writing output file: {e}")
+            raise

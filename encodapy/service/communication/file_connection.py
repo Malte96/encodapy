@@ -56,6 +56,9 @@ class FileConnection:
         self.file_params["PATH_OF_STATIC_DATA"] = os.environ.get(
             "PATH_OF_STATIC_DATA", DefaultEnvVariables.PATH_OF_STATIC_DATA.value
         )
+        self.file_params["PATH_OF_RESULTS"] = os.environ.get(
+            "PATH_OF_RESULTS", DefaultEnvVariables.PATH_OF_RESULTS.value
+        )
 
     def _get_last_timestamp_for_file_output(
         self, output_entity: OutputModel
@@ -378,8 +381,10 @@ class FileConnection:
         commands = []
         logger.debug("Write outputs to json-output-files")
 
-        if not os.path.exists("./results"):
-            os.makedirs("./results")
+        path_to_results = self.file_params["PATH_OF_RESULTS"]
+
+        if not os.path.exists(path_to_results):
+            os.makedirs(path_to_results)
 
         for output in output_attributes:
             output_attr.append(
@@ -398,7 +403,7 @@ class FileConnection:
         )
         try:
             with open(
-                f"./results/outputs_{str(output_entity.id)}.json", "w", encoding="utf-8"
+                f"{path_to_results}/outputs_{str(output_entity.id)}.json", "w", encoding="utf-8"
             ) as outputfile:
                 json.dump(outputs, outputfile)
         except (FileNotFoundError, PermissionError) as e:
@@ -415,7 +420,7 @@ class FileConnection:
                 }
             )
         try:
-            with open(f"./results/commands_{str(output_entity.id)}.json", "w", encoding="utf-8"
+            with open(f"{path_to_results}//commands_{str(output_entity.id)}.json", "w", encoding="utf-8"
             ) as commandfile:
                 json.dump(commands, commandfile)
         except (FileNotFoundError, PermissionError) as e:

@@ -99,8 +99,14 @@ Data exchange with via local file.
     - An example of this input is attached as [inputs_csv-file_interface_example.csv](./inputs_csv-file_interface_example.csv), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
   - json characteristics:
     - json object contains a list of dicts
-    - key of timestamp = "time": Time in ISO format or a compatible format: https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat
-    - key name (specific input) in `.json` must be the like `${Attribute-id_interface}` from the config (Important: the IDs of the attributes `id_interface` over the the interface "file" must therefore be unique)
+      - id of entity 
+      - attributes:   
+        - attribute_id
+        - value
+        - unit
+        - timestamp 
+            - key of timestamp = "time": Time in ISO format or a compatible format: https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat
+    - key name (specific input) in `.json` must be the like `${Attribute-id}` from the config (Important: the IDs of the attributes `id` over the the interface "file" must therefore be unique)
     - An example of this input is attached as [inputs_json-file_interface_example.json](./inputs_json-file_interface_example.json), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
 - Read static data from a local file (Note: only `.json` is supported currently)
   - json characteristics:
@@ -109,6 +115,7 @@ Data exchange with via local file.
     - An example of this static data is attached as [static_data.json](./static_data.json), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
 - Write data to a results file (`.json`)
   - send results of the service to file (for each entity) and timestemp
+  - same structure like the inputs.json
   - An example of this outputs is attached as [outputs_dhw_calculation_example.json](./outputs_dhw_calculation_example.json), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
 
 nessesary ENV's with example:
@@ -117,5 +124,8 @@ nessesary ENV's with example:
 PATH_OF_INPUT_FILE = "../validation_data.csv"
 PATH_OF_STATIC_DATA = "path_to_the_file_\\static_data.json"
 START_TIME_FILE = "01.01.2023 06:00"
+TIME_FORMAT_FILE = e.g. "%Y-%m-%d %H:%M:%S.%f" - specific format in file
+optional:
+PATH_OF_RESULTS = "./results" - this is the defaul folder, if not set. it creates a folder in running service folder
 
 ```

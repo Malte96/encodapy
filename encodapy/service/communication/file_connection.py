@@ -408,7 +408,7 @@ class FileConnection:
                 json.dump(outputs, outputfile)
         except (FileNotFoundError, PermissionError) as e:
             logger.error(f"Error writing output file: {e}")
-            raise
+
 
         for command in output_commands:
             commands.append(
@@ -425,4 +425,3 @@ class FileConnection:
                 json.dump(commands, commandfile)
         except (FileNotFoundError, PermissionError) as e:
             logger.error(f"Error writing output file: {e}")
-            raise

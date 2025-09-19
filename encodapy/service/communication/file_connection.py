@@ -168,10 +168,14 @@ class FileConnection:
         for attribute in entity.attributes:
 
             if attribute.type == AttributeTypes.TIMESERIES:
-                # attributes_timeseries[attribute.id] = attribute.id_interface
-                logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id}"
-                    f"of entity {entity.id} not supported."
+                attributes_values.append(
+                    InputDataAttributeModel(
+                        id=attribute.id,
+                        data=data.filter([attribute.id_interface]),
+                        data_type=AttributeTypes.TIMESERIES,
+                        data_available=True,
+                        latest_timestamp_input=data.index[0],
+                    )
                 )
             elif attribute.type == AttributeTypes.VALUE:
                 attributes_values.append(
@@ -271,7 +275,7 @@ class FileConnection:
                                     id=attribute.id,
                                     data=item_attribute.value,
                                     unit=item_attribute.unit,
-                                    data_type=AttributeTypes.VALUE,
+                                    data_type=attribute.type,
                                     data_available=True,
                                     latest_timestamp_input= \
                                     self._read_time_from_string(item_attribute.time),

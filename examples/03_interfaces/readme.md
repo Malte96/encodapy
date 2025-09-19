@@ -92,14 +92,14 @@ Data exchange with via local file.
 - Read input data from a file (Note: only `.csv` and `.json` is supported currently)
   - Read Input values for the actual (simulation) time of configured input from file
   - csv characteristics:
-    - Name column of time = "Time"
+    - Name column of time = "Time", Time in ISO format or a compatible format: https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat
     - csv separator = ";"
     - decimal= ","
     - Column name (specific input) in `.csv` must be the like `${Attribute-id_interface}` from the config (Important: the IDs of the attributes `id_interface` over the the interface "file" must therefore be unique)
     - An example of this input is attached as [inputs_csv-file_interface_example.csv](./inputs_csv-file_interface_example.csv), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
   - json characteristics:
     - json object contains a list of dicts
-    - key of timestamp = "time"
+    - key of timestamp = "time": Time in ISO format or a compatible format: https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat
     - key name (specific input) in `.json` must be the like `${Attribute-id_interface}` from the config (Important: the IDs of the attributes `id_interface` over the the interface "file" must therefore be unique)
     - An example of this input is attached as [inputs_json-file_interface_example.json](./inputs_json-file_interface_example.json), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
 - Read static data from a local file (Note: only `.json` is supported currently)
@@ -117,5 +117,5 @@ nessesary ENV's with example:
 PATH_OF_INPUT_FILE = "../validation_data.csv"
 PATH_OF_STATIC_DATA = "path_to_the_file_\\static_data.json"
 START_TIME_FILE = "01.01.2023 06:00"
-TIME_FORMAT_FILE = "%d.%m.%Y %H:%M"
+
 ```

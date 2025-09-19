@@ -24,8 +24,7 @@ class DefaultEnvVariables(Enum):
 
     PATH_OF_INPUT_FILE = "./config/Input_file.csv"
     PATH_OF_STATIC_DATA = "../static_data.json"
-    START_TIME_FILE = "01.01.2023 00:00"  # TODO: IsoFormat is better?
-    TIME_FORMAT_FILE = "%d.%m.%Y %H:%M"
+    START_TIME_FILE = "2023-01-01 00:00"
     RELOAD_STATICDATA = False
 
     MQTT_HOST = "localhost"

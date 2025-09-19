@@ -1,0 +1,26 @@
+[
+    {
+        "id": "file_input_entity", 
+        "attributes": 
+        [
+            {
+                "id": "input_data",
+                "value": 20,
+                "unit": "CEL",
+                "time": "2025-09-18 15:31:57"
+            }
+        ]
+    },
+    {
+        "id": "file_input_entity_2", 
+        "attributes": 
+        [
+            {
+                "id": "input_data",
+                "value": 20,
+                "unit": "CEL",
+                "time": "2025-09-18 15:31:57"
+            }
+        ]
+    }
+]

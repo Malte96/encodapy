@@ -25,6 +25,7 @@ class DefaultEnvVariables(Enum):
     PATH_OF_INPUT_FILE = "./config/Input_file.csv"
     PATH_OF_STATIC_DATA = "../static_data.json"
     START_TIME_FILE = "2023-01-01 00:00"
+    TIME_FORMAT_FILE = "%d.%m.%Y %H:%M"
     RELOAD_STATICDATA = False
 
     MQTT_HOST = "localhost"

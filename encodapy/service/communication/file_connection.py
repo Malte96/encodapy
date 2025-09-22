@@ -125,6 +125,7 @@ class FileConnection:
         else:
             logger.debug(f"File extension {file_extension} is not supported")
             raise NotSupportedError
+        print(data)
 
         return data
 
@@ -250,7 +251,7 @@ class FileConnection:
         """
         try:
             for file_attribute in file_entity.attributes:
-                if file_attribute.id == attribute.id:
+                if file_attribute.id == attribute.id_interface:
 
                     return InputDataAttributeModel(
                             id=attribute.id,
@@ -309,7 +310,7 @@ class FileConnection:
         attributes_values = []
         for attribute in entity.attributes:
             for file_entity in data.data:
-                if file_entity.id == entity.id:
+                if file_entity.id == entity.id_interface:
                     file_attribute = self._get_attribute_from_entity(
                         file_entity=file_entity,
                         attribute=attribute

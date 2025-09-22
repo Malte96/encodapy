@@ -275,7 +275,7 @@ class FileConnection:
 
     def _get_data_from_json_file(
         self,
-        entity: StaticDataModel|InputModel,
+        entity: Union[StaticDataModel, InputModel],
         path_of_file: str,
         data_type: str
         ) -> Union[InputDataEntityModel, StaticDataEntityModel, None]:

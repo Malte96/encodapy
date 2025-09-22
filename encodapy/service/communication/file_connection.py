@@ -83,7 +83,7 @@ class FileConnection:
 
         output_id = output_entity.id_interface
 
-        timestamps:list[OutputDataAttributeModel] = []
+        timestamps: list[OutputDataAttributeModel] = []
         timestamp_latest_output = None
 
         return (
@@ -236,8 +236,8 @@ class FileConnection:
 
     def _get_attribute_from_entity(
         self,
-        file_entity:DataFileEntity,
-        attribute:AttributeModel,
+        file_entity: DataFileEntity,
+        attribute: AttributeModel,
         ) -> Optional[InputDataAttributeModel]:
         """
         Helper function to extract an attribute from a DataFileEntity
@@ -275,7 +275,7 @@ class FileConnection:
 
     def _get_data_from_json_file(
         self,
-        entity: StaticDataModel|InputModel,
+        entity: Union[StaticDataModel, InputModel],
         path_of_file: str,
         data_type: str
         ) -> Union[InputDataEntityModel, StaticDataEntityModel, None]:
@@ -445,7 +445,7 @@ class FileConnection:
                 }
             )
         try:
-            with open(os.path.join(path_to_results, f"commands_{str(output_entity.id)}.json"),
+            with open(os.path.join(path_to_results, f"commands_{output_entity.id}.json"),
                       "w", encoding="utf-8") as commandfile:
                 json.dump(commands, commandfile)
         except (FileNotFoundError, PermissionError) as e:

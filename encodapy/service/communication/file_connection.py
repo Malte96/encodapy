@@ -125,7 +125,6 @@ class FileConnection:
         else:
             logger.debug(f"File extension {file_extension} is not supported")
             raise NotSupportedError
-        print(data)
 
         return data
 

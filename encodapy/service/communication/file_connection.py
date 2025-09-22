@@ -24,9 +24,11 @@ from encodapy.config import (
     StaticDataModel,
     DataFile,
 )
+from encodapy.config.models import DataFileEntity
 from encodapy.utils.models import (
     InputDataAttributeModel,
     InputDataEntityModel,
+    OutputDataAttributeModel,
     OutputDataEntityModel,
     StaticDataEntityModel,
 )
@@ -81,7 +83,7 @@ class FileConnection:
 
         output_id = output_entity.id_interface
 
-        timestamps = []
+        timestamps:list[OutputDataAttributeModel] = []
         timestamp_latest_output = None
 
         return (
@@ -228,7 +230,46 @@ class FileConnection:
         except ValueError:
             logger.debug(
                 f"Time string '{time_string}' is not in ISO format. "
-                f"Attempting to parse with format {self.file_params['TIME_FORMAT_FILE']}."
+                f"Could not parse."
+            )
+            return None
+
+    def _get_attribute_from_entity(
+        self,
+        file_entity:DataFileEntity,
+        attribute:AttributeModel,
+        ) -> Optional[InputDataAttributeModel]:
+        """
+        Helper function to extract an attribute from a DataFileEntity
+        Args:
+            file_entity (DataFileEntity): The entity from the data file
+            attribute (AttributeModel): The attribute to extract
+        Returns:
+            Optional[InputDataAttributeModel]: The extracted attribute model,
+            or None if the attribute is not found or an error occurs
+        """
+        try:
+            for file_attribute in file_entity.attributes:
+                if file_attribute.id == attribute.id:
+
+                    return InputDataAttributeModel(
+                            id=attribute.id,
+                            data=file_attribute.value,
+                            unit=file_attribute.unit,
+                            data_type=attribute.type,
+                            data_available=True,
+                            latest_timestamp_input=
+                            self._read_time_from_string(file_attribute.time),
+                        )
+            logger.warning(
+                f"Attribute {attribute.id} not found in file entity {file_entity.id}"
+            )
+            return None
+
+        except (ValueError, TypeError) as e:
+            logger.error(
+                f"Error processing attribute {attribute.id} "
+                f"of entity {file_entity.id}: {e}"
             )
             return None
 
@@ -264,32 +305,19 @@ class FileConnection:
         except ValidationError as e:
             logger.error(f"Validation error for file ({path_of_file}) for {data_type}: {e}")
             return None
+
         attributes_values = []
         for attribute in entity.attributes:
+            for file_entity in data.data:
+                if file_entity.id == entity.id:
+                    file_attribute = self._get_attribute_from_entity(
+                        file_entity=file_entity,
+                        attribute=attribute
+                    )
+                    if file_attribute is not None:
+                        attributes_values.append(file_attribute)
+                        break
 
-            for item_entity in data.data:
-                for item_attribute in item_entity.attributes:
-                    try:
-                        if item_attribute.id == attribute.id:
-
-                            attributes_values.append(
-                                InputDataAttributeModel(
-                                    id=attribute.id,
-                                    data=item_attribute.value,
-                                    unit=item_attribute.unit,
-                                    data_type=attribute.type,
-                                    data_available=True,
-                                    latest_timestamp_input= \
-                                    self._read_time_from_string(item_attribute.time),
-                                )
-                            )
-
-                    except (ValueError, TypeError) as e:
-                        logger.error(
-                            f"Error processing attribute {attribute.id} "
-                            f"in file ({path_of_file}) for {data_type}: {e}"
-                        )
-                        continue
         if isinstance(entity, StaticDataModel):
             return StaticDataEntityModel(id=entity.id, attributes=attributes_values)
 
@@ -409,19 +437,16 @@ class FileConnection:
         except (FileNotFoundError, PermissionError) as e:
             logger.error(f"Error writing output file: {e}")
 
-
         for command in output_commands:
             commands.append(
                 {
                     "id_interface": command.id_interface,
-                    "value": command.value,
-                    "unit": None if command.unit is None else command.unit.value,
-                    "time": None if command.timestamp is None else command.timestamp.isoformat(" ")
+                    "value": command.value
                 }
             )
         try:
-            with open(os.path.join(path_to_results, f"commands_{str(output_entity.id)}.json"), "w", encoding="utf-8"
-            ) as commandfile:
+            with open(os.path.join(path_to_results, f"commands_{str(output_entity.id)}.json"),
+                      "w", encoding="utf-8") as commandfile:
                 json.dump(commands, commandfile)
         except (FileNotFoundError, PermissionError) as e:
             logger.error(f"Error writing output file: {e}")

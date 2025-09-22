@@ -22,8 +22,8 @@ from encodapy.components.basic_component_config import ControllerComponentModel
 
 
 class InterfaceModel(BaseModel):
-    """Base class for the interfaces
-    TODO: - How to use this model?
+    """
+    Base class for the interfaces
     """
 
     mqtt: bool = False

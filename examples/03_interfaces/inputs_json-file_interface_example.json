@@ -1,1 +1,20 @@
-[{"id": "service", "attributes": [{"id": "urn:input_fiware:01.temperature", "value": 20.0, "unit": "WHR", "time": "2025-09-19 13:54:57.062848"}, {"id": "urn:input_fiware:01.power", "value": 12658.9, "unit": "WHR", "time": "2025-09-19 13:54:57.062848"}]}]
+[
+    {
+        "id": "urn:input_fiware:01",
+        "attributes": 
+        [
+            {
+                "id": "temperature:01",
+                "value": 20.0,
+                "unit": "CEL",
+                "time": "2025-09-19 13:54:57"
+            },
+            {
+                "id": "temperature:02",
+                "value": 35,
+                "unit": "CEL",
+                "time": "2025-09-19 13:54:57"
+            }
+        ]
+    }
+]

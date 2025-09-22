@@ -1,1 +1,20 @@
-[{"id_interface": "urn:input_fiware:01.temperature", "value": 20.0, "time": "2025-01-01T00:00:00Z"}, {"id_interface": "urn:input_fiware:01.power", "value": 12658.9, "time": "2025-01-01T00:00:00Z"}]
+[
+    {
+        "id": "urn:input_fiware:01",
+        "attributes": 
+        [
+            {
+                "id": "temperature:01",
+                "value": 20.0,
+                "unit": "CEL",
+                "time": "2025-09-19 13:54:57"
+            },
+            {
+                "id": "temperature:02",
+                "value": 35,
+                "unit": "CEL",
+                "time": "2025-09-19 13:54:57"
+            }
+        ]
+    }
+]

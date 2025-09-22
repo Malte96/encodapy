@@ -8,9 +8,10 @@ import os
 import json
 import pathlib
 from datetime import datetime
-from typing import Union
+from typing import Union, Optional
 from loguru import logger
 import pandas as pd
+from pydantic import ValidationError
 from encodapy.config import (
     AttributeModel,
     AttributeTypes,
@@ -21,16 +22,17 @@ from encodapy.config import (
     InputModel,
     OutputModel,
     StaticDataModel,
-    StaticDataFile,
+    DataFile,
 )
+from encodapy.config.models import DataFileEntity
 from encodapy.utils.models import (
     InputDataAttributeModel,
     InputDataEntityModel,
+    OutputDataAttributeModel,
     OutputDataEntityModel,
     StaticDataEntityModel,
 )
 from encodapy.utils.error_handling import NotSupportedError
-from encodapy.utils.units import DataUnits
 
 
 class FileConnection:
@@ -53,11 +55,11 @@ class FileConnection:
         self.file_params["START_TIME_FILE"] = os.environ.get(
             "START_TIME_FILE", DefaultEnvVariables.START_TIME_FILE.value
         )
-        self.file_params["TIME_FORMAT_FILE"] = os.environ.get(
-            "TIME_FORMAT_FILE", DefaultEnvVariables.TIME_FORMAT_FILE.value
-        )
         self.file_params["PATH_OF_STATIC_DATA"] = os.environ.get(
             "PATH_OF_STATIC_DATA", DefaultEnvVariables.PATH_OF_STATIC_DATA.value
+        )
+        self.file_params["PATH_OF_RESULTS"] = os.environ.get(
+            "PATH_OF_RESULTS", DefaultEnvVariables.PATH_OF_RESULTS.value
         )
 
     def _get_last_timestamp_for_file_output(
@@ -81,7 +83,7 @@ class FileConnection:
 
         output_id = output_entity.id_interface
 
-        timestamps = []
+        timestamps: list[OutputDataAttributeModel] = []
         timestamp_latest_output = None
 
         return (
@@ -140,8 +142,6 @@ class FileConnection:
             - method (DataQueryTypes): Keyword for type of query
             - entity (InputModel): Input entity
         TODO:
-             - timestamp_latest_output (datetime): Timestamp of the input value
-             -  -> seperating Data in Calculation or here ??
              - handle the methods for the file interface
 
         Returns:
@@ -155,24 +155,31 @@ class FileConnection:
         # attributes_timeseries = {}
         attributes_values = []
         path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
-        time_format = self.file_params["TIME_FORMAT_FILE"]
         try:
-            data = pd.read_csv(path_of_file, parse_dates=["Time"], sep=";", decimal=",")
+            data = pd.read_csv(path_of_file, sep=";", parse_dates=["Time"], decimal=",")
+            # Add tz to time index, if not in iso format
+            data["Time"] = [self._read_time_from_string(item) for item in data["Time"]]
             data.set_index("Time", inplace=True)
-            data.index = pd.to_datetime(data.index, format=time_format)
-            # time = self.file_params["START_TIME_FILE"]
-            # temp = data.loc[time, 'outside_Temperature']
-        except FileNotFoundError:
-            logger.error(f"Error: File not found ({path_of_file})")
-            # TODO: What to do if the file is not found?
+        except (FileNotFoundError, PermissionError) as e:
+            logger.error(f"Could not open file ({path_of_file}): {e}")
+            return None
+        except (pd.errors.EmptyDataError,
+                pd.errors.ParserError,
+                ValueError,
+                UnicodeDecodeError) as e:
+            logger.error(f"Error reading CSV file ({path_of_file}): {e}")
             return None
         for attribute in entity.attributes:
 
             if attribute.type == AttributeTypes.TIMESERIES:
-                # attributes_timeseries[attribute.id] = attribute.id_interface
-                logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id}"
-                    f"of entity {entity.id} not supported."
+                attributes_values.append(
+                    InputDataAttributeModel(
+                        id=attribute.id,
+                        data=data.filter([attribute.id_interface]),
+                        data_type=AttributeTypes.TIMESERIES,
+                        data_available=True,
+                        latest_timestamp_input=data.index[0],
+                    )
                 )
             elif attribute.type == AttributeTypes.VALUE:
                 attributes_values.append(
@@ -192,11 +199,135 @@ class FileConnection:
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
+    def _read_time_from_string(self, time_string: Union[str, datetime, None]) -> Optional[datetime]:
+        """
+        Helper function to read a time from a string based on the configured time format.
+        Args:
+            time_string (str): The time string to parse.
+        Returns:
+            Optional[datetime]: The parsed datetime object, or None if parsing fails.
+        """
+        if time_string is None:
+            return None
+        if isinstance(time_string, datetime):
+            if time_string.tzinfo is None:
+                logger.debug(
+                    f"Time '{time_string}' has no timezone info. "
+                    f"Assuming local timezone."
+                )
+                time_string = time_string.astimezone()
+            return time_string
+
+        try:
+            time = datetime.fromisoformat(time_string)
+            if time.tzinfo is None:
+                logger.debug(
+                    f"Time string '{time_string}' has no timezone info. "
+                    f"Assuming local timezone."
+                )
+                time = time.astimezone()
+            return time
+        except ValueError:
+            logger.debug(
+                f"Time string '{time_string}' is not in ISO format. "
+                f"Could not parse."
+            )
+            return None
+
+    def _get_attribute_from_entity(
+        self,
+        file_entity: DataFileEntity,
+        attribute: AttributeModel,
+        ) -> Optional[InputDataAttributeModel]:
+        """
+        Helper function to extract an attribute from a DataFileEntity
+        Args:
+            file_entity (DataFileEntity): The entity from the data file
+            attribute (AttributeModel): The attribute to extract
+        Returns:
+            Optional[InputDataAttributeModel]: The extracted attribute model,
+            or None if the attribute is not found or an error occurs
+        """
+        try:
+            for file_attribute in file_entity.attributes:
+                if file_attribute.id == attribute.id:
+
+                    return InputDataAttributeModel(
+                            id=attribute.id,
+                            data=file_attribute.value,
+                            unit=file_attribute.unit,
+                            data_type=attribute.type,
+                            data_available=True,
+                            latest_timestamp_input=
+                            self._read_time_from_string(file_attribute.time),
+                        )
+            logger.warning(
+                f"Attribute {attribute.id} not found in file entity {file_entity.id}"
+            )
+            return None
+
+        except (ValueError, TypeError) as e:
+            logger.error(
+                f"Error processing attribute {attribute.id} "
+                f"of entity {file_entity.id}: {e}"
+            )
+            return None
+
+    def _get_data_from_json_file(
+        self,
+        entity: Union[StaticDataModel, InputModel],
+        path_of_file: str,
+        data_type: str
+        ) -> Union[InputDataEntityModel, StaticDataEntityModel, None]:
+        try:
+            # read data from json file and timestamp
+            with open(path_of_file, encoding="utf-8") as f:
+                data_file = json.load(f)
+        except (FileNotFoundError, PermissionError) as e:
+            logger.error(f"File not found / not readable ({path_of_file}) "
+                         f"for {data_type}: {e}")
+            return None
+        except (json.JSONDecodeError, UnicodeDecodeError, TypeError, ValueError) as e:
+            logger.error(f"Error decoding JSON from file ({path_of_file})"
+                         f"for {data_type}: {e}")
+            return None
+
+        if isinstance(data_file, list):
+            data_file = {"data": data_file}
+        elif isinstance(data_file, dict):
+            data_file = {"data": data_file.get(data_type, [])}
+        else:
+            logger.error(f"Unsupported data format ({path_of_file}) for {data_type}")
+            return None
+
+        try:
+            data = DataFile.model_validate(data_file)
+        except ValidationError as e:
+            logger.error(f"Validation error for file ({path_of_file}) for {data_type}: {e}")
+            return None
+
+        attributes_values = []
+        for attribute in entity.attributes:
+            for file_entity in data.data:
+                if file_entity.id == entity.id:
+                    file_attribute = self._get_attribute_from_entity(
+                        file_entity=file_entity,
+                        attribute=attribute
+                    )
+                    if file_attribute is not None:
+                        attributes_values.append(file_attribute)
+                        break
+
+        if isinstance(entity, StaticDataModel):
+            return StaticDataEntityModel(id=entity.id, attributes=attributes_values)
+
+        return InputDataEntityModel(id=entity.id, attributes=attributes_values)
+
     def get_data_from_json_file(
         self,
         method: DataQueryTypes,
         entity: InputModel,
-    ) -> Union[InputDataEntityModel, None]:
+    ) -> Optional[InputDataEntityModel]:
         """
             Function to read input data for calculations from a input file.
             first step: read the keys and values in the file / id_inputs.
@@ -219,75 +350,15 @@ class FileConnection:
         _ = method  # Acknowledge unused parameter
 
         # attributes_timeseries = {}
-        attributes_values = []
-        path_of_file = self.file_params["PATH_OF_INPUT_FILE"]
-        time_format = self.file_params["TIME_FORMAT_FILE"]
-        try:
-            # read data from json file and timestamp
-            with open(path_of_file, encoding="utf-8") as f:
-                data = json.load(f)
-        except FileNotFoundError:
-            logger.error(f"Error: File not found ({path_of_file})")
-            # TODO: What to do if the file is not found?
+
+        data = self._get_data_from_json_file(
+            entity=entity,
+            path_of_file=self.file_params["PATH_OF_INPUT_FILE"],
+            data_type="inputdata"
+        )
+        if not isinstance(data, InputDataEntityModel):
             return None
-        for attribute in entity.attributes:
-            if attribute.type == AttributeTypes.TIMESERIES:
-                # attributes_timeseries[attribute.id] = attribute.id_interface
-
-                for input_data in data:
-                    time = datetime.strptime(input_data["time"], time_format)
-                    if attribute.id_interface == input_data["id_interface"]:
-                        attributes_values.append(
-                            InputDataAttributeModel(
-                                id=attribute.id,
-                                data=input_data["value"],
-                                data_type=AttributeTypes.TIMESERIES,
-                                data_available=True,
-                                latest_timestamp_input=time,
-                            )
-                        )
-            elif attribute.type == AttributeTypes.VALUE:
-
-                attributes_values.append(
-                    InputDataAttributeModel(
-                        id=attribute.id,
-                        data=data[attribute.id_interface].iloc[0],
-                        data_type=AttributeTypes.VALUE,
-                        data_available=True,
-                        latest_timestamp_input=data.index[0],
-                    )
-                )
-            else:
-                logger.warning(
-                    f"Attribute type {attribute.type} for attribute {attribute.id}"
-                    f"of entity {entity.id} not supported."
-                )
-
-        return InputDataEntityModel(id=entity.id, attributes=attributes_values)
-
-    def _get_unit_from_file(
-        self,
-        metadata: Union[dict[str, str], None],
-    ) -> Union[DataUnits, None]:
-        """
-        Extracts the unit from the metadata dictionary.
-
-        Args:
-            metadata (Union[dict[str, str], None]): Metadata dictionary or None.
-        Returns:
-            Union[DataUnits, None]: Extracted data unit or None.
-        """
-
-        if metadata is None:
-            return None
-        if not isinstance(metadata, dict):
-            logger.warning(f"Metadata is not a dictionary: {metadata}")
-            return None
-        metadata_lowercase = {k.lower(): v for k, v in metadata.items()}
-        unit = metadata_lowercase.get("unitcode", None)
-        if unit:
-            return DataUnits(unit)
-        return None
+        return data
 
     def get_staticdata_from_file(
         self,
@@ -305,46 +376,15 @@ class FileConnection:
 
         """
 
-        static_data_path = self.file_params["PATH_OF_STATIC_DATA"]
-
-        attributes_values = []
-
-        try:
-            # read data from json file and timestamp
-            with open(static_data_path, encoding="utf-8") as f:
-                static_data = json.load(f)
-        except FileNotFoundError:
-            logger.error(f"Error: File not found ({static_data_path})")
-            # TODO: What to do if the file is not found?
+        data = self._get_data_from_json_file(
+            entity=entity,
+            path_of_file=self.file_params["PATH_OF_STATIC_DATA"],
+            data_type="staticdata"
+        )
+        if not isinstance(data, StaticDataEntityModel):
             return None
-        if isinstance(static_data, list):
-            static_data = {"staticdata": static_data}
-        elif isinstance(static_data, dict):
-            pass
-        else:
-            logger.error(f"Error: Unsupported data format ({static_data_path})")
-            return None
+        return data
 
-        static_data = StaticDataFile.model_validate(static_data)
-
-        for attribute in entity.attributes:
-
-            for item_entity in static_data.staticdata:
-                for item_attribute in item_entity.attributes:
-                    if item_attribute.id == attribute.id:
-
-                        attributes_values.append(
-                            InputDataAttributeModel(
-                                id=attribute.id,
-                                data=item_attribute.value,
-                                unit=self._get_unit_from_file(item_attribute.metadata),
-                                data_type=AttributeTypes.VALUE,
-                                data_available=True,
-                                latest_timestamp_input=None,
-                            )
-                        )
-
-        return StaticDataEntityModel(id=entity.id, attributes=attributes_values)
 
     def send_data_to_json_file(
         self,
@@ -365,34 +405,48 @@ class FileConnection:
             - Is it better to set the results-folder via env?
         """
         outputs = []
+        output_attr = []
         commands = []
         logger.debug("Write outputs to json-output-files")
 
-        if not os.path.exists("./results"):
-            os.makedirs("./results")
+        path_to_results = self.file_params["PATH_OF_RESULTS"]
+
+        if not os.path.exists(path_to_results):
+            os.makedirs(path_to_results)
 
         for output in output_attributes:
-            outputs.append(
+            output_attr.append(
                 {
-                    "id_interface": output.id_interface,
+                    "id": output.id_interface,
                     "value": output.value,
-                    "time": output.timestamp.isoformat(" "),
+                    "unit": None if output.unit is None else output.unit.value,
+                    "time": None if output.timestamp is None else output.timestamp.isoformat(" ")
                 }
             )
-
-        with open(
-            f"./results/outputs_{str(output_entity.id)}.json", "w", encoding="utf-8"
-        ) as outputfile:
-            json.dump(outputs, outputfile)
+        outputs.append(
+            {
+                "id": output_entity.id,
+                "attributes" : output_attr
+            }
+        )
+        try:
+            with open(
+                f"{path_to_results}/outputs_{str(output_entity.id)}.json", "w", encoding="utf-8"
+            ) as outputfile:
+                json.dump(outputs, outputfile)
+        except (FileNotFoundError, PermissionError) as e:
+            logger.error(f"Error writing output file: {e}")
 
         for command in output_commands:
             commands.append(
                 {
                     "id_interface": command.id_interface,
-                    "value": command.value,
-                    "time": command.timestamp.isoformat(" "),
+                    "value": command.value
                 }
             )
-
-        with open("./results/commands.json", "w", encoding="utf-8") as commandfile:
-            json.dump(commands, commandfile)
+        try:
+            with open(os.path.join(path_to_results, f"commands_{output_entity.id}.json"),
+                      "w", encoding="utf-8") as commandfile:
+                json.dump(commands, commandfile)
+        except (FileNotFoundError, PermissionError) as e:
+            logger.error(f"Error writing output file: {e}")

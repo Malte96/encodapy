@@ -22,8 +22,8 @@ from encodapy.components.basic_component_config import ControllerComponentModel
 
 
 class InterfaceModel(BaseModel):
-    """Base class for the interfaces
-    TODO: - How to use this model?
+    """
+    Base class for the interfaces
     """
 
     mqtt: bool = False
@@ -434,43 +434,45 @@ class ConfigModel(BaseModel):
         return self
 
 
-class StaticDataFileAttribute(BaseModel):
+class DataFileAttribute(BaseModel):
     """
-    Model for static data file attributes.
+    Model for data file attributes.
     
     Contains:
         id (str): The unique identifier for the attribute.
         value (Union[str, float, int, bool, Dict, List, DataFrame, None]): \
             The value of the attribute.
-        metadata (Union[dict[str, str], None]): Metadata dictionary or None.
+        unit (Optional[DataUnits]): The unit of the attribute.
+        time (Optional[str]): The timestamp of the attribute as a string.
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     id: str
     value: Union[str, float, int, bool, Dict, List, DataFrame, None]
-    metadata: Optional[Dict] = None
+    unit: Optional[DataUnits] = None
+    time: Optional[str] = None
 
 
-class StaticDataFileEntity(BaseModel):
+class DataFileEntity(BaseModel):
     """
-    Model for static data file entities.
+    Model for data file entities.
 
     Contains:
         id (str): The unique identifier for the entity.
-        attributes (list[StaticDataFileAttribute]): The attributes of the entity.
+        attributes (list[DataFileAttribute]): The attributes of the entity.
     """
 
     id: str
-    attributes: list[StaticDataFileAttribute]
+    attributes: list[DataFileAttribute]
 
 
-class StaticDataFile(BaseModel):
+class DataFile(BaseModel):
     """
     Model for static data files.
 
     Contains:
-        staticdata (list[StaticDataFileEntity]): The static data entities.
+        data (list[DataFileEntity]): The data entities.
     """
 
-    staticdata: list[StaticDataFileEntity]
+    data: list[DataFileEntity]

@@ -53,10 +53,9 @@
     CRATE_DB_SSL = [False]
 
     # FILE - Interface
-    PATH_OF_INPUT_FILE = "path_to_the_file_\\validation_data.csv"
-    PATH_OF_STATIC_DATA = "path_to_the_file_\\static_data.json"
-    START_TIME_FILE = "01.01.2023 06:00"
-    TIME_FORMAT_FILE = "%d.%m.%Y %H:%M" - format of time in file
+    PATH_OF_INPUT_FILE = "path_to_the_file/validation_data.csv"
+    PATH_OF_STATIC_DATA = "path_to_the_file/static_data.json"
+    START_TIME_FILE = "2023-01-01 00:00"  # Default / It needs to be ISO compatible (https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat).
     ```
 
 ## Usage

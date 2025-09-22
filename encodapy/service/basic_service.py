@@ -147,7 +147,10 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         """
         logger.debug("There is nothing else to prepare for the start of the service.")
 
-    def reload_static_data(self, method: DataQueryTypes, staticdata: list) -> list:
+    def reload_static_data(self,
+                           method: DataQueryTypes,
+                           staticdata: list
+                           ) -> list[StaticDataEntityModel]:
         """
         Function to reload the static data
         Args:
@@ -246,18 +249,22 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
         for input_entity in self.config.inputs:
             if input_entity.interface == Interfaces.FIWARE:
-                input_data.append(
-                    self.get_data_from_fiware(
+                fiware_input = self.get_data_from_fiware(
                         method=method,
                         entity=input_entity,
                         timestamp_latest_output=output_latest_timestamp,
                     )
-                )
+                if fiware_input is not None:
+                    input_data.append(
+                        fiware_input
+                    )
 
             elif input_entity.interface == Interfaces.FILE:
-                input_data.append(
-                    self.get_data_from_file(method=method, entity=input_entity)
-                )
+                file_input = self.get_data_from_file(method=method, entity=input_entity)
+                if file_input is not None:
+                    input_data.append(
+                        file_input
+                    )
 
             elif input_entity.interface == Interfaces.MQTT:
                 input_data.append(

@@ -15,16 +15,16 @@ Before running this example, ensure you have the following:
 
 As this example component is configured using the MQTT and file interface, the environment variables that could be required for this example can be found in [example 05](./../05_simple_service_mqtt/). The following variables are required, though some are optional:
     ```.env
-    LOG_LEVEL = "DEBUG" # if you need more logs
-    PATH_OF_INPUT_FILE = "./input_data.csv" # inputs via file
+    LOG_LEVEL = "DEBUG"                         # if you need more logs
+    PATH_OF_INPUT_FILE = "./input_data.csv"     # inputs via file
 
-    MQTT_BROKER="localhost"  # URL of the MQTT Broker / default value
-    MQTT_PORT=1883           # Port of the MQTT Broker / default value
-    MQTT_USERNAME=""         # if required / default value
-    MQTT_PASSWORD=""         # if required / default value
-    MQTT_TOPIC_PREFIX=""     # optional, used as prefix for all topics  / default value
-    LOG_LEVEL="DEBUG"      # Level for Logging Messages ("DEBUG" to get more information) / default value
-    CONFIG_PATH="config.json"  # Path to the configuration directory / default value
+    MQTT_BROKER="localhost"                     # URL of the MQTT Broker / default value
+    MQTT_PORT=1883                              # Port of the MQTT Broker / default value
+    MQTT_USERNAME=""                            # if required / default value
+    MQTT_PASSWORD=""                            # if required / default value
+    MQTT_TOPIC_PREFIX=""                        # optional, used as prefix for all topics  / default value
+    LOG_LEVEL="DEBUG"                           # Level for Logging Messages ("DEBUG" to get more information) / default value
+    CONFIG_PATH="config.json"                   # Path to the configuration directory / default value
     ```
 As MQTT is used as the interface, you will need a running MQTT broker.
 

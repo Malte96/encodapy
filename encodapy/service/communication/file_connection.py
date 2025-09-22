@@ -416,7 +416,7 @@ class FileConnection:
                     "id_interface": command.id_interface,
                     "value": command.value,
                     "unit": None if command.unit is None else command.unit.value,
-                    "time": None if command.timestamp is None else command.timestamp.isoformat(" ")             
+                    "time": None if command.timestamp is None else command.timestamp.isoformat(" ")
                 }
             )
         try:

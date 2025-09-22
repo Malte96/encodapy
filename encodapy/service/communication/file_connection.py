@@ -420,7 +420,7 @@ class FileConnection:
                 }
             )
         try:
-            with open(f"{path_to_results}//commands_{str(output_entity.id)}.json", "w", encoding="utf-8"
+            with open(os.path.join(path_to_results, f"commands_{str(output_entity.id)}.json"), "w", encoding="utf-8"
             ) as commandfile:
                 json.dump(commands, commandfile)
         except (FileNotFoundError, PermissionError) as e:

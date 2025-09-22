@@ -83,7 +83,7 @@ class FileConnection:
 
         output_id = output_entity.id_interface
 
-        timestamps:list[OutputDataAttributeModel] = []
+        timestamps: list[OutputDataAttributeModel] = []
         timestamp_latest_output = None
 
         return (

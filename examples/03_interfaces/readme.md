@@ -107,7 +107,7 @@ Data exchange with via local file.
     - Column name (specific input) in `.csv` must be the like `${Attribute-id_interface}` from the config (Important: the IDs of the attributes `id_interface` over the the interface "file" must therefore be unique)
     - An example of this input is attached as [inputs_csv-file_interface_example.csv](./inputs_csv-file_interface_example.csv), using the the configuration from [n5geh.encodapy/examples/01_config/config.json](./../01_config/config.json)
   - json characteristics:
-    -It can be used for single-input data (`value`)
+    - It can be used for single-input data (`value`)
     - json object contains a list of dicts
       - id of entity 
       - attributes:   

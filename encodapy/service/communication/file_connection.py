@@ -236,8 +236,8 @@ class FileConnection:
 
     def _get_attribute_from_entity(
         self,
-        file_entity:DataFileEntity,
-        attribute:AttributeModel,
+        file_entity: DataFileEntity,
+        attribute: AttributeModel,
         ) -> Optional[InputDataAttributeModel]:
         """
         Helper function to extract an attribute from a DataFileEntity

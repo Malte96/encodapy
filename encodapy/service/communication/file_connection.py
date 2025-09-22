@@ -236,7 +236,7 @@ class FileConnection:
         self,
         entity: StaticDataModel|InputModel,
         path_of_file: str,
-        data_type:str
+        data_type: str
         ) -> Union[InputDataEntityModel, StaticDataEntityModel, None]:
         try:
             # read data from json file and timestamp

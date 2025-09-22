@@ -197,7 +197,7 @@ class FileConnection:
 
         return InputDataEntityModel(id=entity.id, attributes=attributes_values)
 
-    def _read_time_from_string(self, time_string: str|datetime|None) -> Optional[datetime]:
+    def _read_time_from_string(self, time_string: Union[str, datetime, None]) -> Optional[datetime]:
         """
         Helper function to read a time from a string based on the configured time format.
         Args:

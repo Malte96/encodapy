@@ -17,9 +17,9 @@ class IOAllocationModel(BaseModel):
     """
     Model for the input or output allocation.
 
-    Contains:
-        `entity`: ID of the entity to which the input or output is allocated
-        `attribute`: ID of the attribute to which the input or output is allocated
+    Attributes:
+        entity (str): ID of the entity to which the input or output is allocated
+        attribute (str): ID of the attribute to which the input or output is allocated
     """
 
     entity: str = Field(
@@ -55,17 +55,18 @@ class ConfigDataPoints(
 class ControllerComponentModel(BaseModel):
     """
     Model for the configuration of the controller components.
-    Contains:
-    - active: Whether the component is active or not
-    - id: The id of the component
-    - type: The type of the component (e.g. thermal storage, heat pump, etc. / \
-        needs to be defined for individual components)
-    - inputs: The inputs of the component as a dictionary with IOAllocationModel \
-        for the individual inputs
-    - outputs: The outputs of the component as a dictionary with IOAllocationModel \
-        for the individual outputs
-    - config: The configuration of the component as a dictionary with IOAllocationModel \
-          for the individual static data or DataPointModel with direct values
+    
+    Attributes:
+        active (bool): Whether the component is active or not
+        id (str): The id of the component
+        type (str): The type of the component (e.g. thermal storage, heat pump, etc. / \
+            needs to be defined for individual components)
+        inputs (IOModell): The inputs of the component as a dictionary with IOAllocationModel \
+            for the individual inputs
+        outputs (IOModell): The outputs of the component as a dictionary with IOAllocationModel \
+            for the individual outputs
+        config (ConfigDataPoints): The configuration of the component as a dictionary with \
+            IOAllocationModel for the individual static data or DataPointModel with direct values
     """
 
     active: Optional[bool] = True
@@ -167,9 +168,9 @@ class ComponentIOModel(BaseModel):
     """
     Model for the input and output of the thermal storage service.
 
-    Contains:
-        `input`: InputModel = Input configuration for the thermal storage service
-        `output`: OutputModel = Output configuration for the thermal storage service
+    Attributes:
+        input (InputModel): Input configuration for the thermal storage service
+        output (OutputModel): Output configuration for the thermal storage service
     """
 
     input: InputData = Field(

@@ -36,6 +36,20 @@ exclude_patterns = []
 
 html_theme = 'sphinx_rtd_theme'
 
+# GitHub "Edit on GitHub" Link
+html_context = {
+    "display_github": True,
+    "github_user": "gewv-tu-dresden",
+    "github_repo": "encodapy",
+    "github_version": "main",
+    "conf_py_path": "/docs/source/",
+}
+
+# Optional: Direct edit links in theme
+html_theme_options = {
+    "vcs_pageview_mode": "blob",
+}
+
 
 # Cross-Referencing für local class
 autodoc_typehints_format = "short"

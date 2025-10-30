@@ -32,5 +32,3 @@ Configuration of the File Interface
 
 .. autopydantic_model:: encodapy.config.models.DataFileAttribute
 
-
-

@@ -13,9 +13,10 @@
   - File
 - The controller has the functionality to read a configuration from JSON and ENV, validate it and return it as a model.
 - The framework provides components that can be used within a service. This is the recommended solution for running a functional service.
-  For more information and code, see: [encodapy/components/README.md](./encodapy/components/README.md)
+  For more information and code, see: [encodapy/components/readme.md](./encodapy/components/readme.md)
 
 - Examples and documentation for each part of the project are available under: [examples](./examples/)
+- Further documentation can be found [here](https://gewv-tu-dresden.github.io/encodapy/).
 
 ## Configuration
 
@@ -121,11 +122,11 @@ The examples are intended to help you use the tool and understand how it works:
 The recommended way to run the service is:
 
 - Create a Python environment using Poetry (see [pyproject.toml](./pyproject.toml)).
-- Use a Docker container for production deployments (create a custom image using the [dockerfile](dockerfile)).
+- Use a Docker container for production deployments (create a custom image using the [dockerfile](./dockerfile)).
 
 ## License
 
-This project is licensed under the BSD License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the BSD License - see the [LICENSE](./LICENSE) file for details.
 
 ## Copyright
 

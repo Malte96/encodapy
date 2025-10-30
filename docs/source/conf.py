@@ -1,10 +1,14 @@
 import os
 import sys
+import subprocess
+from pathlib import Path
 sys.path.insert(0, os.path.abspath("../.."))
+
+
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'EnCoDaPy Config'
+project = 'EnCoDaPy'
 copyright = '2025, Martin Altenburger'
 author = 'Martin Altenburger'
 
@@ -18,6 +22,7 @@ extensions = [
     "sphinx.ext.napoleon",
     "sphinx_autodoc_typehints",
     "sphinxcontrib.autodoc_pydantic",
+    "myst_parser",
 ]
 
 intersphinx_mapping = {
@@ -103,6 +108,21 @@ autodoc_pydantic_model_show_validator_summary = False
 # Verstecke die automatisch generierten Parameter-Listen für Pydantic-Modelle
 autodoc_pydantic_model_hide_paramlist = True
 
+# Import of myst-parser settings / for markdown support
+myst_config = {
+    "enable_extensions": [
+        "colon_fence",
+        "deflist",
+        "substitution",
+        "tasklist",
+        "attrs_block",
+        "attrs_inline",
+        "replacements",
+        "include",
+    ],
+    "heading_anchors": 3,
+}
+
 
 # Prevent display of docstrings
 def suppress_module_docstring(app, what, name, obj, options, lines):
@@ -139,7 +159,45 @@ def suppress_pydantic_parameters(app, what, name, obj, options, lines):
 
 import re
 
+def _generate_readme(app):
+    # script is under docs/scripts relative to repo root
+    repo_root = Path(__file__).resolve().parents[2]
+    script = repo_root / "docs" / "scripts" / "generate_readme_for_docs.py"
+    print("Generating README for docs using script:", str(script))
+    if not script.exists():
+        # falls das Skript fehlt: nur loggen, nicht abstürzen
+        try:
+            app.logger.warning("README generator script not found: %s", str(script))
+        except Exception:
+            pass
+        return
+
+    # read repo info from html_context (set above in this file)
+    owner = html_context.get("github_user") or html_context.get("github_org") or ""
+    repo = html_context.get("github_repo") or ""
+    branch = html_context.get("github_version") or html_context.get("github_branch") or "main"
+
+    cmd = [sys.executable, str(script), "--owner", owner, "--repo", repo, "--branch", branch]
+
+    try:
+        subprocess.check_call(cmd, cwd=str(repo_root))
+        try:
+            app.logger.info("README generator finished: %s", str(script))
+        except Exception:
+            pass
+    except subprocess.CalledProcessError as exc:
+        try:
+            app.logger.warning("README generator failed (non-zero exit): %s", exc)
+        except Exception:
+            pass
+    except Exception as exc:
+        try:
+            app.logger.warning("README generator raised exception: %s", exc)
+        except Exception:
+            pass
+
 
 def setup(app):
+    app.connect("builder-inited", lambda app: _generate_readme(app))
     app.connect("autodoc-process-docstring", suppress_module_docstring)
-    app.connect("autodoc-process-docstring", suppress_pydantic_parameters)
+    # app.connect("autodoc-process-docstring", suppress_pydantic_parameters)

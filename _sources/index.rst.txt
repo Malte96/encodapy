@@ -1,4 +1,4 @@
-EnCoDaPy Config Documentation
+EnCoDaPy Documentation
 =============================
 
 Welcome to the EnCoDaPy (Energy Component Data Python) documentation!
@@ -36,9 +36,9 @@ This documentation is organized into the following sections:
 
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Configuration
-
-   config_models
-   components_models
-   utils_models
+  :maxdepth: 2
+ 
+  readme
+  config_models
+  components_models
+  utils_models

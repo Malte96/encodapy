@@ -39,6 +39,6 @@ This documentation is organized into the following sections:
   :maxdepth: 2
  
   readme
-  config_models
-  components_models
-  utils_models
+  
+  basic_service
+  components

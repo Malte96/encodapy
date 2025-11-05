@@ -3,6 +3,10 @@ import sys
 import subprocess
 from pathlib import Path
 sys.path.insert(0, os.path.abspath("../.."))
+from sphinx.util import logging
+
+# Recommended logger for Sphinx config/extensions
+logger = logging.getLogger(__name__)
 
 
 # -- Project information -----------------------------------------------------
@@ -157,47 +161,45 @@ def suppress_pydantic_parameters(app, what, name, obj, options, lines):
                 i += 1
         lines[:] = new_lines
 
-import re
 
 def _generate_readme(app):
+
+    readmes: dict(str, str)= {
+        "README.md": "README_FOR_DOCS.md",
+        "encodapy/components/readme.md": "COMPONENTS_README_FOR_DOCS.md"
+    }
+
     # script is under docs/scripts relative to repo root
     repo_root = Path(__file__).resolve().parents[2]
     script = repo_root / "docs" / "scripts" / "generate_readme_for_docs.py"
     print("Generating README for docs using script:", str(script))
     if not script.exists():
         # falls das Skript fehlt: nur loggen, nicht abstürzen
-        try:
-            app.logger.warning("README generator script not found: %s", str(script))
-        except Exception:
-            pass
+        logger.warning("README generator script not found: %s", str(script))
         return
 
     # read repo info from html_context (set above in this file)
     owner = html_context.get("github_user") or html_context.get("github_org") or ""
     repo = html_context.get("github_repo") or ""
     branch = html_context.get("github_version") or html_context.get("github_branch") or "main"
+    repo_root = Path(__file__).resolve().parents[2]  # docs/source -> repo_root
 
-    cmd = [sys.executable, str(script), "--owner", owner, "--repo", repo, "--branch", branch]
+    for readme_src, output_name in readmes.items():
+        cmd = [sys.executable, str(script), "--owner", owner, "--repo", repo, "--branch", branch,
+               "--repo_root", str(repo_root),
+               "--readme-src", readme_src,
+               "--output_name", output_name]
 
-    try:
-        subprocess.check_call(cmd, cwd=str(repo_root))
         try:
-            app.logger.info("README generator finished: %s", str(script))
-        except Exception:
-            pass
-    except subprocess.CalledProcessError as exc:
-        try:
-            app.logger.warning("README generator failed (non-zero exit): %s", exc)
-        except Exception:
-            pass
-    except Exception as exc:
-        try:
-            app.logger.warning("README generator raised exception: %s", exc)
-        except Exception:
-            pass
+            subprocess.check_call(cmd, cwd=str(repo_root))
+            logger.info("README generator finished: %s", str(script))
+
+        except subprocess.CalledProcessError as exc:
+            logger.warning("README generator failed (non-zero exit): %s", exc)
+
 
 
 def setup(app):
-    app.connect("builder-inited", lambda app: _generate_readme(app))
+    app.connect("builder-inited", _generate_readme)
     app.connect("autodoc-process-docstring", suppress_module_docstring)
     # app.connect("autodoc-process-docstring", suppress_pydantic_parameters)

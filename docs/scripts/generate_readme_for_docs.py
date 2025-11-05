@@ -9,19 +9,35 @@ with ./ or ../ and rewrites them to point to the repository's GitHub tree on the
 from pathlib import Path
 import re
 import sys
-
+import argparse
 
 REPO_OWNER = "gewv-tu-dresden"
 REPO_NAME = "encodapy"
 BRANCH = "main"
 
 def main(argv=None):
-    import argparse
 
-    parser = argparse.ArgumentParser(description="Generate README copy for docs with rewritten links")
-    parser.add_argument("--owner", help="GitHub repo owner/organization", default=REPO_OWNER)
-    parser.add_argument("--repo", help="GitHub repository name", default=REPO_NAME)
-    parser.add_argument("--branch", help="GitHub branch (or tag)", default=BRANCH)
+    parser = argparse.ArgumentParser(
+        description="Generate README copy for docs with rewritten links"
+        )
+    parser.add_argument("--owner",
+                        help="GitHub repo owner/organization",
+                        default=REPO_OWNER)
+    parser.add_argument("--repo",
+                        help="GitHub repository name",
+                        default=REPO_NAME)
+    parser.add_argument("--branch",
+                        help="GitHub branch (or tag)",
+                        default=BRANCH)
+    parser.add_argument("--repo_root",
+                        help="Path to the repository root (if not auto-detected)",
+                        default=None)
+    parser.add_argument("--readme-src",
+                        help="Path to the source README.md file",
+                        default=None)
+    parser.add_argument("--output_name",
+                        help="Output path for the generated README file",
+                        default="README_FOR_DOCS.md")
     args = parser.parse_args(argv)
 
     owner = args.owner
@@ -32,25 +48,17 @@ def main(argv=None):
         p = Path(rel_path)
         return f"https://github.com/{owner}/{repo}/blob/{branch}/{p.as_posix()}"
 
-    # Find the nearest ancestor that contains README.md (robust in different CWDs)
-    current = Path(__file__).resolve()
-    repo_root = None
-    for parent in [current] + list(current.parents):
-        candidate = parent / "README.md"
-        if candidate.exists():
-            repo_root = parent
-            readme_src = candidate
-            break
+    readme_path = Path(args.repo_root) / args.readme_src
 
-    if repo_root is None:
-        print("README.md not found in any parent directories starting from:", current, file=sys.stderr)
+    if not readme_path.exists():
+        print(f"{readme_path} not found in any parent directories starting from:")
         sys.exit(1)
 
-    out_dir = repo_root / "docs" / "source" / "_generated"
+    out_dir = Path(args.repo_root) / "docs" / "source" / "_generated"
     out_dir.mkdir(parents=True, exist_ok=True)
-    out_file = out_dir / "README_FOR_DOCS.md"
+    out_file = out_dir / args.output_name
 
-    text = readme_src.read_text(encoding="utf-8")
+    text = readme_path.read_text(encoding="utf-8")
 
     # local rewrite function that uses the CLI-supplied values
     def rewrite_links_local(text: str, src_dir: Path) -> str:
@@ -60,7 +68,7 @@ def main(argv=None):
             target = m.group("target")
             resolved = (src_dir / target).resolve()
             try:
-                rel_to_repo = resolved.relative_to(repo_root)
+                rel_to_repo = resolved.relative_to(args.repo_root)
             except Exception:
                 rel_to_repo = Path(target)
             url = make_github_url_local(rel_to_repo.as_posix())
@@ -75,7 +83,7 @@ def main(argv=None):
             if "://" in target or "/" in target:
                 return f"({target})"
             # if file exists at repo root, convert to github url
-            candidate = repo_root / target
+            candidate = Path(args.repo_root) / target
             if candidate.exists():
                 url = make_github_url_local(Path(target).as_posix())
                 return f"({url})"
@@ -85,7 +93,7 @@ def main(argv=None):
         text = bare_pattern.sub(repl_bare, text)
         return text
 
-    new_text = rewrite_links_local(text, readme_src.parent)
+    new_text = rewrite_links_local(text, readme_path.parent)
     out_file.write_text(new_text, encoding="utf-8")
     print("Wrote", out_file)
 

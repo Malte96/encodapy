@@ -1,5 +1,5 @@
-Component Configuration
-=======================
+Component Configuration Models
+==============================
 
 Configuration Model
 -------------------

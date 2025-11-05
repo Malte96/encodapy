@@ -42,9 +42,8 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../../readme.html">“EnCoDaPy” – Energy Control and Data Preparation in Python</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../config_models.html">Basic Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../components_models.html">Component Configuration</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../utils_models.html">Utility Models</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../basic_service.html">EnCoDaPy Basic Service</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../components.html">EnCoDaPy Components</a></li>
 </ul>
 
         </div>
@@ -96,7 +95,7 @@
 
 
 <div class="viewcode-block" id="InterfaceModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.InterfaceModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.InterfaceModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">InterfaceModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for the interfaces</span>
@@ -114,7 +113,7 @@
 
 
 <div class="viewcode-block" id="AttributeModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.AttributeModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.AttributeModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">AttributeModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Configuration class for representing attributes with metadata, value, \</span>
@@ -160,7 +159,7 @@
 
 
 <div class="viewcode-block" id="CommandModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.CommandModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.CommandModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">CommandModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Configuration class for the commands</span>
@@ -190,7 +189,7 @@
 
 
 <div class="viewcode-block" id="InputModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.InputModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.InputModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">InputModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for the configuration of inputs.</span>
@@ -220,7 +219,7 @@
 
 
 <div class="viewcode-block" id="StaticDataModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.StaticDataModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.StaticDataModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">StaticDataModel</span><span class="p">(</span><span class="n">InputModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for the configuration of inputs.</span>
@@ -237,7 +236,7 @@
 
 
 <div class="viewcode-block" id="OutputModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.OutputModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.OutputModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OutputModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for the configuration of outputs.</span>
@@ -267,7 +266,7 @@
 
 
 <div class="viewcode-block" id="TimeSettingsCalculationModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.TimeSettingsCalculationModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.TimeSettingsCalculationModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeSettingsCalculationModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for the calculation time settings of the controller / system.</span>
@@ -362,7 +361,7 @@
 
 
 <div class="viewcode-block" id="TimeSettingsCalibrationModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.TimeSettingsCalibrationModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.TimeSettingsCalibrationModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeSettingsCalibrationModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for the calibration time settings of the controller / system.</span>
@@ -392,7 +391,7 @@
 
 
 <div class="viewcode-block" id="TimeSettingsResultsModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.TimeSettingsResultsModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.TimeSettingsResultsModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeSettingsResultsModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Settings for the timesteps of the results.</span>
@@ -404,7 +403,7 @@
 
 
 <div class="viewcode-block" id="TimeSettingsModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.TimeSettingsModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.TimeSettingsModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">TimeSettingsModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base class for the time settings of the controller / system.</span>
@@ -424,7 +423,7 @@
 
 
 <div class="viewcode-block" id="ControllerSettingModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.ControllerSettingModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.ControllerSettingModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ControllerSettingModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for the configuration of the controller settings.</span>
@@ -442,7 +441,7 @@
 
 
 <div class="viewcode-block" id="ConfigModel">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.ConfigModel">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.ConfigModel">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConfigModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Base model for the configuration of the system controller.</span>
@@ -469,7 +468,7 @@
     <span class="n">controller_settings</span><span class="p">:</span> <span class="n">ControllerSettingModel</span>
 
 <div class="viewcode-block" id="ConfigModel.from_json">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.ConfigModel.from_json">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.ConfigModel.from_json">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="k">def</span><span class="w"> </span><span class="nf">from_json</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
@@ -562,7 +561,7 @@
 
 
 <div class="viewcode-block" id="DataFileAttribute">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.DataFileAttribute">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.DataFileAttribute">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DataFileAttribute</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for data file attributes.</span>
@@ -585,7 +584,7 @@
 
 
 <div class="viewcode-block" id="DataFileEntity">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.DataFileEntity">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.DataFileEntity">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DataFileEntity</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for data file entities.</span>
@@ -601,7 +600,7 @@
 
 
 <div class="viewcode-block" id="DataFile">
-<a class="viewcode-back" href="../../../config_models.html#encodapy.config.models.DataFile">[docs]</a>
+<a class="viewcode-back" href="../../../basic_service/config_models.html#encodapy.config.models.DataFile">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">DataFile</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for static data files.</span>

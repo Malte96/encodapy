@@ -9,6 +9,7 @@
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
       <link rel="stylesheet" type="text/css" href="_static/autodoc_pydantic.css" />
+      <link rel="stylesheet" type="text/css" href="_static/custom.css?v=da2a414a" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
@@ -86,6 +87,7 @@
  | <a href="#K"><strong>K</strong></a>
  | <a href="#L"><strong>L</strong></a>
  | <a href="#M"><strong>M</strong></a>
+ | <a href="#N"><strong>N</strong></a>
  | <a href="#O"><strong>O</strong></a>
  | <a href="#P"><strong>P</strong></a>
  | <a href="#R"><strong>R</strong></a>
@@ -123,19 +125,35 @@
 </li>
       <li><a href="basic_service/utils_models.html#encodapy.config.types.DataQueryTypes.CALCULATION">CALCULATION (encodapy.config.types.DataQueryTypes attribute)</a>
 </li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.calculation_method">calculation_method (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData attribute)</a>
+</li>
       <li><a href="basic_service/config_models.html#encodapy.config.models.TimeSettingsModel.calibration">calibration (encodapy.config.models.TimeSettingsModel attribute)</a>
 </li>
       <li><a href="basic_service/utils_models.html#encodapy.config.types.DataQueryTypes.CALIBRATION">CALIBRATION (encodapy.config.types.DataQueryTypes attribute)</a>
 </li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.check_load_connection_sensors">check_load_connection_sensors() (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData method)</a>
+</li>
+      <li><a href="basic_service/utils_models.html#encodapy.utils.units.DataUnits.CMT">CMT (encodapy.utils.units.DataUnits attribute)</a>
+</li>
+      <li><a href="components/built_in_two_point_controller_models.html#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_disabled">command_disabled (encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="basic_service/utils_models.html#encodapy.utils.units.DataUnits.CMT">CMT (encodapy.utils.units.DataUnits attribute)</a>
+      <li><a href="components/built_in_two_point_controller_models.html#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_enabled">command_enabled (encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData attribute)</a>
 </li>
       <li><a href="basic_service/config_models.html#encodapy.config.models.OutputModel.commands">commands (encodapy.config.models.OutputModel attribute)</a>
 </li>
       <li><a href="components/components_models.html#encodapy.components.basic_component_config.ComponentValidationError">ComponentValidationError</a>
 </li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageCalculationMethods.CONNECTION_LIMITS">CONNECTION_LIMITS (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageCalculationMethods attribute)</a>
+</li>
+      <li><a href="components/built_in_two_point_controller_models.html#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerOutputData.control_signal">control_signal (encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerOutputData attribute)</a>
+</li>
       <li><a href="basic_service/utils_models.html#encodapy.config.types.FileExtensionTypes.CSV">CSV (encodapy.config.types.FileExtensionTypes attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageEnergyTypes.CURRENT">CURRENT (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageEnergyTypes attribute)</a>
+</li>
+      <li><a href="components/built_in_two_point_controller_models.html#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerInputData.current_value">current_value (encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerInputData attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -175,12 +193,28 @@
 </li>
       </ul></li>
       <li>
+    encodapy.components.thermal_storage.thermal_storage_config
+
+      <ul>
+        <li><a href="components/built_in_thermal_storage_models.html#module-encodapy.components.thermal_storage.thermal_storage_config">module</a>
+</li>
+      </ul></li>
+      <li>
+    encodapy.components.two_point_controller.two_point_controller_config
+
+      <ul>
+        <li><a href="components/built_in_two_point_controller_models.html#module-encodapy.components.two_point_controller.two_point_controller_config">module</a>
+</li>
+      </ul></li>
+      <li>
     encodapy.config.models
 
       <ul>
         <li><a href="basic_service/config_models.html#module-encodapy.config.models">module</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     encodapy.config.types
 
@@ -188,8 +222,6 @@
         <li><a href="basic_service/utils_models.html#module-encodapy.config.types">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     encodapy.utils.datapoints
 
@@ -232,10 +264,14 @@
 <h2 id="G">G</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="basic_service/utils_models.html#encodapy.utils.units.get_time_unit_seconds">get_time_unit_seconds() (in module encodapy.utils.units)</a>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageTemperatureSensors.get_number_of_sensors">get_number_of_sensors() (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageTemperatureSensors method)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.get_number_storage_sensors">get_number_storage_sensors() (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData method)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="basic_service/utils_models.html#encodapy.utils.units.get_time_unit_seconds">get_time_unit_seconds() (in module encodapy.utils.units)</a>
+</li>
       <li><a href="basic_service/utils_models.html#encodapy.utils.units.get_unit_adjustment_factor">get_unit_adjustment_factor() (in module encodapy.utils.units)</a>
 </li>
   </ul></td>
@@ -244,6 +280,8 @@
 <h2 id="H">H</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.StorageSensorConfig.height">height (encodapy.components.thermal_storage.thermal_storage_config.StorageSensorConfig attribute)</a>
+</li>
       <li><a href="basic_service/utils_models.html#encodapy.utils.units.DataUnits.HOUR">HOUR (encodapy.utils.units.DataUnits attribute)</a>
 
       <ul>
@@ -252,6 +290,10 @@
         <li><a href="basic_service/utils_models.html#encodapy.utils.units.TimeUnitsSeconds.HOUR">(encodapy.utils.units.TimeUnitsSeconds attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="components/built_in_two_point_controller_models.html#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.hysteresis">hysteresis (encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -318,9 +360,17 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="basic_service/utils_models.html#encodapy.utils.units.DataUnits.L2">L2 (encodapy.utils.units.DataUnits attribute)</a>
 </li>
+      <li><a href="components/built_in_two_point_controller_models.html#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerInputData.latest_control_signal">latest_control_signal (encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.StorageSensorConfig.limits">limits (encodapy.components.thermal_storage.thermal_storage_config.StorageSensorConfig attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="basic_service/utils_models.html#encodapy.utils.units.DataUnits.LITER">LITER (encodapy.utils.units.DataUnits attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.load_temperature_in">load_temperature_in (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.load_temperature_out">load_temperature_out (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -328,6 +378,16 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageEnergyTypes.MAXIMAL">MAXIMAL (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageEnergyTypes attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits.maximal_temperature">maximal_temperature (encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.medium">medium (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageEnergyTypes.MINIMAL">MINIMAL (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageEnergyTypes attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits.minimal_temperature">minimal_temperature (encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits attribute)</a>
+</li>
       <li><a href="basic_service/utils_models.html#encodapy.utils.units.DataUnits.MINUTE">MINUTE (encodapy.utils.units.DataUnits attribute)</a>
 
       <ul>
@@ -341,6 +401,10 @@
 
       <ul>
         <li><a href="components/components_models.html#module-encodapy.components.basic_component_config">encodapy.components.basic_component_config</a>
+</li>
+        <li><a href="components/built_in_thermal_storage_models.html#module-encodapy.components.thermal_storage.thermal_storage_config">encodapy.components.thermal_storage.thermal_storage_config</a>
+</li>
+        <li><a href="components/built_in_two_point_controller_models.html#module-encodapy.components.two_point_controller.two_point_controller_config">encodapy.components.two_point_controller.two_point_controller_config</a>
 </li>
         <li><a href="basic_service/config_models.html#module-encodapy.config.models">encodapy.config.models</a>
 </li>
@@ -378,6 +442,14 @@
   </ul></td>
 </tr></table>
 
+<h2 id="N">N</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageEnergyTypes.NOMINAL">NOMINAL (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageEnergyTypes attribute)</a>
+</li>
+  </ul></td>
+</tr></table>
+
 <h2 id="O">O</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
@@ -401,10 +473,12 @@
 <h2 id="R">R</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="basic_service/utils_models.html#encodapy.config.types.TimerangeTypes.RELATIVE">RELATIVE (encodapy.config.types.TimerangeTypes attribute)</a>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits.reference_temperature">reference_temperature (encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="basic_service/utils_models.html#encodapy.config.types.TimerangeTypes.RELATIVE">RELATIVE (encodapy.config.types.TimerangeTypes attribute)</a>
+</li>
       <li><a href="basic_service/config_models.html#encodapy.config.models.TimeSettingsModel.results">results (encodapy.config.models.TimeSettingsModel attribute)</a>
 </li>
   </ul></td>
@@ -425,8 +499,6 @@
         <li><a href="basic_service/config_models.html#encodapy.config.models.TimeSettingsCalibrationModel.sampling_time_unit">(encodapy.config.models.TimeSettingsCalibrationModel attribute)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="basic_service/utils_models.html#encodapy.utils.units.DataUnits.SECOND">SECOND (encodapy.utils.units.DataUnits attribute)</a>
 
       <ul>
@@ -435,7 +507,23 @@
         <li><a href="basic_service/utils_models.html#encodapy.utils.units.TimeUnitsSeconds.SECOND">(encodapy.utils.units.TimeUnitsSeconds attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.sensor_config">sensor_config (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData attribute)</a>
+</li>
+      <li><a href="components/built_in_two_point_controller_models.html#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.setpoint">setpoint (encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData attribute)</a>
+</li>
       <li><a href="basic_service/config_models.html#encodapy.config.models.ControllerSettingModel.specific_settings">specific_settings (encodapy.config.models.ControllerSettingModel attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageCalculationMethods.STATIC_LIMITS">STATIC_LIMITS (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageCalculationMethods attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData.storage__energy">storage__energy (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData.storage__level">storage__level (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData.storage__loading_potential_nominal">storage__loading_potential_nominal (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageTemperatureSensors.storage_sensors">storage_sensors (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageTemperatureSensors attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -443,6 +531,30 @@
 <h2 id="T">T</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_1">temperature_1 (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_10">temperature_10 (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_2">temperature_2 (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_3">temperature_3 (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_4">temperature_4 (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_5">temperature_5 (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_6">temperature_6 (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_7">temperature_7 (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_8">temperature_8 (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_9">temperature_9 (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageCalculationMethods">ThermalStorageCalculationMethods (class in encodapy.components.thermal_storage.thermal_storage_config)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageEnergyTypes">ThermalStorageEnergyTypes (class in encodapy.components.thermal_storage.thermal_storage_config)</a>
+</li>
       <li><a href="basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral.time">time (encodapy.utils.datapoints.DataPointGeneral attribute)</a>
 </li>
       <li><a href="basic_service/config_models.html#encodapy.config.models.ControllerSettingModel.time_settings">time_settings (encodapy.config.models.ControllerSettingModel attribute)</a>
@@ -453,6 +565,8 @@
         <li><a href="basic_service/config_models.html#encodapy.config.models.TimeSettingsCalibrationModel.timerange">(encodapy.config.models.TimeSettingsCalibrationModel attribute)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="basic_service/config_models.html#encodapy.config.models.TimeSettingsCalculationModel.timerange_max">timerange_max (encodapy.config.models.TimeSettingsCalculationModel attribute)</a>
 </li>
       <li><a href="basic_service/config_models.html#encodapy.config.models.TimeSettingsCalculationModel.timerange_min">timerange_min (encodapy.config.models.TimeSettingsCalculationModel attribute)</a>
@@ -467,8 +581,6 @@
       </ul></li>
       <li><a href="basic_service/utils_models.html#encodapy.config.types.TimerangeTypes">TimerangeTypes (class in encodapy.config.types)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="basic_service/utils_models.html#encodapy.config.types.AttributeTypes.TIMESERIES">TIMESERIES (encodapy.config.types.AttributeTypes attribute)</a>
 </li>
       <li><a href="basic_service/config_models.html#encodapy.config.models.AttributeModel.timestamp">timestamp (encodapy.config.models.AttributeModel attribute)</a>
@@ -513,9 +625,13 @@
 <h2 id="V">V</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="basic_service/config_models.html#encodapy.config.models.AttributeModel.value">value (encodapy.config.models.AttributeModel attribute)</a>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.DataPointCalculationMethod.value">value (encodapy.components.thermal_storage.thermal_storage_config.DataPointCalculationMethod attribute)</a>
 
       <ul>
+        <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.DataPointSensorConfig.value">(encodapy.components.thermal_storage.thermal_storage_config.DataPointSensorConfig attribute)</a>
+</li>
+        <li><a href="basic_service/config_models.html#encodapy.config.models.AttributeModel.value">(encodapy.config.models.AttributeModel attribute)</a>
+</li>
         <li><a href="basic_service/config_models.html#encodapy.config.models.CommandModel.value">(encodapy.config.models.CommandModel attribute)</a>
 </li>
       </ul></li>
@@ -538,6 +654,8 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="basic_service/utils_models.html#encodapy.utils.units.DataUnits.VLT">VLT (encodapy.utils.units.DataUnits attribute)</a>
+</li>
+      <li><a href="components/built_in_thermal_storage_models.html#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.volume">volume (encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData attribute)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -563,7 +681,7 @@
   <hr/>
 
   <div role="contentinfo">
-    <p>&#169; Copyright 2025, Martin Altenburger.</p>
+    <p>&#169; Copyright 2025, GEWV TU Dresden.</p>
   </div>
 
   Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a

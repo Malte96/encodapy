@@ -175,7 +175,8 @@ def _generate_readme(app):
         "README.md": "README_FOR_DOCS.md",
         "encodapy/components/readme.md": "COMPONENTS_README_FOR_DOCS.md",
         "encodapy/components/thermal_storage/readme.md": "COMPONENT_Thermal_Storage_README_FOR_DOCS.md",
-        "encodapy/components/two_point_controller/readme.md": "COMPONENT_Two_Point_Controller_README_FOR_DOCS.md"
+        "encodapy/components/two_point_controller/readme.md": "COMPONENT_Two_Point_Controller_README_FOR_DOCS.md",
+        "examples/readme.md": "COMPONENT_Examples_README_FOR_DOCS.md"
     }
 
     # script is under docs/scripts relative to repo root

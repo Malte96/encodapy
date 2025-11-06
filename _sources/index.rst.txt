@@ -42,3 +42,4 @@ This documentation is organized into the following sections:
   
   basic_service
   components
+  examples/examples

@@ -82,7 +82,7 @@ To start the service, you need to call
 - `start_calibration()`: To start the calibration if required
 - `start_service()`: To start the service
 
-For more details, see the [examples](#examples)
+For more details, see the [examples](https://github.com/gewv-tu-dresden/encodapy/blob/main/examples)
 
 ### Run Components with the ComponentRunnerService
 

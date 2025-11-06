@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'EnCoDaPy'
-copyright = '2025, Martin Altenburger'
+copyright = '2025, GEWV TU Dresden'
 author = 'Martin Altenburger'
 
 # -- General configuration ---------------------------------------------------
@@ -33,6 +33,7 @@ intersphinx_mapping = {
     "python": ("https://docs.python.org/3", None),
     "pandas": ("https://pandas.pydata.org/docs/", None),
     "filip": ("https://rwth-ebc.github.io/FiLiP/master/docs/", None),
+    "pydantic": ("https://docs.pydantic.dev/latest/", None),
 }
 
 
@@ -58,6 +59,12 @@ html_context = {
 html_theme_options = {
     "vcs_pageview_mode": "blob",
 }
+
+# Static files (custom CSS)
+html_static_path = ["_static"]
+html_css_files = [
+    "custom.css",
+]
 
 
 # Cross-Referencing für local class
@@ -166,7 +173,9 @@ def _generate_readme(app):
 
     readmes: dict(str, str)= {
         "README.md": "README_FOR_DOCS.md",
-        "encodapy/components/readme.md": "COMPONENTS_README_FOR_DOCS.md"
+        "encodapy/components/readme.md": "COMPONENTS_README_FOR_DOCS.md",
+        "encodapy/components/thermal_storage/readme.md": "COMPONENT_Thermal_Storage_README_FOR_DOCS.md",
+        "encodapy/components/two_point_controller/readme.md": "COMPONENT_Two_Point_Controller_README_FOR_DOCS.md"
     }
 
     # script is under docs/scripts relative to repo root
@@ -197,7 +206,8 @@ def _generate_readme(app):
         except subprocess.CalledProcessError as exc:
             logger.warning("README generator failed (non-zero exit): %s", exc)
 
-
+# Environment variable to indicate that docs are being built
+os.environ["BUILDING_DOCS"] = "1"
 
 def setup(app):
     app.connect("builder-inited", _generate_readme)

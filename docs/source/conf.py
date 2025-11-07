@@ -67,23 +67,14 @@ html_css_files = [
 ]
 
 
-# Cross-Referencing für local class
+# # Cross-Referencing für local class
 autodoc_typehints_format = "short"
 typehints_use_rtype = True
 typehints_document_rtype = True
 
-# autodoc default settings
-autodoc_default_options = {
-    "members": True,
-    "undoc-members": False,
-    "show-inheritance": True,
-    "member-order": "bysource",
-    "exclude-members": "__init__",
-}
-
 
 # Einstellungen für Typ-Hints: Typen in der Beschreibung ausgeben (klare Felder)
-autodoc_typehints = "description"  # alternativ: "signature", "both"
+autodoc_typehints = "both"  # alternativ: "signature", "both"
 # falls du voll-qualifizierte Typnamen vermeiden willst:
 typehints_fully_qualified = False
 always_document_param_types = False  # Keine automatischen Parameter-Dokumentationen
@@ -114,10 +105,11 @@ autodoc_pydantic_model_show_json = True
 autodoc_pydantic_model_show_config_summary = False
 autodoc_pydantic_field_list_validators = False
 autodoc_pydantic_model_show_field_summary = False
+autodoc_pydantic_settings_show_field_summary = False
 autodoc_pydantic_model_show_validator_members = False
 autodoc_pydantic_model_show_validator_summary = False
 # Verstecke die automatisch generierten Parameter-Listen für Pydantic-Modelle
-autodoc_pydantic_model_hide_paramlist = True
+autodoc_pydantic_model_hide_paramlist = True # Schows Parameters
 
 # Import of myst-parser settings / for markdown support
 myst_config = {

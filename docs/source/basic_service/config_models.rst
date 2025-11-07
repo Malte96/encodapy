@@ -21,14 +21,4 @@ Specific Sub Models for the Configuration
    :undoc-members:
    :exclude-members: ConfigModel, model_fields, model_config, model_computed_fields, model_extra, DataFile, DataFileEntity, DataFileAttribute
 
-Configuration of the File Interface
-------------------------------------
-
-.. autopydantic_model:: encodapy.config.models.DataFile
-
-
-.. autopydantic_model:: encodapy.config.models.DataFileEntity
-
-
-.. autopydantic_model:: encodapy.config.models.DataFileAttribute
 

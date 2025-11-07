@@ -2,9 +2,9 @@
 name = "encodapy"
 version = "0.6.0"
 description = "EnCoDaPy – Energy Control and Data Preparation in Python."
-readme = "README.md"
+readme = "./docs/readme-pypi.md"
 repository = "https://github.com/gewv-tu-dresden/encodapy"
-homepage = "https://github.com/gewv-tu-dresden/encodapy"
+documentation = "https://gewv-tu-dresden.github.io/encodapy/"
 license = "BSD-3-Clause"
 authors = [
     "Martin Altenburger <martin.altenburger@tu-dresden.de>",
@@ -31,6 +31,7 @@ requests-oauthlib = ">=1.3.1"
 crate = ">=0.31.1"
 pydantic = ">=2.5.2,<2.7.0"
 python-dotenv = ">=1.0.1"
+pydantic-settings = "^2.2.1"
 
 [tool.poetry.group.dev.dependencies]
 pylint = ">=3.2.6"
@@ -47,3 +48,6 @@ myst-parser = "^4.0.1"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]

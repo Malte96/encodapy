@@ -15,18 +15,18 @@
 - The framework provides components that can be used within a service. This is the recommended solution for running a functional service.
   For more information and code, see: [encodapy/components/readme.md](https://github.com/gewv-tu-dresden/encodapy/blob/main/encodapy/components/readme.md)
 
-- Examples and documentation for each part of the project are available under: [examples](https://github.com/gewv-tu-dresden/encodapy/blob/main/examples)
 - Further documentation can be found [here](https://gewv-tu-dresden.github.io/encodapy/).
+- Examples and documentation for each part of the project are available under: [examples](https://github.com/gewv-tu-dresden/encodapy/blob/main/examples)
 
 ## Configuration
 
-- The configuration of the service must be provided via `config.json` and has several sections (see the [examples](#examples)):
+- The configuration of the service must be provided via `config.json` and has several sections (see the [documentation](https://gewv-tu-dresden.github.io/encodapy/basic_service.html) or the [examples](https://github.com/gewv-tu-dresden/encodapy/blob/main/examples)):
   - `name`: Controller name - for documentation purposes only
   - `interfaces`: Indicates which interfaces are active
   - `inputs`: Configuration of the inputs to the controller
   - `outputs`: Configuration of the outputs
   - `staticdata`: Static data point configuration (Data that is not continuously updated)
-  - `controller_components`: Configuration of the controller components, see [encodapy/components/readme.md](https://github.com/gewv-tu-dresden/encodapy/blob/main/encodapy/components/readme.md)
+  - `controller_components`: Configuration of the controller components, see [encodapy/components/readme.md](https://github.com/gewv-tu-dresden/encodapy/blob/main/encodapy/components/readme.md) or the [documentation](https://gewv-tu-dresden.github.io/encodapy/components.html)
   - `controller_settings`: General settings about the controller
 
 - ENVs are required to configure the interfaces / get the config with the default value [`default`]:
@@ -61,7 +61,7 @@
 
 ## Usage
 
-You could install the Package via PyPI:
+You could install the Package via [PyPI](https://pypi.org/project/encodapy/):
 
 ```
 pip install encodapy

@@ -121,10 +121,12 @@ An example can be found under: <a class="reference external" href="https://githu
 <section id="iomodell">
 <h4><code class="docutils literal notranslate"><span class="pre">IOModell</span></code><a class="headerlink" href="#iomodell" title="Link to this heading"></a></h4>
 <p>Root-Modell to describe the structur of the Inputs, Outputs and static data (<code class="docutils literal notranslate"><span class="pre">$INPUT_OR_OUTPUT_VARIABLE</span></code>) of a component as a dictionary of <code class="docutils literal notranslate"><span class="pre">IOAllocationModel</span></code>, like:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>  &quot;inputs&quot;: {
-    &quot;$INPUT_OR_OUTPUT_VARIABLE_1&quot;: IOAllocationModel,
-    &quot;$INPUT_OR_OUTPUT_VARIABLE_2&quot;: IOAllocationModel
-  }
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;inputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;INPUT_OR_OUTPUT_VARIABLE_1&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IOAllocationModel&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;INPUT_OR_OUTPUT_VARIABLE_2&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IOAllocationModel&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </section>
@@ -132,12 +134,12 @@ An example can be found under: <a class="reference external" href="https://githu
 <h4><code class="docutils literal notranslate"><span class="pre">IOAllocationModel</span></code><a class="headerlink" href="#ioallocationmodel" title="Link to this heading"></a></h4>
 <p>Defines how inputs, outputs and static data of a component are mapped to specific entities and attributes.</p>
 <p>The expected format for each input or output (<code class="docutils literal notranslate"><span class="pre">$INPUT_OR_OUTPUT_VARIABLE</span></code>) within the controller components (<code class="docutils literal notranslate"><span class="pre">controller_components</span></code>) configuration is:</p>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>{
-  &quot;$INPUT_OR_OUTPUT_VARIABLE&quot;: {
-    &quot;entity&quot;: &quot;entity_id&quot;,
-    &quot;attribute&quot;: &quot;attribute_id&quot;
-  }
-}
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="nt">&quot;INPUT_OR_OUTPUT_VARIABLE&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="nt">&quot;entity&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;entity_id&quot;</span><span class="p">,</span>
+<span class="w">    </span><span class="nt">&quot;attribute&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;attribute_id&quot;</span>
+<span class="w">  </span><span class="p">}</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 </section>
@@ -332,15 +334,17 @@ This data will be used by the basic component and the basic service/component ru
 <ul class="simple">
 <li><p>If you are using the structure for a new component, you can specify the module path in your project’s configuration as the component type, as shown in the following example:</p></li>
 </ul>
-<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>  ...
-  &quot;controller_components&quot;: [
-      {
-          &quot;id&quot;: &quot;example_controller&quot;,
-          &quot;type&quot;: &quot;$your_project.$your_modules.$new_component&quot;,
-          ...
-      }
-    ]
-  ...
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="w">  </span><span class="nt">&quot;controller_components&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="p">{</span>
+<span class="w">          </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;example_controller&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;$your_project.$your_modules.$new_component&quot;</span><span class="p">,</span>
+<span class="w">          </span><span class="c1">// ...</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">    </span><span class="p">]</span>
+<span class="w">  </span><span class="c1">// ...</span>
+<span class="p">}</span>
 </pre></div>
 </div>
 <ul class="simple">

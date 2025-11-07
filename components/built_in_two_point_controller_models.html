@@ -93,6 +93,205 @@
   <section id="module-encodapy.components.two_point_controller.two_point_controller_config">
 <span id="two-point-controller-configuration"></span><h1>Two Point Controller Configuration<a class="headerlink" href="#module-encodapy.components.two_point_controller.two_point_controller_config" title="Link to this heading"></a></h1>
 <dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData">
+<em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.two_point_controller.two_point_controller_config.</span></span><span class="sig-name descname"><span class="pre">TwoPointControllerConfigData</span></span><a class="reference internal" href="../_modules/encodapy/components/two_point_controller/two_point_controller_config.html#TwoPointControllerConfigData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="components_models.html#encodapy.components.basic_component_config.ConfigData" title="encodapy.components.basic_component_config.ConfigData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigData</span></code></a></p>
+<p>Model for the configuration data of the thermal storage service.</p>
+<p><details  class="autodoc_pydantic_collapsable_json">
+<summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TwoPointControllerConfigData&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the configuration data of the thermal storage service.&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;hysteresis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;allOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataPointNumber&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Hysteresis value for the two-point controller&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;setpoint&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;allOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataPointNumber&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Setpoint value for the two-point controller&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;command_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;allOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataPointGeneral&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Value representing the enabled state of the control signal&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;command_disabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;allOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataPointGeneral&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Value representing the disabled state of the control signal&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;DataPointGeneral&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nContains:\n    value: The value of the datapoint, which can be of various types             (string, float, int, boolean, dictionary, list, DataFrame, or None)\n    unit: Optional unit of the datapoint, if applicable\n    time: Optional timestamp of the datapoint, if applicable&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Value&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataUnits&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;date-time&quot;</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Time&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;value&quot;</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DataPointGeneral&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;DataPointNumber&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nContains:\n    value: The value of the datapoint, which is a number (float, int)\n    unit: Optional unit of the datapoint, if applicable\n    time: Optional timestamp of the datapoint, if applicable&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Value&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataUnits&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;date-time&quot;</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Time&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;value&quot;</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DataPointNumber&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;DataUnits&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Possible units for the data\nUnits which are defined by Unit Code (https://unece.org/trade/cefact/UNLOCODE-Download\nor https://github.com/RWTH-EBC/FiLiP/blob/master/filip/data/unece-units/units_of_measure.csv)\nor here: https://unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_rev3_Annex3e.pdf\nTODO:\n    - Is there a better way to handle the units?\n    - Add more units?&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="s2">&quot;SEC&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;HUR&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;MIN&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;CEL&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;KEL&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;LTR&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;MTQ&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;MQH&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;MQS&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;E32&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;L2&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;WTT&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;WHR&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;KWH&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;CMT&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;MTR&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;MTK&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;MTS&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;P1&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;OHM&quot;</span><span class="p">,</span>
+<span class="w">            </span><span class="s2">&quot;VLT&quot;</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DataUnits&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">},</span>
+<span class="w">   </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">      </span><span class="s2">&quot;hysteresis&quot;</span><span class="p">,</span>
+<span class="w">      </span><span class="s2">&quot;setpoint&quot;</span>
+<span class="w">   </span><span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></p><dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_disabled">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">command_disabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DataPointGeneral(value=0,</span> <span class="pre">unit=None,</span> <span class="pre">time=None)</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_disabled" title="Link to this definition"></a></dt>
+<dd><p>Value representing the disabled state of the control signal</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_enabled">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">command_enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DataPointGeneral(value=1,</span> <span class="pre">unit=None,</span> <span class="pre">time=None)</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_enabled" title="Link to this definition"></a></dt>
+<dd><p>Value representing the enabled state of the control signal</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.hysteresis">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hysteresis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.hysteresis" title="Link to this definition"></a></dt>
+<dd><p>Hysteresis value for the two-point controller</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.setpoint">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">setpoint</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.setpoint" title="Link to this definition"></a></dt>
+<dd><p>Setpoint value for the two-point controller</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class pydantic_model">
 <dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerInputData">
 <em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.two_point_controller.two_point_controller_config.</span></span><span class="sig-name descname"><span class="pre">TwoPointControllerInputData</span></span><a class="reference internal" href="../_modules/encodapy/components/two_point_controller/two_point_controller_config.html#TwoPointControllerInputData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerInputData" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="components_models.html#encodapy.components.basic_component_config.InputData" title="encodapy.components.basic_component_config.InputData"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputData</span></code></a></p>
@@ -326,205 +525,6 @@
 <dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerOutputData.control_signal">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">control_signal</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerOutputData.control_signal" title="Link to this definition"></a></dt>
 <dd><p>Control signal output from the two-point controller</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="py class pydantic_model">
-<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData">
-<em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.two_point_controller.two_point_controller_config.</span></span><span class="sig-name descname"><span class="pre">TwoPointControllerConfigData</span></span><a class="reference internal" href="../_modules/encodapy/components/two_point_controller/two_point_controller_config.html#TwoPointControllerConfigData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference internal" href="components_models.html#encodapy.components.basic_component_config.ConfigData" title="encodapy.components.basic_component_config.ConfigData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigData</span></code></a></p>
-<p>Model for the configuration data of the thermal storage service.</p>
-<p><details  class="autodoc_pydantic_collapsable_json">
-<summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
-<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;TwoPointControllerConfigData&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the configuration data of the thermal storage service.&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;hysteresis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;allOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataPointNumber&quot;</span>
-<span class="w">            </span><span class="p">}</span>
-<span class="w">         </span><span class="p">],</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Hysteresis value for the two-point controller&quot;</span>
-<span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;setpoint&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;allOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataPointNumber&quot;</span>
-<span class="w">            </span><span class="p">}</span>
-<span class="w">         </span><span class="p">],</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Setpoint value for the two-point controller&quot;</span>
-<span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;command_enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;allOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataPointGeneral&quot;</span>
-<span class="w">            </span><span class="p">}</span>
-<span class="w">         </span><span class="p">],</span>
-<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
-<span class="w">         </span><span class="p">},</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Value representing the enabled state of the control signal&quot;</span>
-<span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;command_disabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;allOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataPointGeneral&quot;</span>
-<span class="w">            </span><span class="p">}</span>
-<span class="w">         </span><span class="p">],</span>
-<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-<span class="w">            </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
-<span class="w">         </span><span class="p">},</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Value representing the disabled state of the control signal&quot;</span>
-<span class="w">      </span><span class="p">}</span>
-<span class="w">   </span><span class="p">},</span>
-<span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">      </span><span class="nt">&quot;DataPointGeneral&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nContains:\n    value: The value of the datapoint, which can be of various types             (string, float, int, boolean, dictionary, list, DataFrame, or None)\n    unit: Optional unit of the datapoint, if applicable\n    time: Optional timestamp of the datapoint, if applicable&quot;</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Value&quot;</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">                  </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataUnits&quot;</span>
-<span class="w">                  </span><span class="p">},</span>
-<span class="w">                  </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-<span class="w">                  </span><span class="p">}</span>
-<span class="w">               </span><span class="p">],</span>
-<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">                  </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;date-time&quot;</span><span class="p">,</span>
-<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
-<span class="w">                  </span><span class="p">},</span>
-<span class="w">                  </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-<span class="w">                  </span><span class="p">}</span>
-<span class="w">               </span><span class="p">],</span>
-<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Time&quot;</span>
-<span class="w">            </span><span class="p">}</span>
-<span class="w">         </span><span class="p">},</span>
-<span class="w">         </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="s2">&quot;value&quot;</span>
-<span class="w">         </span><span class="p">],</span>
-<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DataPointGeneral&quot;</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-<span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;DataPointNumber&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nContains:\n    value: The value of the datapoint, which is a number (float, int)\n    unit: Optional unit of the datapoint, if applicable\n    time: Optional timestamp of the datapoint, if applicable&quot;</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">                  </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
-<span class="w">                  </span><span class="p">},</span>
-<span class="w">                  </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;integer&quot;</span>
-<span class="w">                  </span><span class="p">}</span>
-<span class="w">               </span><span class="p">],</span>
-<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Value&quot;</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">&quot;unit&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">                  </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/DataUnits&quot;</span>
-<span class="w">                  </span><span class="p">},</span>
-<span class="w">                  </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-<span class="w">                  </span><span class="p">}</span>
-<span class="w">               </span><span class="p">],</span>
-<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
-<span class="w">            </span><span class="p">},</span>
-<span class="w">            </span><span class="nt">&quot;time&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">                  </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">&quot;format&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;date-time&quot;</span><span class="p">,</span>
-<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
-<span class="w">                  </span><span class="p">},</span>
-<span class="w">                  </span><span class="p">{</span>
-<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
-<span class="w">                  </span><span class="p">}</span>
-<span class="w">               </span><span class="p">],</span>
-<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
-<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Time&quot;</span>
-<span class="w">            </span><span class="p">}</span>
-<span class="w">         </span><span class="p">},</span>
-<span class="w">         </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="s2">&quot;value&quot;</span>
-<span class="w">         </span><span class="p">],</span>
-<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DataPointNumber&quot;</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
-<span class="w">      </span><span class="p">},</span>
-<span class="w">      </span><span class="nt">&quot;DataUnits&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Possible units for the data\nUnits which are defined by Unit Code (https://unece.org/trade/cefact/UNLOCODE-Download\nor https://github.com/RWTH-EBC/FiLiP/blob/master/filip/data/unece-units/units_of_measure.csv)\nor here: https://unece.org/fileadmin/DAM/cefact/recommendations/rec20/rec20_rev3_Annex3e.pdf\nTODO:\n    - Is there a better way to handle the units?\n    - Add more units?&quot;</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">            </span><span class="s2">&quot;SEC&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;HUR&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;MIN&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;CEL&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;KEL&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;LTR&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;MTQ&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;MQH&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;MQS&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;E32&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;L2&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;WTT&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;WHR&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;KWH&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;CMT&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;MTR&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;MTK&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;MTS&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;P1&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;OHM&quot;</span><span class="p">,</span>
-<span class="w">            </span><span class="s2">&quot;VLT&quot;</span>
-<span class="w">         </span><span class="p">],</span>
-<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;DataUnits&quot;</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
-<span class="w">      </span><span class="p">}</span>
-<span class="w">   </span><span class="p">},</span>
-<span class="w">   </span><span class="nt">&quot;required&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
-<span class="w">      </span><span class="s2">&quot;hysteresis&quot;</span><span class="p">,</span>
-<span class="w">      </span><span class="s2">&quot;setpoint&quot;</span>
-<span class="w">   </span><span class="p">]</span>
-<span class="p">}</span>
-</pre></div>
-</div>
-</details></p><dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.hysteresis">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hysteresis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.hysteresis" title="Link to this definition"></a></dt>
-<dd><p>Hysteresis value for the two-point controller</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.setpoint">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">setpoint</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.setpoint" title="Link to this definition"></a></dt>
-<dd><p>Setpoint value for the two-point controller</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_enabled">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">command_enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DataPointGeneral(value=1,</span> <span class="pre">unit=None,</span> <span class="pre">time=None)</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_enabled" title="Link to this definition"></a></dt>
-<dd><p>Value representing the enabled state of the control signal</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_disabled">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">command_disabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DataPointGeneral(value=0,</span> <span class="pre">unit=None,</span> <span class="pre">time=None)</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_disabled" title="Link to this definition"></a></dt>
-<dd><p>Value representing the disabled state of the control signal</p>
 </dd></dl>
 
 </dd></dl>

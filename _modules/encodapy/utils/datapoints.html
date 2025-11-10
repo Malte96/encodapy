@@ -93,11 +93,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for datapoints of the controller component.</span>
 <span class="sd">    </span>
-<span class="sd">    Contains:</span>
-<span class="sd">        value: The value of the datapoint, which can be of various types \</span>
-<span class="sd">            (string, float, int, boolean, dictionary, list, DataFrame, or None)</span>
-<span class="sd">        unit: Optional unit of the datapoint, if applicable</span>
-<span class="sd">        time: Optional timestamp of the datapoint, if applicable</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        value (Any): The value of the datapoint, which can be of various types \</span>
+<span class="sd">            (string, float, int, boolean, dictionary, list, DataFrame, or None).</span>
+<span class="sd">        unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.</span>
+<span class="sd">        time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">model_config</span> <span class="o">=</span> <span class="n">ConfigDict</span><span class="p">(</span><span class="n">arbitrary_types_allowed</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -114,10 +114,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for datapoints of the controller component.</span>
 
-<span class="sd">    Contains:</span>
-<span class="sd">        value: The value of the datapoint, which is a number (float, int)</span>
-<span class="sd">        unit: Optional unit of the datapoint, if applicable</span>
-<span class="sd">        time: Optional timestamp of the datapoint, if applicable</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        value (float | int): The value of the datapoint, which is a number (float, int).</span>
+<span class="sd">        unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.</span>
+<span class="sd">        time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="nb">int</span></div>
@@ -130,10 +130,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for datapoints of the controller component.</span>
 
-<span class="sd">    Contains:</span>
-<span class="sd">        value: The value of the datapoint, which is a string</span>
-<span class="sd">        unit: Optional unit of the datapoint, if applicable</span>
-<span class="sd">        time: Optional timestamp of the datapoint, if applicable</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        value (str): The value of the datapoint, which is a string.</span>
+<span class="sd">        unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.</span>
+<span class="sd">        time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">value</span><span class="p">:</span> <span class="nb">str</span></div>
@@ -146,10 +146,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for datapoints of the controller component.</span>
 
-<span class="sd">    Contains:</span>
-<span class="sd">        value: The value of the datapoint, which is a dictionary</span>
-<span class="sd">        unit: Optional unit of the datapoint, if applicable</span>
-<span class="sd">        time: Optional timestamp of the datapoint, if applicable</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        value (dict): The value of the datapoint, which is a dictionary.</span>
+<span class="sd">        unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.</span>
+<span class="sd">        time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">value</span><span class="p">:</span> <span class="nb">dict</span></div>
@@ -162,10 +162,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for datapoints of the controller component.</span>
 
-<span class="sd">    Contains:</span>
-<span class="sd">        value: The value of the datapoint, which is a boolean</span>
-<span class="sd">        unit: Optional unit of the datapoint, if applicable</span>
-<span class="sd">        time: Optional timestamp of the datapoint, if applicable</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        value (bool): The value of the datapoint, which is a boolean.</span>
+<span class="sd">        unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.</span>
+<span class="sd">        time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">value</span><span class="p">:</span> <span class="nb">bool</span></div>
@@ -178,10 +178,10 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Model for datapoints of the controller component which define the medium.</span>
 
-<span class="sd">    Contains:</span>
-<span class="sd">        value: The value of the datapoint, which is a Medium representing the medium</span>
-<span class="sd">        unit: Optional unit of the datapoint, if applicable</span>
-<span class="sd">        time: Optional timestamp of the datapoint, if applicable</span>
+<span class="sd">    Attributes:</span>
+<span class="sd">        value (Medium): The value of the datapoint, which is a Medium representing the medium.</span>
+<span class="sd">        unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.</span>
+<span class="sd">        time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">value</span><span class="p">:</span> <span class="n">Medium</span></div>

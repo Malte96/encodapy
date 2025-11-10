@@ -516,7 +516,7 @@ CONNECTION_LIMITS (“connection_limits”): Uses the temperature sensors from t
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;DataPointMedium&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component which define the medium.\n\nContains:\n    value: The value of the datapoint, which is a Medium representing the medium\n    unit: Optional unit of the datapoint, if applicable\n    time: Optional timestamp of the datapoint, if applicable&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component which define the medium.\n\nAttributes:\n    value (Medium): The value of the datapoint, which is a Medium representing the medium.\n    unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.\n    time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/Medium&quot;</span>
@@ -553,7 +553,7 @@ CONNECTION_LIMITS (“connection_limits”): Uses the temperature sensors from t
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;DataPointNumber&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nContains:\n    value: The value of the datapoint, which is a number (float, int)\n    unit: Optional unit of the datapoint, if applicable\n    time: Optional timestamp of the datapoint, if applicable&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nAttributes:\n    value (float | int): The value of the datapoint, which is a number (float, int).\n    unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.\n    time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -640,7 +640,7 @@ CONNECTION_LIMITS (“connection_limits”): Uses the temperature sensors from t
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;Medium&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;const&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;water&quot;</span><span class="p">,</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the mediums\nTODO: Add more mediums&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the mediums\n\nTODO: Add more mediums&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Medium&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;StorageSensorConfig&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -964,7 +964,7 @@ in the thermal storage.</p>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;DataPointNumber&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nContains:\n    value: The value of the datapoint, which is a number (float, int)\n    unit: Optional unit of the datapoint, if applicable\n    time: Optional timestamp of the datapoint, if applicable&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nAttributes:\n    value (float | int): The value of the datapoint, which is a number (float, int).\n    unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.\n    time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
@@ -1211,7 +1211,7 @@ in the thermal storage.</p>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;DataPointNumber&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nContains:\n    value: The value of the datapoint, which is a number (float, int)\n    unit: Optional unit of the datapoint, if applicable\n    time: Optional timestamp of the datapoint, if applicable&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nAttributes:\n    value (float | int): The value of the datapoint, which is a number (float, int).\n    unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.\n    time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>

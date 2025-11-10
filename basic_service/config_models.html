@@ -70,6 +70,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="utils_models.html">Utility Models</a></li>
 <li class="toctree-l2"><a class="reference internal" href="interfaces.html">Communication Interfaces</a></li>
+<li class="toctree-l2"><a class="reference internal" href="internal_models.html">Internal Models</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../components.html">EnCoDaPy Components</a></li>
@@ -251,7 +252,7 @@
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;AttributeTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the attribute types\nPossible values:\n- TIMESERIES (timeseries): Timeseries data\n- VALUE (value): Single value data&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the attribute types\n\nAttributes:\n    TIMESERIES (str): Timeseries data \&quot;timeseries\&quot;\n    VALUE (str): Single value data \&quot;value\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;timeseries&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;value&quot;</span>
@@ -394,7 +395,7 @@
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;DataPointGeneral&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nContains:\n    value: The value of the datapoint, which can be of various types             (string, float, int, boolean, dictionary, list, DataFrame, or None)\n    unit: Optional unit of the datapoint, if applicable\n    time: Optional timestamp of the datapoint, if applicable&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for datapoints of the controller component.\n\nAttributes:\n    value (Any): The value of the datapoint, which can be of various types             (string, float, int, boolean, dictionary, list, DataFrame, or None).\n    unit (Optional[DataUnits]): Optional unit of the datapoint, if applicable.\n    time (Optional[datetime]): Optional timestamp of the datapoint, if applicable.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Value&quot;</span>
@@ -564,7 +565,7 @@
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;Interfaces&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the interfaces\nPossible values:\n- MQTT (mqtt): MQTT interface\n- FIWARE (fiware): FIWARE interface\n- FILE (file): File interface&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the interfaces\n\nAttributes:\n    MQTT (str): MQTT interface \&quot;mqtt\&quot;\n    FIWARE (str): FIWARE interface \&quot;fiware\&quot;\n    FILE (str): File interface \&quot;file\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;mqtt&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;fiware&quot;</span><span class="p">,</span>
@@ -893,7 +894,7 @@
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;TimerangeTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the timedelta types\n\nPossible values:\n- ABSOLUTE (absolute): The timedelta is calculated from the actual time\n- RELATIVE (relative): The timedelta is calculated from the last timestamp&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the timedelta types, used for the functions to get timeseries data\n\nAttributes:\n    ABSOLUTE (str): The timedelta is calculated from the actual time \&quot;absolute\&quot;\n    RELATIVE (str): The timedelta is calculated from the last timestamp \&quot;relative\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;absolute&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;relative&quot;</span>
@@ -973,9 +974,9 @@ If <cite>id_interface</cite> is not set, it defaults to the value of <cite>id</c
 <li><p><strong>id_interface</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – The interface-specific identifier. Defaults to <cite>None</cite>.
 If not set, it will be automatically set to the value of <cite>id</cite>.</p></li>
 <li><p><strong>type</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">AttributeTypes</span></code>) – The type of the attribute. Defaults to <cite>AttributeTypes.VALUE</cite>.</p></li>
-<li><p><strong>value</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union[str</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <cite>typing.Dict</cite>, <cite>typing.List</cite>, <code class="xref py py-class docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">None]</span></code>) – The value of the attribute. Defaults to <cite>None</cite>.</p></li>
+<li><p><strong>value</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union[str</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">pd.DataFrame</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">None]</span></code>) – The value of the attribute. Defaults to <cite>None</cite>.</p></li>
 <li><p><strong>unit</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional[DataUnits]</span></code>) – The unit of measurement for the value. Defaults to <cite>None</cite>.</p></li>
-<li><p><strong>datatype</strong> (<a class="reference external" href="https://rwth-ebc.github.io/FiLiP/master/docs/code/filip.models.html#filip.models.base.DataType" title="(in FiLiP v0.7)"><code class="xref py py-class docutils literal notranslate"><span class="pre">filip.models.base.DataType</span></code></a>) – The data type of the attribute. Defaults to <cite>DataType(“Number”)</cite>.</p></li>
+<li><p><strong>datatype</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataType</span></code>) – The data type of the attribute. Defaults to <cite>DataType(“Number”)</cite>.</p></li>
 <li><p><strong>timestamp</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Optional[datetime]</span></code>) – The timestamp of the attribute. Defaults to <cite>None</cite>.</p></li>
 </ul>
 </dd>
@@ -1066,7 +1067,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;AttributeTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the attribute types\nPossible values:\n- TIMESERIES (timeseries): Timeseries data\n- VALUE (value): Single value data&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the attribute types\n\nAttributes:\n    TIMESERIES (str): Timeseries data \&quot;timeseries\&quot;\n    VALUE (str): Single value data \&quot;value\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;timeseries&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;value&quot;</span>
@@ -1179,7 +1180,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>id</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">str</span></code></a>) – The id of the command</p></li>
 <li><p><strong>id_interface</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">str</span> <span class="pre">|</span> <span class="pre">None</span></code>) – The id of the command on the interface             (if not set, the id is used)</p></li>
-<li><p><strong>value</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union[str</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <cite>typing.List</cite>, <cite>typing.Dict</cite>, <code class="xref py py-class docutils literal notranslate"><span class="pre">None]</span></code>) – The value of the command</p></li>
+<li><p><strong>value</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">Union[str</span></code>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">int</span></code></a>, <a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a>, <code class="xref py py-class docutils literal notranslate"><span class="pre">List</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">Dict</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">None]</span></code>) – The value of the command</p></li>
 </ul>
 </dd>
 </dl>
@@ -1534,7 +1535,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;TimerangeTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the timedelta types\n\nPossible values:\n- ABSOLUTE (absolute): The timedelta is calculated from the actual time\n- RELATIVE (relative): The timedelta is calculated from the last timestamp&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the timedelta types, used for the functions to get timeseries data\n\nAttributes:\n    ABSOLUTE (str): The timedelta is calculated from the actual time \&quot;absolute\&quot;\n    RELATIVE (str): The timedelta is calculated from the last timestamp \&quot;relative\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;absolute&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;relative&quot;</span>
@@ -1691,7 +1692,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;AttributeTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the attribute types\nPossible values:\n- TIMESERIES (timeseries): Timeseries data\n- VALUE (value): Single value data&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the attribute types\n\nAttributes:\n    TIMESERIES (str): Timeseries data \&quot;timeseries\&quot;\n    VALUE (str): Single value data \&quot;value\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;timeseries&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;value&quot;</span>
@@ -1751,7 +1752,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;Interfaces&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the interfaces\nPossible values:\n- MQTT (mqtt): MQTT interface\n- FIWARE (fiware): FIWARE interface\n- FILE (file): File interface&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the interfaces\n\nAttributes:\n    MQTT (str): MQTT interface \&quot;mqtt\&quot;\n    FIWARE (str): FIWARE interface \&quot;fiware\&quot;\n    FILE (str): File interface \&quot;file\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;mqtt&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;fiware&quot;</span><span class="p">,</span>
@@ -1984,7 +1985,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;AttributeTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the attribute types\nPossible values:\n- TIMESERIES (timeseries): Timeseries data\n- VALUE (value): Single value data&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the attribute types\n\nAttributes:\n    TIMESERIES (str): Timeseries data \&quot;timeseries\&quot;\n    VALUE (str): Single value data \&quot;value\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;timeseries&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;value&quot;</span>
@@ -2088,7 +2089,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;Interfaces&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the interfaces\nPossible values:\n- MQTT (mqtt): MQTT interface\n- FIWARE (fiware): FIWARE interface\n- FILE (file): File interface&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the interfaces\n\nAttributes:\n    MQTT (str): MQTT interface \&quot;mqtt\&quot;\n    FIWARE (str): FIWARE interface \&quot;fiware\&quot;\n    FILE (str): File interface \&quot;file\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;mqtt&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;fiware&quot;</span><span class="p">,</span>
@@ -2264,7 +2265,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;AttributeTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the attribute types\nPossible values:\n- TIMESERIES (timeseries): Timeseries data\n- VALUE (value): Single value data&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the attribute types\n\nAttributes:\n    TIMESERIES (str): Timeseries data \&quot;timeseries\&quot;\n    VALUE (str): Single value data \&quot;value\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;timeseries&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;value&quot;</span>
@@ -2324,7 +2325,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;Interfaces&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the interfaces\nPossible values:\n- MQTT (mqtt): MQTT interface\n- FIWARE (fiware): FIWARE interface\n- FILE (file): File interface&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the interfaces\n\nAttributes:\n    MQTT (str): MQTT interface \&quot;mqtt\&quot;\n    FIWARE (str): FIWARE interface \&quot;fiware\&quot;\n    FILE (str): File interface \&quot;file\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;mqtt&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;fiware&quot;</span><span class="p">,</span>
@@ -2483,7 +2484,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;TimerangeTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the timedelta types\n\nPossible values:\n- ABSOLUTE (absolute): The timedelta is calculated from the actual time\n- RELATIVE (relative): The timedelta is calculated from the last timestamp&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the timedelta types, used for the functions to get timeseries data\n\nAttributes:\n    ABSOLUTE (str): The timedelta is calculated from the actual time \&quot;absolute\&quot;\n    RELATIVE (str): The timedelta is calculated from the last timestamp \&quot;relative\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;absolute&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;relative&quot;</span>
@@ -2941,7 +2942,7 @@ If not set, it will be automatically set to the value of <cite>id</cite>.</p></l
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;TimerangeTypes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the timedelta types\n\nPossible values:\n- ABSOLUTE (absolute): The timedelta is calculated from the actual time\n- RELATIVE (relative): The timedelta is calculated from the last timestamp&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enum class for the timedelta types, used for the functions to get timeseries data\n\nAttributes:\n    ABSOLUTE (str): The timedelta is calculated from the actual time \&quot;absolute\&quot;\n    RELATIVE (str): The timedelta is calculated from the last timestamp \&quot;relative\&quot;&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;enum&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
 <span class="w">            </span><span class="s2">&quot;absolute&quot;</span><span class="p">,</span>
 <span class="w">            </span><span class="s2">&quot;relative&quot;</span>

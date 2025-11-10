@@ -16,11 +16,20 @@ Datapoints
    :members:
    :show-inheritance:
    :undoc-members:
+   :member-order: bysource
 
 Units
 -----
 
 .. automodule:: encodapy.utils.units
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+Mediums
+-------
+
+.. automodule:: encodapy.utils.mediums
    :members:
    :show-inheritance:
    :undoc-members:

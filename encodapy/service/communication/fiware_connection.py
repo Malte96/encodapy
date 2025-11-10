@@ -28,7 +28,6 @@ from encodapy.config import (
     AttributeTypes,
     CommandModel,
     DataQueryTypes,
-    DefaultEnvVariables,
     InputModel,
     OutputModel,
     TimerangeTypes,

@@ -350,7 +350,6 @@ class ConfigModel(BaseModel):
 
 
     interfaces: InterfaceModel
-
     inputs: list[InputModel]
     outputs: list[OutputModel]
     staticdata: list[StaticDataModel]

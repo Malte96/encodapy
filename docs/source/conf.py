@@ -3,6 +3,7 @@ import sys
 import subprocess
 from pathlib import Path
 sys.path.insert(0, os.path.abspath("../.."))
+sys.path.insert(0, os.path.abspath("../../.."))
 from sphinx.util import logging
 
 # Recommended logger for Sphinx config/extensions
@@ -92,13 +93,6 @@ napoleon_use_keyword = False  # Versteckt :keyword: Abschnitte
 napoleon_use_rtype = True  # Behält :rtype: bei
 napoleon_use_ivar = True  # Behält Instanzvariablen bei
 napoleon_preprocess_types = True
-napoleon_type_aliases = {
-    'Union': '`typing.Union`',
-    'Dict': '`typing.Dict`',
-    'List': '`typing.List`',
-    'Optional': '`typing.Optional`',
-    'DataType': ':class:`filip.models.base.DataType`',
-}
 
 # pydantic-spezifische Einstellungen - für automodule
 autodoc_pydantic_model_show_json = True

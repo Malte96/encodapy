@@ -7,6 +7,30 @@ from typing import Optional
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from pydantic import Field, AnyHttpUrl
 
+class BasicEnvVariables(BaseSettings):
+    """
+    Basic environment variables for the service.
+    They are automatically loaded from the environment or a .env file.
+    """
+    model_config = SettingsConfigDict(
+        extra="ignore",
+        env_file=".env",
+        env_prefix="",
+        case_sensitive=False)
+
+    config_path: str = Field(
+        default="config.json",
+        description="Path to the configuration file"
+    )
+    log_level: str = Field(
+        default="WARNING",
+        description="Logging level for the service"
+    )
+    reload_staticdata: bool = Field(
+        default=False,
+        description="If true, static data will be reloaded at each time step"
+    )
+
 class FiwareEnvVariables(BaseSettings):
     """
     Environment variables for FIWARE communication.
@@ -69,4 +93,72 @@ class FiwareEnvVariables(BaseSettings):
     crate_db_ssl: bool = Field(
         default=False,
         description="Enables SSL for the connection to CrateDB"
+    )
+
+
+class MQTTEnvVariables(BaseSettings):
+    """
+    MQTT environment variables for the service.
+    They are automatically loaded from the environment or a .env file.
+
+    Environment variables always have the prefix `MQTT_`.
+    """
+
+    model_config = SettingsConfigDict(
+        extra="ignore",
+        env_file=".env",
+        env_prefix="MQTT_",
+        case_sensitive=False)
+
+    host: str = Field(
+        default="localhost",
+        description="Hostname or IP address of the MQTT broker"
+    )
+    port: int = Field(
+        default=1883,
+        description="Port number of the MQTT broker"
+    )
+    username: Optional[str] = Field(
+        default="",
+        description="Username for MQTT broker authentication"
+    )
+    password: Optional[str] = Field(
+        default="",
+        description="Password for MQTT broker authentication"
+    )
+    topic_prefix: str = Field(
+        default="",
+        description="Prefix for all MQTT topics used by the service"
+    )
+
+class FileEnvVariables(BaseSettings):
+    """
+    File environment variables for the service.
+    They are automatically loaded from the environment or a .env file.
+    
+    Environment variables always have the prefix `FILE_`.
+    """
+    model_config = SettingsConfigDict(
+        extra="ignore",
+        env_file=".env",
+        env_prefix="FILE_",
+        case_sensitive=False)
+
+    path_of_input_file: str = Field(
+        default="./input/input_file.csv",
+        description="Path to the input CSV file"
+    )
+    path_of_static_data: str = Field(
+        default="./input/static_data.json",
+        description="Path to the static data JSON file"
+    )
+    path_of_results: str = Field(
+        default="./results",
+        description="Directory path to store the results"
+    )
+    start_time_file: str = Field(
+        default="2025-01-01 00:00",
+        description="""Start time for processing data from the input file.
+        It needs to be ISO compatible
+        (https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat)"""
     )

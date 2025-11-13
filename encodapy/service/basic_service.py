@@ -2,8 +2,6 @@
 Module for the basic service class for the data processing and transfer via different interfaces.
 Author: Martin Altenburger
 """
-
-import os
 import sys
 from asyncio import sleep
 from datetime import datetime
@@ -16,9 +14,9 @@ from encodapy.config import (
     CommandModel,
     ConfigModel,
     DataQueryTypes,
-    DefaultEnvVariables,
     Interfaces,
     OutputModel,
+    BasicEnvVariables
 )
 from encodapy.service.communication import (
     FileConnection,
@@ -52,10 +50,10 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         MqttConnection.__init__(self)
 
         self.shutdown_event = shutdown_event or asyncio.Event()
-        self.logger = LoggerControl()
+        self.env: BasicEnvVariables = BasicEnvVariables()
+        self.logger = LoggerControl(log_level=self.env.log_level)
 
-        self.reload_staticdata = False
-        self.staticdata = None
+        self.staticdata: Optional[list[StaticDataEntityModel]] = None
 
         self.timestamp_health = None
 
@@ -66,12 +64,9 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         Function loads the environemtal variables and the config of the service.
 
         """
-        config_path = os.environ.get(
-            "CONFIG_PATH", DefaultEnvVariables.CONFIG_PATH.value
-        )
 
         try:
-            self.config = ConfigModel.from_json(file_path=config_path)
+            self.config = ConfigModel.from_json(file_path=self.env.config_path)
         except (
             FileNotFoundError,
             ValidationError,
@@ -90,13 +85,8 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         if self.config.interfaces.mqtt:
             self.load_mqtt_params()
 
-        self.reload_staticdata = os.getenv(
-            "RELOAD_STATICDATA", str(DefaultEnvVariables.RELOAD_STATICDATA.value)
-        ).lower() in ("true", "1", "t")
+        logger.debug("Config succesfully loaded.")
 
-        logger.debug("ENVs succesfully loaded.")
-
-        return config_path
 
     def prepare_basic_start(self):
         """
@@ -276,7 +266,7 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
 
             await sleep(0.01)
 
-        if self.reload_staticdata or self.staticdata is None:
+        if self.env.reload_staticdata or self.staticdata is None:
             self.staticdata = self.reload_static_data(method=method, staticdata=[])
 
         return InputDataModel(

@@ -29,35 +29,8 @@
   - `controller_components`: Configuration of the controller components, see [encodapy/components/readme.md](./encodapy/components/readme.md) or the [documentation](https://gewv-tu-dresden.github.io/encodapy/components.html)
   - `controller_settings`: General settings about the controller
 
-- ENVs are required to configure the interfaces / get the config with the default value [`default`]:
+- Environmental variables are required to configure the basic service and the interfaces. For more information, see [encodapy/config/env_values](./encodapy/config/env_values.py) or the [documentation](https://gewv-tu-dresden.github.io/encodapy/).
 
-    ```
-    CONFIG_PATH =  ["./config.json"]
-    LOG_LEVEL =
-    RELOAD_STATICDATA = False
-
-    # FIWARE - Interface
-    CB_URL = ["http://localhost:1026"]
-    FIWARE_SERVICE = ["service"]
-    FIWARE_SERVICE_PATH = [/]
-    FIWARE_AUTH = [False]
-    # only used if FIWARE_AUTH = true / Option 1 for authentication
-    FIWARE_CLIENT_ID = 
-    FIWARE_CLIENT_PW = 
-    FIWARE_TOKEN_URL = 
-    # only used if FIWARE_AUTH = true and the three previously not set / Option 2 for authentication
-    FIWARE_BAERER_TOKEN = []
-
-    CRATE_DB_URL = ["http://localhost:4200"]
-    CRATE_DB_USER = ["crate"]
-    CRATE_DB_PW = [""]
-    CRATE_DB_SSL = [False]
-
-    # FILE - Interface
-    PATH_OF_INPUT_FILE = "path_to_the_file/validation_data.csv"
-    PATH_OF_STATIC_DATA = "path_to_the_file/static_data.json"
-    START_TIME_FILE = "2023-01-01 00:00"  # Default / It needs to be ISO compatible (https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat).
-    ```
 
 ## Usage
 
@@ -73,7 +46,7 @@ There are two ways to use the Package:
 
 To create your own custom service, you have to overwrite two functions of the [ControllerBasicService](./encodapy/service/basic_service.py):
 
-- `prepare_start`: This is a synchronous function that prepares the start of the algorithm and specifies aspects of the service. This should not take long due to health issues in Docker containers. It only needs to be overwritten if other tasks are required after initialisation of the service.
+- `prepare_start()`: This is a synchronous function that prepares the start of the algorithm and specifies aspects of the service. This should not take long due to health issues in Docker containers. It only needs to be overwritten if other tasks are required after initialisation of the service.
 - `calculation()`: Asynchronous function to perform the main calculation in the service
 - `calibration()`: Asynchronous function to calibrate the service or coefficients and update StaticData in the service if only required
 

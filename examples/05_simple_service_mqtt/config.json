@@ -76,7 +76,10 @@
                 }
             },
             "config": {
-                "temperature_hysteresis": 5
+                "temperature_hysteresis": {
+                    "value": 5,
+                    "unit": "CEL"
+                }
             }
         }
     ],

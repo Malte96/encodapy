@@ -76,7 +76,6 @@ class FiwareConnection:
         Load the Fiware connection parameters.
         """
         fiware_env = FiwareEnvVariables()
-        print(fiware_env)
 
         if fiware_env.auth:
 

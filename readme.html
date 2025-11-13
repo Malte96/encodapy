@@ -120,9 +120,9 @@ For more information and code, see: <a class="reference external" href="https://
 </section>
 <section id="configuration">
 <h2>Configuration<a class="headerlink" href="#configuration" title="Link to this heading"></a></h2>
-<ul>
-<li><p>The configuration of the service must be provided via <code class="docutils literal notranslate"><span class="pre">config.json</span></code> and has several sections (see the <a class="reference external" href="https://gewv-tu-dresden.github.io/encodapy/basic_service.html">documentation</a> or the <a class="reference external" href="https://github.com/gewv-tu-dresden/encodapy/blob/main/examples">examples</a>):</p>
 <ul class="simple">
+<li><p>The configuration of the service must be provided via <code class="docutils literal notranslate"><span class="pre">config.json</span></code> and has several sections (see the <a class="reference external" href="https://gewv-tu-dresden.github.io/encodapy/basic_service.html">documentation</a> or the <a class="reference external" href="https://github.com/gewv-tu-dresden/encodapy/blob/main/examples">examples</a>):</p>
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">name</span></code>: Controller name - for documentation purposes only</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">interfaces</span></code>: Indicates which interfaces are active</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">inputs</span></code>: Configuration of the inputs to the controller</p></li>
@@ -132,35 +132,7 @@ For more information and code, see: <a class="reference external" href="https://
 <li><p><code class="docutils literal notranslate"><span class="pre">controller_settings</span></code>: General settings about the controller</p></li>
 </ul>
 </li>
-<li><p>ENVs are required to configure the interfaces / get the config with the default value [<code class="docutils literal notranslate"><span class="pre">default</span></code>]:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">CONFIG_PATH</span> <span class="o">=</span>  <span class="p">[</span><span class="s2">&quot;./config.json&quot;</span><span class="p">]</span>
-<span class="n">LOG_LEVEL</span> <span class="o">=</span>
-<span class="n">RELOAD_STATICDATA</span> <span class="o">=</span> <span class="kc">False</span>
-
-<span class="c1"># FIWARE - Interface</span>
-<span class="n">CB_URL</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;http://localhost:1026&quot;</span><span class="p">]</span>
-<span class="n">FIWARE_SERVICE</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;service&quot;</span><span class="p">]</span>
-<span class="n">FIWARE_SERVICE_PATH</span> <span class="o">=</span> <span class="p">[</span><span class="o">/</span><span class="p">]</span>
-<span class="n">FIWARE_AUTH</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span>
-<span class="c1"># only used if FIWARE_AUTH = true / Option 1 for authentication</span>
-<span class="n">FIWARE_CLIENT_ID</span> <span class="o">=</span> 
-<span class="n">FIWARE_CLIENT_PW</span> <span class="o">=</span> 
-<span class="n">FIWARE_TOKEN_URL</span> <span class="o">=</span> 
-<span class="c1"># only used if FIWARE_AUTH = true and the three previously not set / Option 2 for authentication</span>
-<span class="n">FIWARE_BAERER_TOKEN</span> <span class="o">=</span> <span class="p">[]</span>
-
-<span class="n">CRATE_DB_URL</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;http://localhost:4200&quot;</span><span class="p">]</span>
-<span class="n">CRATE_DB_USER</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;crate&quot;</span><span class="p">]</span>
-<span class="n">CRATE_DB_PW</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">]</span>
-<span class="n">CRATE_DB_SSL</span> <span class="o">=</span> <span class="p">[</span><span class="kc">False</span><span class="p">]</span>
-
-<span class="c1"># FILE - Interface</span>
-<span class="n">PATH_OF_INPUT_FILE</span> <span class="o">=</span> <span class="s2">&quot;path_to_the_file/validation_data.csv&quot;</span>
-<span class="n">PATH_OF_STATIC_DATA</span> <span class="o">=</span> <span class="s2">&quot;path_to_the_file/static_data.json&quot;</span>
-<span class="n">START_TIME_FILE</span> <span class="o">=</span> <span class="s2">&quot;2023-01-01 00:00&quot;</span>  <span class="c1"># Default / It needs to be ISO compatible (https://docs.python.org/3/library/datetime.html#datetime.datetime.fromisoformat).</span>
-</pre></div>
-</div>
-</li>
+<li><p>Environmental variables are required to configure the basic service and the interfaces. For more information, see <a class="reference external" href="https://github.com/gewv-tu-dresden/encodapy/blob/main/encodapy/config/env_values.py">encodapy/config/env_values</a> or the <a class="reference external" href="https://gewv-tu-dresden.github.io/encodapy/">documentation</a>.</p></li>
 </ul>
 </section>
 <section id="usage">
@@ -174,7 +146,7 @@ For more information and code, see: <a class="reference external" href="https://
 <h3>Customer service based on the ControllerBasicService<a class="headerlink" href="#customer-service-based-on-the-controllerbasicservice" title="Link to this heading"></a></h3>
 <p>To create your own custom service, you have to overwrite two functions of the <a class="reference external" href="https://github.com/gewv-tu-dresden/encodapy/blob/main/encodapy/service/basic_service.py">ControllerBasicService</a>:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">prepare_start</span></code>: This is a synchronous function that prepares the start of the algorithm and specifies aspects of the service. This should not take long due to health issues in Docker containers. It only needs to be overwritten if other tasks are required after initialisation of the service.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">prepare_start()</span></code>: This is a synchronous function that prepares the start of the algorithm and specifies aspects of the service. This should not take long due to health issues in Docker containers. It only needs to be overwritten if other tasks are required after initialisation of the service.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">calculation()</span></code>: Asynchronous function to perform the main calculation in the service</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">calibration()</span></code>: Asynchronous function to calibrate the service or coefficients and update StaticData in the service if only required</p></li>
 </ul>

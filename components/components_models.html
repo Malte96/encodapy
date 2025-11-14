@@ -57,7 +57,6 @@
 <li class="toctree-l3"><a class="reference internal" href="#module-encodapy.components.basic_component_config">Specific Sub-Models</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.components.basic_component_config.ComponentData"><code class="docutils literal notranslate"><span class="pre">ComponentData</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.components.basic_component_config.ComponentIOModel"><code class="docutils literal notranslate"><span class="pre">ComponentIOModel</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="#encodapy.components.basic_component_config.ComponentValidationError"><code class="docutils literal notranslate"><span class="pre">ComponentValidationError</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.components.basic_component_config.ConfigData"><code class="docutils literal notranslate"><span class="pre">ConfigData</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.components.basic_component_config.ConfigDataPoints"><code class="docutils literal notranslate"><span class="pre">ConfigDataPoints</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.components.basic_component_config.IOAllocationModel"><code class="docutils literal notranslate"><span class="pre">IOAllocationModel</span></code></a></li>
@@ -323,12 +322,12 @@
 <em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.basic_component_config.</span></span><span class="sig-name descname"><span class="pre">ComponentData</span></span><a class="reference internal" href="../_modules/encodapy/components/basic_component_config.html#ComponentData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.basic_component_config.ComponentData" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel" title="(in Pydantic Validation v0.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
 <p>Basemodel for the configuration of the datapoints of a component</p>
-<p>Base for InputData, OutputData and ConfigData</p>
+<p>Base for <a class="reference internal" href="#encodapy.components.basic_component_config.InputData" title="encodapy.components.basic_component_config.InputData"><code class="xref py py-class docutils literal notranslate"><span class="pre">InputData</span></code></a>,         <a class="reference internal" href="#encodapy.components.basic_component_config.OutputData" title="encodapy.components.basic_component_config.OutputData"><code class="xref py py-class docutils literal notranslate"><span class="pre">OutputData</span></code></a>        and <a class="reference internal" href="#encodapy.components.basic_component_config.ConfigData" title="encodapy.components.basic_component_config.ConfigData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigData</span></code></a></p>
 <p>Provides a validator to check the units of the input values         and convert them if necessary.</p>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ComponentData&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Basemodel for the configuration of the datapoints of a component\n\nBase for InputData, OutputData and ConfigData\n\nProvides a validator to check the units of the input values         and convert them if necessary.&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Basemodel for the configuration of the datapoints of a component\n\nBase for :class:`~encodapy.components.basic_component_config.InputData`,         :class:`~encodapy.components.basic_component_config.OutputData`        and :class:`~encodapy.components.basic_component_config.ConfigData`\n\nProvides a validator to check the units of the input values         and convert them if necessary.&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
 <span class="p">}</span>
@@ -352,7 +351,7 @@
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ComponentIOModel&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the input and output of the thermal storage service.\n\nAttributes:\n    input (InputModel): Input configuration for the thermal storage service\n    output (OutputModel): Output configuration for the thermal storage service&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the input and output of the thermal storage service.\n\nAttributes:\n    input (:class:`~encodapy.utils.datapoints.InputModel`):             Input configuration for the thermal storage service\n    output (:class:`~encodapy.utils.datapoints.OutputModel`):             Output configuration for the thermal storage service&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;input&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -374,13 +373,13 @@
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;InputData&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Basemodel for the configuration of the inputs of a component\n\nNeeds to be implemented by the user.\n\nProvides a validator to check the units of the input values         and convert them if necessary.\nOnly works if the value is a number (int or float) and the datapoint         is a DataPointGeneral or a SubModel.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Base model for the component input configuration.\n\nSubclass this and declare fields for each input datapoint. InputData\ninherits the unit-checking validator from         :class:`~encodapy.components.basic_component_config.ComponentData`,\nwhich will validate and convert units when possible.\n\nFields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`\n(or subclasses thereof) so the validator can handle unit and value conversion.\n\nNeeds to be implemented for the specific component.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;InputData&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;OutputData&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Basemodel for the configuration of the outputs of a component\n\nNeeds to be implemented by the user.\n\nProvides a validator to check the units of the input values         and convert them if necessary.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Base model for the component output configuration.\n\nSubclass this and declare fields for each output datapoint. OutputData\ninherits the unit-checking validator from         :class:`~encodapy.components.basic_component_config.ComponentData`,\nwhich will validate and convert units when possible.\n\nFields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`\n(or subclasses thereof) so the validator can handle unit and value conversion.\n\nNeeds to be implemented for the specific component.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OutputData&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
@@ -407,24 +406,21 @@
 
 </dd></dl>
 
-<dl class="py exception">
-<dt class="sig sig-object py" id="encodapy.components.basic_component_config.ComponentValidationError">
-<em class="property"><span class="k"><span class="pre">exception</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.basic_component_config.</span></span><span class="sig-name descname"><span class="pre">ComponentValidationError</span></span><a class="reference internal" href="../_modules/encodapy/components/basic_component_config.html#ComponentValidationError"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.basic_component_config.ComponentValidationError" title="Link to this definition"></a></dt>
-<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/exceptions.html#Exception" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></a></p>
-<p>Custom error for invalid configurations.</p>
-</dd></dl>
-
 <dl class="py class pydantic_model">
 <dt class="sig sig-object py" id="encodapy.components.basic_component_config.ConfigData">
 <em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.basic_component_config.</span></span><span class="sig-name descname"><span class="pre">ConfigData</span></span><a class="reference internal" href="../_modules/encodapy/components/basic_component_config.html#ConfigData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.basic_component_config.ConfigData" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#encodapy.components.basic_component_config.ComponentData" title="encodapy.components.basic_component_config.ComponentData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ComponentData</span></code></a></p>
-<p>Basemodel for the configuration data of a component</p>
-<p>Needs to be implemented by the user, if static configuration is needed.</p>
-<p>Provides a validator to check the units of the input values         and convert them if necessary.</p>
+<p>Base model for the component static configuration data.</p>
+<p>Subclass this and declare fields for each static configuration datapoint. ConfigData
+inherits the unit-checking validator from         <a class="reference internal" href="#encodapy.components.basic_component_config.ComponentData" title="encodapy.components.basic_component_config.ComponentData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ComponentData</span></code></a>,
+which will validate and convert units when possible.</p>
+<p>Fields should be instances of <a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a>
+(or subclasses thereof) so the validator can handle unit and value conversion.</p>
+<p>Needs to be implemented by the user if static configuration is required.</p>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ConfigData&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Basemodel for the configuration data of a component\n\nNeeds to be implemented by the user, if static configuration is needed.\n\nProvides a validator to check the units of the input values         and convert them if necessary.&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Base model for the component static configuration data.\n\nSubclass this and declare fields for each static configuration datapoint. ConfigData\ninherits the unit-checking validator from         :class:`~encodapy.components.basic_component_config.ComponentData`,\nwhich will validate and convert units when possible.\n\nFields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`\n(or subclasses thereof) so the validator can handle unit and value conversion.\n\nNeeds to be implemented by the user if static configuration is required.&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
 <span class="p">}</span>
@@ -648,14 +644,17 @@ It is used to create the the ComponentIOModel for each component.</p>
 <dt class="sig sig-object py" id="encodapy.components.basic_component_config.InputData">
 <em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.basic_component_config.</span></span><span class="sig-name descname"><span class="pre">InputData</span></span><a class="reference internal" href="../_modules/encodapy/components/basic_component_config.html#InputData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.basic_component_config.InputData" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#encodapy.components.basic_component_config.ComponentData" title="encodapy.components.basic_component_config.ComponentData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ComponentData</span></code></a></p>
-<p>Basemodel for the configuration of the inputs of a component</p>
-<p>Needs to be implemented by the user.</p>
-<p>Provides a validator to check the units of the input values         and convert them if necessary.
-Only works if the value is a number (int or float) and the datapoint         is a DataPointGeneral or a SubModel.</p>
+<p>Base model for the component input configuration.</p>
+<p>Subclass this and declare fields for each input datapoint. InputData
+inherits the unit-checking validator from         <a class="reference internal" href="#encodapy.components.basic_component_config.ComponentData" title="encodapy.components.basic_component_config.ComponentData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ComponentData</span></code></a>,
+which will validate and convert units when possible.</p>
+<p>Fields should be instances of <a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a>
+(or subclasses thereof) so the validator can handle unit and value conversion.</p>
+<p>Needs to be implemented for the specific component.</p>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;InputData&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Basemodel for the configuration of the inputs of a component\n\nNeeds to be implemented by the user.\n\nProvides a validator to check the units of the input values         and convert them if necessary.\nOnly works if the value is a number (int or float) and the datapoint         is a DataPointGeneral or a SubModel.&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Base model for the component input configuration.\n\nSubclass this and declare fields for each input datapoint. InputData\ninherits the unit-checking validator from         :class:`~encodapy.components.basic_component_config.ComponentData`,\nwhich will validate and convert units when possible.\n\nFields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`\n(or subclasses thereof) so the validator can handle unit and value conversion.\n\nNeeds to be implemented for the specific component.&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
 <span class="p">}</span>
@@ -667,13 +666,17 @@ Only works if the value is a number (int or float) and the datapoint         is 
 <dt class="sig sig-object py" id="encodapy.components.basic_component_config.OutputData">
 <em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.basic_component_config.</span></span><span class="sig-name descname"><span class="pre">OutputData</span></span><a class="reference internal" href="../_modules/encodapy/components/basic_component_config.html#OutputData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.basic_component_config.OutputData" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="#encodapy.components.basic_component_config.ComponentData" title="encodapy.components.basic_component_config.ComponentData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ComponentData</span></code></a></p>
-<p>Basemodel for the configuration of the outputs of a component</p>
-<p>Needs to be implemented by the user.</p>
-<p>Provides a validator to check the units of the input values         and convert them if necessary.</p>
+<p>Base model for the component output configuration.</p>
+<p>Subclass this and declare fields for each output datapoint. OutputData
+inherits the unit-checking validator from         <a class="reference internal" href="#encodapy.components.basic_component_config.ComponentData" title="encodapy.components.basic_component_config.ComponentData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ComponentData</span></code></a>,
+which will validate and convert units when possible.</p>
+<p>Fields should be instances of <a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a>
+(or subclasses thereof) so the validator can handle unit and value conversion.</p>
+<p>Needs to be implemented for the specific component.</p>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OutputData&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Basemodel for the configuration of the outputs of a component\n\nNeeds to be implemented by the user.\n\nProvides a validator to check the units of the input values         and convert them if necessary.&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Base model for the component output configuration.\n\nSubclass this and declare fields for each output datapoint. OutputData\ninherits the unit-checking validator from         :class:`~encodapy.components.basic_component_config.ComponentData`,\nwhich will validate and convert units when possible.\n\nFields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`\n(or subclasses thereof) so the validator can handle unit and value conversion.\n\nNeeds to be implemented for the specific component.&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{}</span>
 <span class="p">}</span>

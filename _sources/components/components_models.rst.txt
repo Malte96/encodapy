@@ -20,5 +20,5 @@ Specific Sub-Models
    :members:
    :show-inheritance:
    :undoc-members:
-   :exclude-members: ControllerComponentModel, model_fields, model_config, model_computed_fields, model_extra,
+   :exclude-members: ControllerComponentModel, model_fields, model_config, model_computed_fields, model_extra, ComponentValidationError
 

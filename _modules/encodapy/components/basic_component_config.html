@@ -176,7 +176,9 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Basemodel for the configuration of the datapoints of a component</span>
 
-<span class="sd">    Base for InputData, OutputData and ConfigData</span>
+<span class="sd">    Base for :class:`~encodapy.components.basic_component_config.InputData`, \</span>
+<span class="sd">        :class:`~encodapy.components.basic_component_config.OutputData`\</span>
+<span class="sd">        and :class:`~encodapy.components.basic_component_config.ConfigData`</span>
 <span class="sd">    </span>
 <span class="sd">    Provides a validator to check the units of the input values \</span>
 <span class="sd">        and convert them if necessary.</span>
@@ -228,12 +230,17 @@
 <a class="viewcode-back" href="../../../components/components_models.html#encodapy.components.basic_component_config.OutputData">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">OutputData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Basemodel for the configuration of the outputs of a component</span>
+<span class="sd">    Base model for the component output configuration.</span>
 
-<span class="sd">    Needs to be implemented by the user.</span>
-<span class="sd">    </span>
-<span class="sd">    Provides a validator to check the units of the input values \</span>
-<span class="sd">        and convert them if necessary.</span>
+<span class="sd">    Subclass this and declare fields for each output datapoint. OutputData</span>
+<span class="sd">    inherits the unit-checking validator from \</span>
+<span class="sd">        :class:`~encodapy.components.basic_component_config.ComponentData`,</span>
+<span class="sd">    which will validate and convert units when possible.</span>
+
+<span class="sd">    Fields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`</span>
+<span class="sd">    (or subclasses thereof) so the validator can handle unit and value conversion.</span>
+
+<span class="sd">    Needs to be implemented for the specific component.</span>
 <span class="sd">    &quot;&quot;&quot;</span></div>
 
 
@@ -242,30 +249,36 @@
 <a class="viewcode-back" href="../../../components/components_models.html#encodapy.components.basic_component_config.InputData">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">InputData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Basemodel for the configuration of the inputs of a component</span>
-<span class="sd">    </span>
-<span class="sd">    Needs to be implemented by the user.</span>
-<span class="sd">    </span>
-<span class="sd">    Provides a validator to check the units of the input values \</span>
-<span class="sd">        and convert them if necessary.</span>
-<span class="sd">    Only works if the value is a number (int or float) and the datapoint \</span>
-<span class="sd">        is a DataPointGeneral or a SubModel.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
+<span class="sd">    Base model for the component input configuration.</span>
 
+<span class="sd">    Subclass this and declare fields for each input datapoint. InputData</span>
+<span class="sd">    inherits the unit-checking validator from \</span>
+<span class="sd">        :class:`~encodapy.components.basic_component_config.ComponentData`,</span>
+<span class="sd">    which will validate and convert units when possible.</span>
+
+<span class="sd">    Fields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`</span>
+<span class="sd">    (or subclasses thereof) so the validator can handle unit and value conversion.</span>
+<span class="sd">    </span>
+<span class="sd">    Needs to be implemented for the specific component.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="ConfigData">
 <a class="viewcode-back" href="../../../components/components_models.html#encodapy.components.basic_component_config.ConfigData">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ConfigData</span><span class="p">(</span><span class="n">ComponentData</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Basemodel for the configuration data of a component</span>
-<span class="sd">    </span>
-<span class="sd">    Needs to be implemented by the user, if static configuration is needed.</span>
-<span class="sd">    </span>
-<span class="sd">    Provides a validator to check the units of the input values \</span>
-<span class="sd">        and convert them if necessary.</span>
-<span class="sd">    &quot;&quot;&quot;</span></div>
+<span class="sd">    Base model for the component static configuration data.</span>
 
+<span class="sd">    Subclass this and declare fields for each static configuration datapoint. ConfigData</span>
+<span class="sd">    inherits the unit-checking validator from \</span>
+<span class="sd">        :class:`~encodapy.components.basic_component_config.ComponentData`,</span>
+<span class="sd">    which will validate and convert units when possible.</span>
+
+<span class="sd">    Fields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`</span>
+<span class="sd">    (or subclasses thereof) so the validator can handle unit and value conversion.</span>
+
+<span class="sd">    Needs to be implemented by the user if static configuration is required.</span>
+<span class="sd">    &quot;&quot;&quot;</span></div>
 
 
 <div class="viewcode-block" id="ComponentIOModel">
@@ -275,8 +288,10 @@
 <span class="sd">    Model for the input and output of the thermal storage service.</span>
 
 <span class="sd">    Attributes:</span>
-<span class="sd">        input (InputModel): Input configuration for the thermal storage service</span>
-<span class="sd">        output (OutputModel): Output configuration for the thermal storage service</span>
+<span class="sd">        input (:class:`~encodapy.utils.datapoints.InputModel`): \</span>
+<span class="sd">            Input configuration for the thermal storage service</span>
+<span class="sd">        output (:class:`~encodapy.utils.datapoints.OutputModel`): \</span>
+<span class="sd">            Output configuration for the thermal storage service</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="nb">input</span><span class="p">:</span> <span class="n">InputData</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
@@ -289,11 +304,8 @@
 
 
 <span class="c1"># Custom Exceptions</span>
-<div class="viewcode-block" id="ComponentValidationError">
-<a class="viewcode-back" href="../../../components/components_models.html#encodapy.components.basic_component_config.ComponentValidationError">[docs]</a>
 <span class="k">class</span><span class="w"> </span><span class="nc">ComponentValidationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom error for invalid configurations.&quot;&quot;&quot;</span></div>
-
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Custom error for invalid configurations.&quot;&quot;&quot;</span>
 </pre></div>
 
            </div>

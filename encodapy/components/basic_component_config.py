@@ -87,7 +87,9 @@ class ComponentData(BaseModel):
     """
     Basemodel for the configuration of the datapoints of a component
 
-    Base for InputData, OutputData and ConfigData
+    Base for :class:`~encodapy.components.basic_component_config.InputData`, \
+        :class:`~encodapy.components.basic_component_config.OutputData`\
+        and :class:`~encodapy.components.basic_component_config.ConfigData`
     
     Provides a validator to check the units of the input values \
         and convert them if necessary.
@@ -136,46 +138,59 @@ class ComponentData(BaseModel):
 
 class OutputData(ComponentData):
     """
-    Basemodel for the configuration of the outputs of a component
+    Base model for the component output configuration.
 
-    Needs to be implemented by the user.
-    
-    Provides a validator to check the units of the input values \
-        and convert them if necessary.
+    Subclass this and declare fields for each output datapoint. OutputData
+    inherits the unit-checking validator from \
+        :class:`~encodapy.components.basic_component_config.ComponentData`,
+    which will validate and convert units when possible.
+
+    Fields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`
+    (or subclasses thereof) so the validator can handle unit and value conversion.
+
+    Needs to be implemented for the specific component.
     """
 
 
 class InputData(ComponentData):
     """
-    Basemodel for the configuration of the inputs of a component
-    
-    Needs to be implemented by the user.
-    
-    Provides a validator to check the units of the input values \
-        and convert them if necessary.
-    Only works if the value is a number (int or float) and the datapoint \
-        is a DataPointGeneral or a SubModel.
-    """
+    Base model for the component input configuration.
 
+    Subclass this and declare fields for each input datapoint. InputData
+    inherits the unit-checking validator from \
+        :class:`~encodapy.components.basic_component_config.ComponentData`,
+    which will validate and convert units when possible.
+
+    Fields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`
+    (or subclasses thereof) so the validator can handle unit and value conversion.
+    
+    Needs to be implemented for the specific component.
+    """
 
 class ConfigData(ComponentData):
     """
-    Basemodel for the configuration data of a component
-    
-    Needs to be implemented by the user, if static configuration is needed.
-    
-    Provides a validator to check the units of the input values \
-        and convert them if necessary.
-    """
+    Base model for the component static configuration data.
 
+    Subclass this and declare fields for each static configuration datapoint. ConfigData
+    inherits the unit-checking validator from \
+        :class:`~encodapy.components.basic_component_config.ComponentData`,
+    which will validate and convert units when possible.
+
+    Fields should be instances of :class:`~encodapy.utils.datapoints.DataPointGeneral`
+    (or subclasses thereof) so the validator can handle unit and value conversion.
+
+    Needs to be implemented by the user if static configuration is required.
+    """
 
 class ComponentIOModel(BaseModel):
     """
     Model for the input and output of the thermal storage service.
 
     Attributes:
-        input (InputModel): Input configuration for the thermal storage service
-        output (OutputModel): Output configuration for the thermal storage service
+        input (:class:`~encodapy.utils.datapoints.InputModel`): \
+            Input configuration for the thermal storage service
+        output (:class:`~encodapy.utils.datapoints.OutputModel`): \
+            Output configuration for the thermal storage service
     """
 
     input: InputData = Field(

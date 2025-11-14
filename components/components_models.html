@@ -54,7 +54,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.components.basic_component_config.ControllerComponentModel"><code class="docutils literal notranslate"><span class="pre">ControllerComponentModel</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#module-encodapy.components.basic_component_config">Specific sub-models</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#module-encodapy.components.basic_component_config">Specific Sub-Models</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.components.basic_component_config.ComponentData"><code class="docutils literal notranslate"><span class="pre">ComponentData</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.components.basic_component_config.ComponentIOModel"><code class="docutils literal notranslate"><span class="pre">ComponentIOModel</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.components.basic_component_config.ComponentValidationError"><code class="docutils literal notranslate"><span class="pre">ComponentValidationError</span></code></a></li>
@@ -175,7 +175,7 @@
 <span class="w">               </span><span class="p">}</span>
 <span class="w">            </span><span class="p">]</span>
 <span class="w">         </span><span class="p">},</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the configuration of config data points.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the configuration of config data points.\n\nSee also :class:`~encodapy.components.basic_component_config.IOAllocationModel` and\n:class:`~encodapy.utils.datapoints.DataPointGeneral`.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ConfigDataPoints&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">},</span>
@@ -269,7 +269,7 @@
 <span class="w">         </span><span class="nt">&quot;additionalProperties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">            </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/IOAllocationModel&quot;</span>
 <span class="w">         </span><span class="p">},</span>
-<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the input, staticdata and output of a component.\n\nIt contains a dictionary with the key as the ID of the input, output or static data\nand the value as the allocation model.\n\nThere is no validation for this.\nIt is used to create the the ComponentIOModel for each component.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the input, staticdata and output of a component.\n\nIt contains a dictionary with the key as the ID of the input, output or static data\nand the value as the allocation model\n\nSee also :class:`~encodapy.components.basic_component_config.IOAllocationModel`.\n\nThere is no validation for this.\nIt is used to create the the ComponentIOModel for each component.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IOModell&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
 <span class="w">      </span><span class="p">}</span>
@@ -317,7 +317,7 @@
 
 </section>
 <section id="module-encodapy.components.basic_component_config">
-<span id="specific-sub-models"></span><h2>Specific sub-models<a class="headerlink" href="#module-encodapy.components.basic_component_config" title="Link to this heading"></a></h2>
+<span id="specific-sub-models"></span><h2>Specific Sub-Models<a class="headerlink" href="#module-encodapy.components.basic_component_config" title="Link to this heading"></a></h2>
 <dl class="py class pydantic_model">
 <dt class="sig sig-object py" id="encodapy.components.basic_component_config.ComponentData">
 <em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.basic_component_config.</span></span><span class="sig-name descname"><span class="pre">ComponentData</span></span><a class="reference internal" href="../_modules/encodapy/components/basic_component_config.html#ComponentData"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.basic_component_config.ComponentData" title="Link to this definition"></a></dt>
@@ -437,10 +437,12 @@
 <em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.basic_component_config.</span></span><span class="sig-name descname"><span class="pre">ConfigDataPoints</span></span><a class="reference internal" href="../_modules/encodapy/components/basic_component_config.html#ConfigDataPoints"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.basic_component_config.ConfigDataPoints" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RootModel[Dict[str,</span> <span class="pre">Union[IOAllocationModel,</span> <span class="pre">DataPointGeneral]]]</span></code></p>
 <p>Model for the configuration of config data points.</p>
+<p>See also <a class="reference internal" href="#encodapy.components.basic_component_config.IOAllocationModel" title="encodapy.components.basic_component_config.IOAllocationModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOAllocationModel</span></code></a> and
+<a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a>.</p>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ConfigDataPoints&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the configuration of config data points.&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the configuration of config data points.\n\nSee also :class:`~encodapy.components.basic_component_config.IOAllocationModel` and\n:class:`~encodapy.utils.datapoints.DataPointGeneral`.&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;DataPointGeneral&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -602,13 +604,14 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">RootModel[Dict[str,</span> <span class="pre">IOAllocationModel]]</span></code></p>
 <p>Model for the input, staticdata and output of a component.</p>
 <p>It contains a dictionary with the key as the ID of the input, output or static data
-and the value as the allocation model.</p>
+and the value as the allocation model</p>
+<p>See also <a class="reference internal" href="#encodapy.components.basic_component_config.IOAllocationModel" title="encodapy.components.basic_component_config.IOAllocationModel"><code class="xref py py-class docutils literal notranslate"><span class="pre">IOAllocationModel</span></code></a>.</p>
 <p>There is no validation for this.
 It is used to create the the ComponentIOModel for each component.</p>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;IOModell&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the input, staticdata and output of a component.\n\nIt contains a dictionary with the key as the ID of the input, output or static data\nand the value as the allocation model.\n\nThere is no validation for this.\nIt is used to create the the ComponentIOModel for each component.&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the input, staticdata and output of a component.\n\nIt contains a dictionary with the key as the ID of the input, output or static data\nand the value as the allocation model\n\nSee also :class:`~encodapy.components.basic_component_config.IOAllocationModel`.\n\nThere is no validation for this.\nIt is used to create the the ComponentIOModel for each component.&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;IOAllocationModel&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>

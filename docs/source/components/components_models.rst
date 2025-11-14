@@ -13,7 +13,7 @@ Configuration Model
 
 
 
-Specific sub-models
+Specific Sub-Models
 -------------------
 
 .. automodule:: encodapy.components.basic_component_config

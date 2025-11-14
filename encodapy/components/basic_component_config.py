@@ -37,7 +37,9 @@ class IOModell(
     Model for the input, staticdata and output of a component.
 
     It contains a dictionary with the key as the ID of the input, output or static data
-    and the value as the allocation model.
+    and the value as the allocation model
+    
+    See also :class:`~encodapy.components.basic_component_config.IOAllocationModel`.
 
     There is no validation for this.
     It is used to create the the ComponentIOModel for each component.
@@ -49,6 +51,9 @@ class ConfigDataPoints(
 ):  # pylint: disable=too-few-public-methods
     """
     Model for the configuration of config data points.
+    
+    See also :class:`~encodapy.components.basic_component_config.IOAllocationModel` and
+    :class:`~encodapy.utils.datapoints.DataPointGeneral`.
     """
 
 

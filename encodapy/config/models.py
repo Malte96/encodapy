@@ -14,11 +14,13 @@ from filip.models.base import DataType
 from encodapy.config.types import (
     AttributeTypes,
     Interfaces,
-    TimerangeTypes
+    TimerangeTypes,
+    MQTTFormatTypes,
 )
 from encodapy.utils.error_handling import ConfigError, InterfaceNotActive
 from encodapy.utils.units import DataUnits, TimeUnits
 from encodapy.components.basic_component_config import ControllerComponentModel
+from encodapy.config.mqtt_messages_template import MQTTTemplateConfig
 
 
 class InterfaceModel(BaseModel):
@@ -34,7 +36,6 @@ class InterfaceModel(BaseModel):
     mqtt: bool = False
     fiware: bool = False
     file: bool = False
-
 
 class AttributeModel(BaseModel):
     """
@@ -54,6 +55,8 @@ class AttributeModel(BaseModel):
         unit (Optional[DataUnits]): The unit of measurement for the value. Defaults to `None`.
         datatype (DataType): The data type of the attribute. Defaults to `DataType("Number")`.
         timestamp (Optional[datetime]): The timestamp of the attribute. Defaults to `None`.
+        mqtt_format (Union[MQTTFormatTypes, MQTTTemplateConfig]): The format of the attribute for MQTT \
+        (if not set, the default format is used) - only for mqtt interface needed
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
@@ -65,6 +68,7 @@ class AttributeModel(BaseModel):
     unit: Optional[DataUnits] = None
     datatype: DataType = DataType("Number")
     timestamp: Optional[datetime] = None
+    mqtt_format: Union[MQTTFormatTypes, MQTTTemplateConfig] = MQTTFormatTypes.PLAIN
 
     @model_validator(mode="after")
     def set_id_interface(self) -> "AttributeModel":
@@ -162,7 +166,7 @@ class OutputModel(BaseModel):
     interface: Interfaces
     id_interface: str = Field(default=None)
     attributes: list[AttributeModel]
-    commands: list[CommandModel]
+    commands: list[CommandModel] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def set_id_interface(self) -> "OutputModel":

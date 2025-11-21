@@ -3,10 +3,9 @@ Description: This file contains the class FiwareConnections,
 which is used to store the connection parameters for the Fiware and CrateDB connections.
 Author: Martin Altenburger
 """
-
 from asyncio import sleep
 from datetime import datetime, timedelta, timezone
-from typing import Union
+from typing import Union, Optional
 import concurrent.futures
 import multiprocessing
 from loguru import logger
@@ -23,6 +22,7 @@ from filip.models.ngsi_v2.context import (
     NamedCommand,
     NamedContextAttribute,
 )
+from filip.clients.exceptions import BaseHttpClientException
 from encodapy.config import (
     AttributeModel,
     AttributeTypes,
@@ -196,14 +196,21 @@ class FiwareConnection:
                 - the latest timestamp of the output entity for the attribute
                 with the oldest value (None if no timestamp is available)
         """
+        try:
+            output_attributes_entity = self.cb_client.get_entity_attributes(
+                entity_id=output_entity.id_interface
+            )
 
-        output_attributes_entity = self.cb_client.get_entity_attributes(
-            entity_id=output_entity.id_interface
-        )
+            output_attributes_controller = {
+                item.id_interface: item.id for item in output_entity.attributes
+            }
+        except requests.exceptions.ConnectionError as err:
+            logger.error(f"""No connection to platform (ConnectionError): {err}""")
 
-        output_attributes_controller = {
-            item.id_interface: item.id for item in output_entity.attributes
-        }
+            return None
+        except BaseHttpClientException as err:
+            logger.error(f"Could not get entity from FIWARE platform: {err}")
+            return None
 
         timestamps = []
         for attr in list(output_attributes_entity.keys()):
@@ -315,6 +322,9 @@ class FiwareConnection:
         except requests.exceptions.ConnectionError as err:
             logger.error(f"""No connection to platform (ConnectionError): {err}""")
 
+            return None
+        except BaseHttpClientException as err:
+            logger.error(f"Could not get entity from FIWARE platform: {err}")
             return None
 
         for attribute in entity.attributes:
@@ -853,7 +863,7 @@ class FiwareConnection:
         for attribute in output_attributes:
 
             fiware_unit = None
-            factor_unit_adjustment = 1
+            factor_unit_adjustment: Optional[float] = 1.0
 
             if attribute.id_interface in entity_attributes:
                 datatype = entity_attributes[attribute.id_interface].type
@@ -877,17 +887,20 @@ class FiwareConnection:
                         name="unitCode", type=DataType.TEXT, value=attribute.unit.value
                     )
                 )
+                factor_unit_adjustment = 1.0
             elif attribute.unit is None:
                 logger.debug(
                     f"No information about the unit of the attribute {attribute.id} "
                     f"from entity {output_entity.id} available!"
                 )
+                factor_unit_adjustment = 1.0
 
             elif fiware_unit is not attribute.unit:
 
                 factor_unit_adjustment = get_unit_adjustment_factor(
                     unit_actual=attribute.unit, unit_target=fiware_unit
                 )
+
             if isinstance(attribute.value, pd.DataFrame):
 
                 attrs.append(
@@ -911,18 +924,37 @@ class FiwareConnection:
                     value=attribute.timestamp.strftime("%Y-%m-%dT%H:%M:%S%z"),
                 )
             )
-            attrs.append(
-                NamedContextAttribute(
-                    name=attribute.id_interface,
-                    value=(
-                        attribute.value * factor_unit_adjustment
-                        if attribute.value is not None
-                        else None
-                    ),
-                    type=datatype,
-                    metadata=meta_data,
+
+            try:
+                if factor_unit_adjustment is not None \
+                    and isinstance(attribute.value, (int, float)):
+                    value = attribute.value * factor_unit_adjustment \
+                        if attribute.value is not None else None
+                elif factor_unit_adjustment != 1.0 and factor_unit_adjustment is not None:
+                    raise TypeError("Unsupported type for unit adjustment: "
+                                    f"{type(attribute.value)}")
+                else:
+                    value = attribute.value
+            except TypeError as e:
+                logger.error(
+                    f"Error while adjusting unit for attribute {attribute.id} of entity "
+                    f"{output_entity.id} for FIWARE: {e}"
                 )
-            )
+                value = attribute.value
+            try:
+                attrs.append(
+                    NamedContextAttribute(
+                        name=attribute.id_interface,
+                        value=value,
+                        type=datatype,
+                        metadata=meta_data,
+                    )
+                )
+            except (ValueError, TypeError, AttributeError) as e:
+                logger.error(
+                    f"Error while preparing attribute {attribute.id} of entity "
+                    f"{output_entity.id} for FIWARE: {e}"
+                )
 
         cmds = []
         for command in output_commands:

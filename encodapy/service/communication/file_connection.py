@@ -3,7 +3,7 @@ Description: This file contains the class FiwareConnections,
 which is used to store the connection parameters for the Fiware and CrateDB connections.
 Author: Paul Seidel
 """
-
+import os
 import json
 import pathlib
 from datetime import datetime

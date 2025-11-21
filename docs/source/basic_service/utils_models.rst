@@ -9,6 +9,10 @@ Types
    :show-inheritance:
    :undoc-members:
 
+.. autopydantic_model:: encodapy.config.mqtt_messages_template.MQTTTemplateConfigDoc
+    :exclude-members: model_json_schema
+    :model-show-json: False
+
 Datapoints
 ----------
 

@@ -30,6 +30,10 @@ class BasicEnvVariables(BaseSettings):
         default=False,
         description="If true, static data will be reloaded at each time step"
     )
+    start_hold_time: Optional[float] = Field(
+        default=0.0,
+        description="Time in seconds to hold the start of the service"
+    )
 
 class FiwareEnvVariables(BaseSettings):
     """

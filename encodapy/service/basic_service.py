@@ -5,7 +5,7 @@ Author: Martin Altenburger
 import sys
 from datetime import datetime
 from typing import Optional, Union
-
+import asyncio
 from loguru import logger
 from pydantic import ValidationError
 
@@ -582,13 +582,11 @@ class ControllerBasicService(FiwareConnection, FileConnection, MqttConnection):
         )
 
         logger.info("Start the Service")
-        # Hold the sampling time at the beginning,
-        # so that the mqtt interfaces is ready and data is available
-        if self.config.interfaces.mqtt:
-            await self._hold_sampling_time(
-                start_time=datetime.now(),
-                hold_time=float(os.environ.get("MQTT_START_TIME", sampling_time)),
-            )
+        # Hold the service for a time at the beginning,
+        await self._hold_sampling_time(
+            start_time=datetime.now(),
+            hold_time=self.env.start_hold_time,
+        )
 
         while not self.shutdown_event.is_set():
             logger.debug("Start the Prozess")

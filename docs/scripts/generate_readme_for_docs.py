@@ -1,3 +1,4 @@
+# pylint: skip-file
 #!/usr/bin/env python3
 """Generate a README copy for Sphinx docs with repository-relative links replaced
 by absolute GitHub URLs so Sphinx doesn't treat them as missing internal docs.

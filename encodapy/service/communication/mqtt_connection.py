@@ -19,8 +19,8 @@ from encodapy.config import (
     Interfaces,
     OutputModel,
     MQTTTemplateConfig,
-    MQTTFormatTypes
-    MQTTEnvVariables,
+    MQTTFormatTypes,
+    MQTTEnvVariables
 )
 from encodapy.utils.error_handling import ConfigError, NotSupportedError
 from encodapy.utils.models import (
@@ -644,7 +644,7 @@ class MqttConnection:
             topic = mqtt_format.topic.render(
                 output_entity=output_entity__id_interface,
                 output_attribute=output_attribute__id_interface,
-                mqtt_topic_prefix=self.mqtt_params["topic_prefix"]
+                mqtt_topic_prefix=self.mqtt_params.topic_prefix
             )
         else:
             raise NotSupportedError(f"MQTT format {mqtt_format} is not supported.")

@@ -2,10 +2,10 @@
 Description: This file contains the models for the configuration of the system controller.
 Authors: Martin Altenburger
 """
-
+import os
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional, Union, TYPE_CHECKING
 from pydantic import BaseModel, ConfigDict, ValidationError, Field
 from pydantic.functional_validators import model_validator
 from loguru import logger
@@ -20,8 +20,12 @@ from encodapy.config.types import (
 from encodapy.utils.error_handling import ConfigError, InterfaceNotActive
 from encodapy.utils.units import DataUnits, TimeUnits
 from encodapy.components.basic_component_config import ControllerComponentModel
-from encodapy.config.mqtt_messages_template import MQTTTemplateConfig
-
+# Import MQTTTemplateConfigDoc for sphinx documentation generation
+IS_BUILDING_DOCS = "BUILDING_DOCS" in os.environ
+if TYPE_CHECKING or not IS_BUILDING_DOCS:
+    from encodapy.config.mqtt_messages_template import MQTTTemplateConfig
+else:
+    from encodapy.config.mqtt_messages_template import MQTTTemplateConfigDoc as MQTTTemplateConfig
 
 class InterfaceModel(BaseModel):
     """
@@ -55,14 +59,15 @@ class AttributeModel(BaseModel):
         unit (Optional[DataUnits]): The unit of measurement for the value. Defaults to `None`.
         datatype (DataType): The data type of the attribute. Defaults to `DataType("Number")`.
         timestamp (Optional[datetime]): The timestamp of the attribute. Defaults to `None`.
-        mqtt_format (Union[MQTTFormatTypes, MQTTTemplateConfig]): The format of the attribute for MQTT \
-        (if not set, the default format is used) - only for mqtt interface needed
+        mqtt_format (Union[MQTTFormatTypes, MQTTTemplateConfig]): \
+            The format of the attribute for MQTT (if not set, the default format is used) \
+                - only for mqtt interface needed
     """
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     id: str
-    id_interface: str = Field(default=None)
+    id_interface: str = Field(default="")
     type: AttributeTypes = AttributeTypes.VALUE
     value: Union[str, float, int, bool, Dict, List, pd.DataFrame, None] = None
     unit: Optional[DataUnits] = None
@@ -78,7 +83,7 @@ class AttributeModel(BaseModel):
         Returns:
             AttributeModel: The instance with the updated 'id_interface' attribute.
         """
-        if self.id_interface is None:
+        if self.id_interface == "":
             self.id_interface = self.id
         return self
 

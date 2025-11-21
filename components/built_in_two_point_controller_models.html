@@ -266,18 +266,6 @@
 </pre></div>
 </div>
 </details></p><dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_disabled">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">command_disabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DataPointGeneral(value=0,</span> <span class="pre">unit=None,</span> <span class="pre">time=None)</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_disabled" title="Link to this definition"></a></dt>
-<dd><p>Value representing the disabled state of the control signal</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_enabled">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">command_enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DataPointGeneral(value=1,</span> <span class="pre">unit=None,</span> <span class="pre">time=None)</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_enabled" title="Link to this definition"></a></dt>
-<dd><p>Value representing the enabled state of the control signal</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.hysteresis">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">hysteresis</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.hysteresis" title="Link to this definition"></a></dt>
 <dd><p>Hysteresis value for the two-point controller</p>
@@ -287,6 +275,18 @@
 <dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.setpoint">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">setpoint</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.setpoint" title="Link to this definition"></a></dt>
 <dd><p>Setpoint value for the two-point controller</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_enabled">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">command_enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DataPointGeneral(value=1,</span> <span class="pre">unit=None,</span> <span class="pre">time=None)</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_enabled" title="Link to this definition"></a></dt>
+<dd><p>Value representing the enabled state of the control signal</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_disabled">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">command_disabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointGeneral" title="encodapy.utils.datapoints.DataPointGeneral"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointGeneral</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DataPointGeneral(value=0,</span> <span class="pre">unit=None,</span> <span class="pre">time=None)</span></em><a class="headerlink" href="#encodapy.components.two_point_controller.two_point_controller_config.TwoPointControllerConfigData.command_disabled" title="Link to this definition"></a></dt>
+<dd><p>Value representing the disabled state of the control signal</p>
 </dd></dl>
 
 </dd></dl>

@@ -397,15 +397,15 @@
 </pre></div>
 </div>
 </details></p><dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits.maximal_temperature">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">maximal_temperature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits.maximal_temperature" title="Link to this definition"></a></dt>
-<dd><p>Maximal temperature in the storage in °C</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits.minimal_temperature">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">minimal_temperature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits.minimal_temperature" title="Link to this definition"></a></dt>
 <dd><p>Minimal temperature in the thermal storage in °C</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits.maximal_temperature">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">maximal_temperature</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.TemperatureLimits.maximal_temperature" title="Link to this definition"></a></dt>
+<dd><p>Maximal temperature in the storage in °C</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -444,19 +444,20 @@ CONNECTION_LIMITS (“connection_limits”): Uses the temperature sensors from t
 <dd><p>Bases: <a class="reference internal" href="components_models.html#encodapy.components.basic_component_config.ConfigData" title="encodapy.components.basic_component_config.ConfigData"><code class="xref py py-class docutils literal notranslate"><span class="pre">ConfigData</span></code></a></p>
 <p>Model for the configuration data of the thermal storage service.</p>
 <dl class="field-list simple">
-<dt class="field-odd">Variables<span class="colon">:</span></dt>
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>volume</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code>) – Volume of the thermal storage in m³</p></li>
 <li><p><strong>medium</strong> (<code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointMedium</span></code>) – Medium of the thermal storage</p></li>
 <li><p><strong>sensor_config</strong> (<a class="reference internal" href="#encodapy.components.thermal_storage.thermal_storage_config.DataPointSensorConfig" title="encodapy.components.thermal_storage.thermal_storage_config.DataPointSensorConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointSensorConfig</span></code></a>) – Sensor configuration of the thermal storage</p></li>
 <li><p><strong>calculation_method</strong> (<a class="reference internal" href="#encodapy.components.thermal_storage.thermal_storage_config.DataPointCalculationMethod" title="encodapy.components.thermal_storage.thermal_storage_config.DataPointCalculationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointCalculationMethod</span></code></a>) – Calculation method for the thermal storage</p></li>
+<li><p><strong>load_level_check</strong> – (ThermalStorageLoadLevelCheck) :             Configuration for the state of charge check</p></li>
 </ul>
 </dd>
 </dl>
 <p><details  class="autodoc_pydantic_collapsable_json">
 <summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
 <span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ThermalStorageConfigData&quot;</span><span class="p">,</span>
-<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the configuration data of the thermal storage service.\n\nAttributes:\n    volume (DataPointNumber): Volume of the thermal storage in m\u00b3\n    medium (DataPointMedium): Medium of the thermal storage\n    sensor_config (DataPointSensorConfig):             Sensor configuration of the thermal storage\n    calculation_method (DataPointCalculationMethod):             Calculation method for the thermal storage&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the configuration data of the thermal storage service.\n\nArguments:\n    volume (DataPointNumber ): Volume of the thermal storage in m\u00b3\n    medium (DataPointMedium) : Medium of the thermal storage\n    sensor_config (DataPointSensorConfig) :             Sensor configuration of the thermal storage\n    calculation_method (DataPointCalculationMethod) :             Calculation method for the thermal storage\n    load_level_check: (ThermalStorageLoadLevelCheck) :             Configuration for the state of charge check&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
 <span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">      </span><span class="nt">&quot;volume&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -499,6 +500,19 @@ CONNECTION_LIMITS (“connection_limits”): Uses the temperature sensors from t
 <span class="w">            </span><span class="nt">&quot;value&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;static_limits&quot;</span>
 <span class="w">         </span><span class="p">},</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Calculation method for the thermal storage&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;load_level_check&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;allOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;$ref&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;#/$defs/ThermalStorageLoadLevelCheck&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;minimal_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">15.0</span><span class="p">,</span>
+<span class="w">            </span><span class="nt">&quot;ref_state_of_charge&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Configuration for the state of charge check&quot;</span>
 <span class="w">      </span><span class="p">}</span>
 <span class="w">   </span><span class="p">},</span>
 <span class="w">   </span><span class="nt">&quot;$defs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -700,6 +714,42 @@ CONNECTION_LIMITS (“connection_limits”): Uses the temperature sensors from t
 <span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ThermalStorageCalculationMethods&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;string&quot;</span>
 <span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;ThermalStorageLoadLevelCheck&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the state of charge check information of the thermal storage service.&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">            </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable or disable the state of charge check&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enabled&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;minimal_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">15.0</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Threshold percentage for the upper temperature sensor.\n        When the top sensor falls below this percentage of the temperature range,\n        the state of charge is adjusted. (0-100)&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;exclusiveMinimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;maximum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">100.0</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Minimal Level&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="nt">&quot;ref_state_of_charge&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;maximum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">100.0</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">                  </span><span class="p">},</span>
+<span class="w">                  </span><span class="p">{</span>
+<span class="w">                     </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">                  </span><span class="p">}</span>
+<span class="w">               </span><span class="p">],</span>
+<span class="w">               </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Reference state of charge level in percent (0-100) | set by the process&quot;</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ref State Of Charge&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">},</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ThermalStorageLoadLevelCheck&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span>
+<span class="w">      </span><span class="p">},</span>
 <span class="w">      </span><span class="nt">&quot;ThermalStorageTemperatureSensors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
 <span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Configuration for the temperature sensors in the thermal storage\n\nAttributes:\n    storage_sensors: List of temperature sensors in the thermal storage\n\nIt is required to set at least 3 sensors and no more than 10 sensors. The heights of the sensors\nmust be between 0 and 100 percent and in ascending order.\n\nIt is possible to add more information to sensors, thats the reason why this model is used.&quot;</span><span class="p">,</span>
 <span class="w">         </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
@@ -727,9 +777,9 @@ CONNECTION_LIMITS (“connection_limits”): Uses the temperature sensors from t
 </pre></div>
 </div>
 </details></p><dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.calculation_method">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculation_method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#encodapy.components.thermal_storage.thermal_storage_config.DataPointCalculationMethod" title="encodapy.components.thermal_storage.thermal_storage_config.DataPointCalculationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointCalculationMethod</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DataPointCalculationMethod(value=&lt;ThermalStorageCalculationMethods.STATIC_LIMITS:</span> <span class="pre">'static_limits'&gt;)</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.calculation_method" title="Link to this definition"></a></dt>
-<dd><p>Calculation method for the thermal storage</p>
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.volume">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">volume</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.volume" title="Link to this definition"></a></dt>
+<dd><p>Volume of the thermal storage in m³</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -745,9 +795,15 @@ CONNECTION_LIMITS (“connection_limits”): Uses the temperature sensors from t
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.volume">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">volume</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.volume" title="Link to this definition"></a></dt>
-<dd><p>Volume of the thermal storage in m³</p>
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.calculation_method">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">calculation_method</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#encodapy.components.thermal_storage.thermal_storage_config.DataPointCalculationMethod" title="encodapy.components.thermal_storage.thermal_storage_config.DataPointCalculationMethod"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointCalculationMethod</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">DataPointCalculationMethod(value=&lt;ThermalStorageCalculationMethods.STATIC_LIMITS:</span> <span class="pre">'static_limits'&gt;)</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.calculation_method" title="Link to this definition"></a></dt>
+<dd><p>Calculation method for the thermal storage</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.load_level_check">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_level_check</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageLoadLevelCheck" title="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageLoadLevelCheck"><code class="xref py py-class docutils literal notranslate"><span class="pre">ThermalStorageLoadLevelCheck</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">ThermalStorageLoadLevelCheck(enabled=True,</span> <span class="pre">minimal_level=15.0,</span> <span class="pre">ref_state_of_charge=None)</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageConfigData.load_level_check" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the state of charge check</p>
 </dd></dl>
 
 </dd></dl>
@@ -1046,27 +1102,9 @@ in the thermal storage.</p>
 </pre></div>
 </div>
 </details></p><dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.load_temperature_in">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_temperature_in</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.load_temperature_in" title="Link to this definition"></a></dt>
-<dd><p>Input for the return temperature into the thermal storage (consumer)</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.load_temperature_out">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_temperature_out</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.load_temperature_out" title="Link to this definition"></a></dt>
-<dd><p>Input for the flow temperature from the thermal storage (consumer)</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_1">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">temperature_1</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_1" title="Link to this definition"></a></dt>
 <dd><p>Input for the temperature of sensor 1 in the thermal storage</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_10">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">temperature_10</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_10" title="Link to this definition"></a></dt>
-<dd><p>Input for the temperature of sensor 10 in the thermal storage</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">
@@ -1117,6 +1155,24 @@ in the thermal storage.</p>
 <dd><p>Input for the temperature of sensor 9 in the thermal storage</p>
 </dd></dl>
 
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_10">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">temperature_10</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.temperature_10" title="Link to this definition"></a></dt>
+<dd><p>Input for the temperature of sensor 10 in the thermal storage</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.load_temperature_in">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_temperature_in</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.load_temperature_in" title="Link to this definition"></a></dt>
+<dd><p>Input for the return temperature into the thermal storage (consumer)</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.load_temperature_out">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">load_temperature_out</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.load_temperature_out" title="Link to this definition"></a></dt>
+<dd><p>Input for the flow temperature from the thermal storage (consumer)</p>
+</dd></dl>
+
 <dl class="py method">
 <dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.check_load_connection_sensors">
 <span class="sig-name descname"><span class="pre">check_load_connection_sensors</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference external" href="https://docs.python.org/3/library/constants.html#None" title="(in Python v3.14)"><span class="pre">None</span></a></span></span><a class="reference internal" href="../_modules/encodapy/components/thermal_storage/thermal_storage_config.html#ThermalStorageInputData.check_load_connection_sensors"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageInputData.check_load_connection_sensors" title="Link to this definition"></a></dt>
@@ -1141,6 +1197,88 @@ in the thermal storage.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
 <dd class="field-even"><p><a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)">int</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageLoadLevelCheck">
+<em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.components.thermal_storage.thermal_storage_config.</span></span><span class="sig-name descname"><span class="pre">ThermalStorageLoadLevelCheck</span></span><a class="reference internal" href="../_modules/encodapy/components/thermal_storage/thermal_storage_config.html#ThermalStorageLoadLevelCheck"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageLoadLevelCheck" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.pydantic.dev/latest/api/base_model/#pydantic.BaseModel" title="(in Pydantic Validation v0.0.0)"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></a></p>
+<p>Model for the state of charge check information of the thermal storage service.</p>
+<p><details  class="autodoc_pydantic_collapsable_json">
+<summary>Show JSON schema</summary><div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+<span class="w">   </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;ThermalStorageLoadLevelCheck&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Model for the state of charge check information of the thermal storage service.&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;object&quot;</span><span class="p">,</span>
+<span class="w">   </span><span class="nt">&quot;properties&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">      </span><span class="nt">&quot;enabled&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">true</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enable or disable the state of charge check&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Enabled&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;boolean&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;minimal_level&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">15.0</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Threshold percentage for the upper temperature sensor.\n        When the top sensor falls below this percentage of the temperature range,\n        the state of charge is adjusted. (0-100)&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;exclusiveMinimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;maximum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">100.0</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Minimal Level&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">      </span><span class="p">},</span>
+<span class="w">      </span><span class="nt">&quot;ref_state_of_charge&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<span class="w">         </span><span class="nt">&quot;anyOf&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;maximum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">100.0</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;minimum&quot;</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0</span><span class="p">,</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;number&quot;</span>
+<span class="w">            </span><span class="p">},</span>
+<span class="w">            </span><span class="p">{</span>
+<span class="w">               </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;null&quot;</span>
+<span class="w">            </span><span class="p">}</span>
+<span class="w">         </span><span class="p">],</span>
+<span class="w">         </span><span class="nt">&quot;default&quot;</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;description&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Reference state of charge level in percent (0-100) | set by the process&quot;</span><span class="p">,</span>
+<span class="w">         </span><span class="nt">&quot;title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Ref State Of Charge&quot;</span>
+<span class="w">      </span><span class="p">}</span>
+<span class="w">   </span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</details></p><dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageLoadLevelCheck.enabled">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">enabled</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">bool</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">True</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageLoadLevelCheck.enabled" title="Link to this definition"></a></dt>
+<dd><p>Enable or disable the state of charge check</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageLoadLevelCheck.minimal_level">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">minimal_level</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">15.0</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageLoadLevelCheck.minimal_level" title="Link to this definition"></a></dt>
+<dd><p>Threshold percentage for the upper temperature sensor.
+When the top sensor falls below this percentage of the temperature range,
+the state of charge is adjusted. (0-100)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Constraints<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>gt</strong> = 0</p></li>
+<li><p><strong>le</strong> = 100</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageLoadLevelCheck.ref_state_of_charge">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">ref_state_of_charge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">float</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageLoadLevelCheck.ref_state_of_charge" title="Link to this definition"></a></dt>
+<dd><p>Reference state of charge level in percent (0-100) | set by the process</p>
+<dl class="field-list simple">
+<dt class="field-odd">Constraints<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ge</strong> = 0</p></li>
+<li><p><strong>le</strong> = 100</p></li>
+</ul>
 </dd>
 </dl>
 </dd></dl>
@@ -1288,15 +1426,15 @@ in the thermal storage.</p>
 </pre></div>
 </div>
 </details></p><dl class="py attribute pydantic_field">
-<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData.storage__energy">
-<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">storage__energy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData.storage__energy" title="Link to this definition"></a></dt>
-<dd><p>Output for storage energy in Wh</p>
-</dd></dl>
-
-<dl class="py attribute pydantic_field">
 <dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData.storage__level">
 <em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">storage__level</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData.storage__level" title="Link to this definition"></a></dt>
 <dd><p>Output for storage charge in percent (0-100)</p>
+</dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData.storage__energy">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">storage__energy</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/typing.html#typing.Optional" title="(in Python v3.14)"><code class="xref py py-data docutils literal notranslate"><span class="pre">Optional</span></code></a><span class="pre">[</span><a class="reference internal" href="../basic_service/utils_models.html#encodapy.utils.datapoints.DataPointNumber" title="encodapy.utils.datapoints.DataPointNumber"><code class="xref py py-class docutils literal notranslate"><span class="pre">DataPointNumber</span></code></a><span class="pre">]</span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">None</span></em><a class="headerlink" href="#encodapy.components.thermal_storage.thermal_storage_config.ThermalStorageOutputData.storage__energy" title="Link to this definition"></a></dt>
+<dd><p>Output for storage energy in Wh</p>
 </dd></dl>
 
 <dl class="py attribute pydantic_field">

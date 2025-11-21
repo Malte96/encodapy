@@ -20,10 +20,22 @@ You need to configure some general settings via environment variables. The follo
 
 .. autopydantic_settings:: encodapy.config.env_values.MQTTEnvVariables
 
+You could use different topics and payload templates for publishing and subscribing to MQTT messages.
+
+- For possible kinds of mqtt message formats, see :class:`~encodapy.config.types.MQTTFormatTypes`.
+- You need to configure the usage in the :class:`~encodapy.config.models.AttributeModel`.
+
+For a custom template, the following model is used:
+
+.. autopydantic_model:: encodapy.config.mqtt_messages_template.MQTTTemplateConfig
+    :exclude-members: model_json_schema
+    :model-show-json: False
+
+
 Configuration of the File Interface
 ------------------------------------
 
-The File Interface allows reading from and writing to data files. 
+The File Interface allows reading from and writing to data files.
 You need also to configure some general settings via environment variables. The following information is required for the file interface configuration:
 
 .. autopydantic_settings:: encodapy.config.env_values.FileEnvVariables

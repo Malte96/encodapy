@@ -54,7 +54,9 @@
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.config.types.DataQueryTypes"><code class="docutils literal notranslate"><span class="pre">DataQueryTypes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.config.types.FileExtensionTypes"><code class="docutils literal notranslate"><span class="pre">FileExtensionTypes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.config.types.Interfaces"><code class="docutils literal notranslate"><span class="pre">Interfaces</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#encodapy.config.types.MQTTFormatTypes"><code class="docutils literal notranslate"><span class="pre">MQTTFormatTypes</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#encodapy.config.types.TimerangeTypes"><code class="docutils literal notranslate"><span class="pre">TimerangeTypes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#encodapy.config.mqtt_messages_template.MQTTTemplateConfigDoc"><code class="docutils literal notranslate"><span class="pre">MQTTTemplateConfigDoc</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#module-encodapy.utils.datapoints">Datapoints</a><ul>
@@ -226,6 +228,38 @@
 </dd></dl>
 
 <dl class="py class">
+<dt class="sig sig-object py" id="encodapy.config.types.MQTTFormatTypes">
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.config.types.</span></span><span class="sig-name descname"><span class="pre">MQTTFormatTypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encodapy/config/types.html#MQTTFormatTypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.config.types.MQTTFormatTypes" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
+<p>Enum class for MQTT format types
+Possible values:
+- PLAIN (plain): Plain format
+- FIWARE_ATTR (fiware-attr): FIWARE attribute format
+- FIWARE_CMDEXE (fiware-cmdexe): FIWARE command execution format
+- TEMPLATE (template): Template-based format</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="encodapy.config.types.MQTTFormatTypes.FIWARE_ATTR">
+<span class="sig-name descname"><span class="pre">FIWARE_ATTR</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'fiware-attr'</span></em><a class="headerlink" href="#encodapy.config.types.MQTTFormatTypes.FIWARE_ATTR" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="encodapy.config.types.MQTTFormatTypes.FIWARE_CMDEXE">
+<span class="sig-name descname"><span class="pre">FIWARE_CMDEXE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'fiware-cmdexe'</span></em><a class="headerlink" href="#encodapy.config.types.MQTTFormatTypes.FIWARE_CMDEXE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="encodapy.config.types.MQTTFormatTypes.PLAIN">
+<span class="sig-name descname"><span class="pre">PLAIN</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'plain'</span></em><a class="headerlink" href="#encodapy.config.types.MQTTFormatTypes.PLAIN" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="encodapy.config.types.MQTTFormatTypes.TEMPLATE">
+<span class="sig-name descname"><span class="pre">TEMPLATE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'template'</span></em><a class="headerlink" href="#encodapy.config.types.MQTTFormatTypes.TEMPLATE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt class="sig sig-object py" id="encodapy.config.types.TimerangeTypes">
 <em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.config.types.</span></span><span class="sig-name descname"><span class="pre">TimerangeTypes</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">values</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/encodapy/config/types.html#TimerangeTypes"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.config.types.TimerangeTypes" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference external" href="https://docs.python.org/3/library/enum.html#enum.Enum" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">Enum</span></code></a></p>
@@ -246,6 +280,29 @@
 <dl class="py attribute">
 <dt class="sig sig-object py" id="encodapy.config.types.TimerangeTypes.RELATIVE">
 <span class="sig-name descname"><span class="pre">RELATIVE</span></span><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">'relative'</span></em><a class="headerlink" href="#encodapy.config.types.TimerangeTypes.RELATIVE" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class pydantic_model">
+<dt class="sig sig-object py" id="encodapy.config.mqtt_messages_template.MQTTTemplateConfigDoc">
+<em class="property"><span class="pre">pydantic</span> <span class="pre">model</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">encodapy.config.mqtt_messages_template.</span></span><span class="sig-name descname"><span class="pre">MQTTTemplateConfigDoc</span></span><a class="reference internal" href="../_modules/encodapy/config/mqtt_messages_template.html#MQTTTemplateConfigDoc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#encodapy.config.mqtt_messages_template.MQTTTemplateConfigDoc" title="Link to this definition"></a></dt>
+<dd><p>Model for MQTT template configuration.</p>
+<p><strong>Mock class for documentation purposes.</strong></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>In the actual implementation, <cite>topic</cite> and <cite>payload</cite> are <cite>jinja2.Template</cite> objects.
+This mock uses <cite>dict</cite> to avoid import issues during documentation generation.</p>
+<p>For more information,            see <a class="reference internal" href="interfaces.html#encodapy.config.mqtt_messages_template.MQTTTemplateConfig" title="encodapy.config.mqtt_messages_template.MQTTTemplateConfig"><code class="xref py py-class docutils literal notranslate"><span class="pre">MQTTTemplateConfig</span></code></a>.</p>
+</div>
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.config.mqtt_messages_template.MQTTTemplateConfigDoc.topic">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">topic</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.config.mqtt_messages_template.MQTTTemplateConfigDoc.topic" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute pydantic_field">
+<dt class="sig sig-object py" id="encodapy.config.mqtt_messages_template.MQTTTemplateConfigDoc.payload">
+<em class="property"><span class="pre">field</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">payload</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">dict</span></code></a></em><em class="property"> <span class="pre">[Required]</span></em><a class="headerlink" href="#encodapy.config.mqtt_messages_template.MQTTTemplateConfigDoc.payload" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 </dd></dl>
